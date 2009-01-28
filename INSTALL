@@ -1,0 +1,25 @@
+  Installation instruction for liboro
+***************************************
+
+Quick steps
+-----------
+
+If freshly checkouted, first do:
+
+> autogen.sh
+
+Then, for everyone:
+
+> mkdir build
+> cd build
+> ../configure --prefix=[INSTALLATION PATH] --with-yarp=[PATH TO YARP INSTALLATION]
+> make
+> make install
+
+Assuming a ontology server (started with oro_test.owl as test ontology for best results) and a YARP nameserver are both already running (and are accessible from your network), you can check everything is working with
+> make regress
+
+Details, examples, barbapapa
+----------------------------
+
+https://www.laas.fr/~slemaign/wiki/doku.php?id=ontologiesonline

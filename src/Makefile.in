@@ -1,0 +1,76 @@
+#Makefile for liboro
+# (c) LAAS-CNRS 2009
+
+PACKAGE_VERSION = @PACKAGE_VERSION@
+
+top_builddir = @top_builddir@
+abs_top_srcdir = @abs_top_srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = $(prefix)
+includedir = @includedir@
+bindir = @bindir@
+libdir = @libdir@
+datadir = @datadir@
+
+LIB_HDR = liboro.h
+LIB_SRC = liboro.cpp
+TEST_SRC = liboro-test.cpp
+
+CXX = @CXX@
+INSTALL = @INSTALL@
+CXXFLAGS = @CXXFLAGS@
+CPPFLAGS = @CPPFLAGS@
+CPPFLAGS += -I.
+LDFLAGS = @LDFLAGS@
+LDFLAGS += -L.
+
+LIBS = @LIBS@
+
+LIBTOOL	= @LIBTOOL@
+LTCC = $(LIBTOOL) --mode=compile $(CXX)
+LTLD	 = $(LIBTOOL) --mode=link $(CXX) -release $(PACKAGE_VERSION)
+LTCL = $(LIBTOOL) --mode=clean rm -rf
+LTINST = $(LIBTOOL) --mode=install cp		
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+
+CLEAN = rm -rf
+
+LIB_OBJ = $(LIB_SRC:%.cpp=%.lo)
+TEST_OBJ = $(TEST_SRC:%.cpp=%.lo)
+
+%.lo : %.cpp
+	$(LTCC) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+
+all : lib liboro-test
+
+lib : liboro.la
+
+liboro.la : $(LIB_OBJ) 
+	$(LTLD) $(CPPFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^ -rpath $(prefix)/lib 
+
+liboro-test : $(TEST_OBJ) liboro.la
+	$(LTLD) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ -rpath $(prefix)/lib
+	
+install-header: $(LIB_HDR)
+	$(INSTALL) -d $(prefix)/include
+	$(INSTALL) $^ $(prefix)/include
+
+install : lib liboro-test install-header
+	$(INSTALL) -d $(prefix)/lib
+	$(INSTALL) -d $(prefix)/bin
+	$(LTINST) liboro.la $(prefix)/lib
+	$(LTINST) liboro-test $(prefix)/bin
+
+distclean: clean
+	$(CLEAN) $(prefix)/include
+	$(CLEAN) $(prefix)/bin
+	$(CLEAN) $(prefix)/lib
+
+clean :
+	$(LTCL) liboro-test liboro.la *.lo
+
+
+regress:
+	$(prefix)/bin/liboro-test

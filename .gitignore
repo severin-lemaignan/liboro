@@ -1,0 +1,13 @@
+config.guess
+config.sub
+configure
+ltmain.sh
+.cproject
+.project
+.cdtconfigure.Build (GNU)
+autom4te.cache/
+bin/
+build/
+lib/
+.libs/
+include/
