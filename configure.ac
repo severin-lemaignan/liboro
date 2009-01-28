@@ -18,11 +18,13 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 AC_SUBST(PACKAGE_VERSION)
+AC_SUBST(PATH_YARP)
 
 AC_ARG_WITH(yarp,
 	[AS_HELP_STRING([--with-yarp],
         [specify path to Yarp library])],
         PATH_YARP=$withval)
+
 
 LIBS="$LIBS -lYARP_OS"
 CPPFLAGS="$CPPFLAGS -I$PATH_YARP/include"

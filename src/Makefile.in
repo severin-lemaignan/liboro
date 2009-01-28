@@ -27,6 +27,7 @@ LDFLAGS = @LDFLAGS@
 LDFLAGS += -L.
 
 LIBS = @LIBS@
+PATH_YARP = @PATH_YARP@
 
 LIBTOOL	= @LIBTOOL@
 LTCC = $(LIBTOOL) --mode=compile $(CXX)
@@ -48,7 +49,7 @@ all : lib liboro-test
 lib : liboro.la
 
 liboro.la : $(LIB_OBJ) 
-	$(LTLD) $(CPPFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^ -rpath $(prefix)/lib 
+	$(LTLD) $(CPPFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^ -rpath $(PATH_YARP)/lib
 
 liboro-test : $(TEST_OBJ) liboro.la
 	$(LTLD) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ -rpath $(prefix)/lib
