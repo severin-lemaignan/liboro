@@ -58,7 +58,7 @@ int main(void) {
 	vector<string> result;
 
 
-	Oro oro("myDevice", "oro");
+	Oro& oro = *Oro::getInstance("myDevice", "oro");
 
 	cout << "********* TEST ORO *********" << endl;
 	cout << "(need a server with onto_test.owl as base ontology)" << endl;

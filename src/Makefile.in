@@ -15,7 +15,7 @@ libdir = @libdir@
 datadir = @datadir@
 
 LIB_HDR = liboro.h
-LIB_SRC = liboro.cpp
+LIB_SRC = liboro.cpp concept.cpp
 TEST_SRC = liboro-test.cpp
 
 CXX = @CXX@

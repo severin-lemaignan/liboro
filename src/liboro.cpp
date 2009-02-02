@@ -39,6 +39,9 @@
 #include <yarp/os/Bottle.h>
 #include <yarp/os/Time.h>
 
+#include <time.h>
+#include <stdlib.h>
+
 #include "liboro.h"
 
 using namespace yarp::os;
@@ -46,6 +49,7 @@ using namespace std;
 
 namespace openrobots {
 
+	//Defines two constants needed to decode YARP status.
 	const char* OK = "ok";
 	const char* ERROR = "error";
 
@@ -199,8 +203,24 @@ class YarpConnector {
 
 	Oro::Oro(const string port_name, const string oro_in_port_name) {
 
+		srand(time(NULL));
+
 		yarp = new YarpConnector(port_name, oro_in_port_name);
 
+	}
+
+	Oro* Oro::getInstance(const string port_name, const string oro_in_port_name)
+	{
+		_instance = new Oro(port_name, oro_in_port_name);
+
+		return _instance;
+	}
+
+	Oro* Oro::getInstance()
+	{
+		if (_instance == NULL)
+			return _instance;
+		else return NULL;
 	}
 
 	Oro::~Oro()
@@ -357,6 +377,18 @@ class YarpConnector {
 			string tmp = bottle.pop().asString().c_str();
 			result.push_back(tmp);
 		}
+	}
+
+	static string getNewId(int length)
+	{
+			string result;
+
+			for(int i=0; i<length; i++)
+			{
+				result += (char)(rand() % 26 + 97); //ASCII codes of letters starts at 98 for "a"
+			}
+
+			return result;
 	}
 
 

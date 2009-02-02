@@ -45,6 +45,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/logic/tribool.hpp>
+
 namespace yarp {
 	namespace os{
 		class Bottle;
@@ -57,271 +59,288 @@ class YarpConnector;
 
 /**
  * This class defines which methods are open to <a href="http://eris.liralab.it/yarp/">YARP</a> requests.<br/>
- * All methods listed here should be implemented by compliant clients. For C++, <pre><a href="https://www.laas.fr/~slemaign/wiki/doku.php?id=liboro">liboro</a></pre> does the job.</br>
- * You'll find below C++ code samples using <pre>liboro</pre>.
  */
 class Oro {
 
+public:
+	static Oro* getInstance(const std::string port_name, const std::string oro_in_port_name);
+	static Oro* getInstance();
+
+	virtual ~Oro();
+
+/**
+ * Adds a new statement to the ontology.
+ * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#add(String)}. Please follow the link for details.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ *
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ *
+ * 		oro.add("gorilla rdf:type Monkey");
+ * 		oro.add("gorilla age 12^^xsd:int");
+ * 		oro.add("gorilla weight 75.2");
+ *
+ * 		return 0;
+ * }
+ * </pre>
+ */
+bool add(const std::string& statement);
+
+/**
+ * Adds a set of statements to the ontology.
+ * Like {@link #add(String)} but for sets of statements.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ *
+ * 		vector<string> stmts;
+ *
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ *
+ * 		stmts.push_back("gorilla rdf:type Monkey");
+ * 		stmts.push_back("gorilla age 12^^xsd:int");
+ * 		stmts.push_back("gorilla weight 75.2");
+ *
+ * 		oro.add(stmts);
+ *
+ * 		return 0;
+ * }
+ * </pre>
+ */
+bool add(const std::vector<std::string>& statements);
+
+/**
+ * Tries to identify a resource given a set of partially defined statements plus restrictions about this resource.
+ * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)}. Please follow the link for details.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ * 		vector&lt;string&gt; result;
+ * 		vector&lt;string&gt; partial_stmts;
+ * 		vector&lt;string&gt; filters;
+ *
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ *
+ * 		partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
+ * 		partial_stmts.push_back("?mysterious oro:weight ?value");
+ *
+ * 		filters.push_back("?value >= 50");
+ *
+ * 		oro.find(&quot;mysterious&quot;, partial_stmts, filters, result);
+ * 		return 0;
+ * }
+ * </pre>
+ */
+int find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<std::string>& result);
+
+/**
+ * Tries to identify a resource given a set of partially defined statements about this resource.
+ * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector)}. Please follow the link for details.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ * 		vector&lt;string&gt; result;
+ * 		vector&lt;string&gt; partial_stmts;
+ *
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ *
+ * 		partial_stmts.push_back("?mysterious oro:eats oro:banana_tree");
+ * 		partial_stmts.push_back("?mysterious oro:isFemale true^^xsd:boolean");
+ *
+ * 		oro.find(&quot;mysterious&quot;, partial_stmts, result);
+ * 		return 0;
+ * }
+ * </pre>
+ */
+int find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
+
+/**
+ * Returns the set of asserted and inferred statements whose the given node
+ * is part of.<br/>
+ * YARP interface to
+ * {@link laas.openrobots.ontology.OpenRobotsOntology#getInfos(String)}.
+ * Please follow the link for details.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ * 		vector&lt;string&gt; result;
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ * 		oro.getInfos(&quot;monkey&quot;, result);
+ * 		return 0;
+ * }
+ * </pre>
+ */
+int getInfos(const std::string& resource, std::vector<std::string>& result);
+
+/**
+ * Same as {@link #getInfos(Value)} but returns the set of asserted and
+ * inferred statements in a human-friendly way.<br/>
+ */
+int getHumanReadableInfos(const std::string& resource, std::vector<std::string>& result);
+
+/**
+ * Tries to approximately identify an individual given a set of known
+ * statements about this resource.<br/>
+ * YARP interface to
+ * {@link laas.openrobots.ontology.OpenRobotsOntology#guess(String, Vector, double)}
+ * . Please follow the link for details.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ * 		vector&lt;string&gt; result;
+ * 		vector&lt;string&gt; partial_stmts;
+ *
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ *
+ * 		partial_stmts.push_back(&quot;?mysterious age \&quot;40\&quot;&circ;&circ;xsd:int&quot;);
+ * 		partial_stmts.push_back(&quot;?mysterious weight \&quot;60\&quot;&circ;&circ;xsd:double&quot;);
+ *
+ * 		oro.guess(&quot;mysterious&quot;, 0.8, partial_stmts, result);
+ * 		return 0;
+ * }
+ * </pre>
+ */
+int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
+
+/**
+ * Performs a SPARQL query on the OpenRobots ontology.<br/>
+ * YARP interface to
+ * {@link laas.openrobots.ontology.OpenRobotsOntology#query(String)}. Please
+ * follow the link for details.<br/>
+ * This method can only have one variable to select. See
+ * {@link #queryAsXML(Value)} to select several variables.<br/>
+ *
+ * YARP C++ code snippet:
+ *
+ * <pre>
+ * #include &quot;liboro.h&quot;
+ *
+ * using namespace std;
+ * using namespace openrobots;
+ * int main(void) {
+ * 		vector&lt;string&gt; result;
+ * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+ * 		oro.query(&quot;instances&quot;, &quot;SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n&quot;, result);
+ * 		return 0;
+ * }
+ * </pre>
+ */
+int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
+
+/**
+ * Returns the complete XML-encoded SPARQL result (works as well with
+ * several selected variables).<br/>
+ * YARP interface to
+ * {@link laas.openrobots.ontology.OpenRobotsOntology#queryAsXML(String)}.
+ * Please follow the link for details.<br/>
+ * <br/>
+ *
+ * @throws MalformedYarpMessageException
+ *
+ * @see #query(String)
+ * @see laas.openrobots.ontology.OpenRobotsOntology#query(String)
+ */
+int queryAsXML(const std::string& query, std::string& result);
+
+/**
+ * A simple test to check if the YARP connector is working.<br/>
+ * It can be called with a string as argument and it will return the string appended to another one.
+ */
+
+int test(const std::string& test, std::string& result);
+
+/**
+ * Generate a new random id which can be used to name new objects. Attention! no check for collision!
+ *
+ * @parameter length the length of the id. Default is 6 characters.
+ */
+static char* newId(int length = 8);
+
+protected:
+	YarpConnector* yarp;
+	Oro(const std::string port_name, const std::string oro_in_port_name);
+
+private:
+	static Oro* _instance;
+	void pourBottle(yarp::os::Bottle&, std::vector<std::string>&);
+};
+
+/*********************************************************
+ *                      Class Concept                    *
+ *********************************************************/
+
+class Concept {
 	public:
-		Oro(const std::string port_name, const std::string oro_in_port_name);
-		virtual ~Oro();
+		Concept();
+		static Concept createFromId(std::string id);
+		static Concept create(std::string label);
+		static Concept create(std::string label, std::string type);
+		static Concept createWithType(std::string type);
 
-		/**
-		 * Adds a new statement to the ontology.
-		 * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#add(String)}. Please follow the link for details.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 *
-		 * 		oro.add("gorilla rdf:type Monkey");
-		 * 		oro.add("gorilla age 12^^xsd:int");
-		 * 		oro.add("gorilla weight 75.2");
-		 *
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 * @throws IllegalStatementException
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#add(String)
-		 */
-		bool add(const std::string& statement);
+		void assert(std::string predicate, std::string value);
+		void assert(std::string predicate, Concept value);
 
-		/**
-		 * Adds a set of statements to the ontology.
-		 * Like {@link #add(String)} but for sets of statements.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 *
-		 * 		vector<string> stmts;
-		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 *
-		 * 		stmts.push_back("gorilla rdf:type Monkey");
-		 * 		stmts.push_back("gorilla age 12^^xsd:int");
-		 * 		stmts.push_back("gorilla weight 75.2");
-		 *
-		 * 		oro.add(stmts);
-		 *
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 * @throws MalformedYarpMessageException
-		 * @throws IllegalStatementException
-		 *
-		 */
-		bool add(const std::vector<std::string>& statements);
+		void clear(std::string predicate);
 
-		/**
-		 * Tries to identify a resource given a set of partially defined statements plus restrictions about this resource.
-		 * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)}. Please follow the link for details.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
-		 * 		vector&lt;string&gt; filters;
-		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 *
-		 * 		partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
-		 * 		partial_stmts.push_back("?mysterious oro:weight ?value");
-		 *
-		 * 		filters.push_back("?value >= 50");
-		 *
-		 * 		oro.find(&quot;mysterious&quot;, partial_stmts, filters, result);
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)
-		 */
-		int find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<std::string>& result);
+		boost::logic::tribool has(std::string predicate, std::string value);
+		boost::logic::tribool has(std::string predicate, Concept value);
 
-		/**
-		 * Tries to identify a resource given a set of partially defined statements about this resource.
-		 * YARP interface to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector)}. Please follow the link for details.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
-		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 *
-		 * 		partial_stmts.push_back("?mysterious oro:eats oro:banana_tree");
-		 * 		partial_stmts.push_back("?mysterious oro:isFemale true^^xsd:boolean");
-		 *
-		 * 		oro.find(&quot;mysterious&quot;, partial_stmts, result);
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector)
-		 */
-		int find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
+		std::string id();
 
-		/**
-		 * Returns the set of asserted and inferred statements whose the given node
-		 * is part of.<br/>
-		 * YARP interface to
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#getInfos(String)}.
-		 * Please follow the link for details.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 * 		oro.getInfos(&quot;monkey&quot;, result);
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 *
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#getInfos(String)
-		 */
-		int getInfos(const std::string& resource, std::vector<std::string>& result);
+		boost::logic::tribool is(std::string boolDatatype);
 
-		/**
-		 * Same as {@link #getInfos(Value)} but returns the set of asserted and
-		 * inferred statements in a human-friendly way.<br/>
-		 *
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see #getInfos(String)
-		 */
-		int getHumanReadableInfos(const std::string& resource, std::vector<std::string>& result);
+		boost::logic::tribool isA(std::string type){return hasType(type);}
+		boost::logic::tribool hasType(std::string type);
+		void setType(std::string type);
 
-		/**
-		 * Tries to approximately identify an individual given a set of known
-		 * statements about this resource.<br/>
-		 * YARP interface to
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#guess(String, Vector, double)}
-		 * . Please follow the link for details.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
-		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 *
-		 * 		partial_stmts.push_back(&quot;?mysterious age \&quot;40\&quot;&circ;&circ;xsd:int&quot;);
-		 * 		partial_stmts.push_back(&quot;?mysterious weight \&quot;60\&quot;&circ;&circ;xsd:double&quot;);
-		 *
-		 * 		oro.guess(&quot;mysterious&quot;, 0.8, partial_stmts, result);
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 *
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#guess(String, Vector,
-		 *      double)
-		 */
-		int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
+		void setLabel(std::string label);
+		std::string label();
 
-		/**
-		 * Performs a SPARQL query on the OpenRobots ontology.<br/>
-		 * YARP interface to
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#query(String)}. Please
-		 * follow the link for details.<br/>
-		 * This method can only have one variable to select. See
-		 * {@link #queryAsXML(Value)} to select several variables.<br/>
-		 *
-		 * YARP C++ code snippet:
-		 *
-		 * <pre>
-		 * #include &quot;liboro.h&quot;
-		 *
-		 * using namespace std;
-		 * using namespace openrobots;
-		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 * 		oro.query(&quot;instances&quot;, &quot;SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n&quot;, result);
-		 * 		return 0;
-		 * }
-		 * </pre>
-		 *
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#query(String)
-		 */
-		int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
-
-		/**
-		 * Returns the complete XML-encoded SPARQL result (works as well with
-		 * several selected variables).<br/>
-		 * YARP interface to
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#queryAsXML(String)}.
-		 * Please follow the link for details.<br/>
-		 * <br/>
-		 *
-		 * @throws MalformedYarpMessageException
-		 *
-		 * @see #query(String)
-		 * @see laas.openrobots.ontology.OpenRobotsOntology#query(String)
-		 */
-		int queryAsXML(const std::string& query, std::string& result);
-
-		/**
-		 * A simple test to check if the YARP connector is working.<br/>
-		 * It can be called with a string as argument and it will return the string appended to another one.
-		 *
-		 * @throws MalformedYarpMessageException
-		 */
-
-		int test(const std::string& test, std::string& result);
+		void remove(std::string predicate, std::string value);
+		void remove(std::string predicate, Concept value);
 
 
 	private:
-		YarpConnector* yarp;
-		void pourBottle(yarp::os::Bottle&, std::vector<std::string>&);
+		std::string _id, _label;
+		openrobots::Oro &oro;
 };
-
 
 
 /*********************************************************
@@ -332,6 +351,33 @@ class OntologyServerException : public std::runtime_error {
 	 public:
 		 OntologyServerException() : std::runtime_error("OntologyServerException") { }
 		 OntologyServerException(const char* msg) : std::runtime_error(msg) { }
+};
+
+/**
+ * Thrown if two statements are to be asserted for the same (subject, predicate) couple when the predicate is functional.
+ */
+class FunctionalPredicateException : public std::runtime_error {
+	 public:
+		 FunctionalPredicateException() : std::runtime_error("Error: two statements involving the same functional predicate!") { }
+		 FunctionalPredicateException(const char* msg) : std::runtime_error(msg) { }
+};
+
+/**
+ * Thrown if an individual is set to have two different types (classes) which are disjoint.
+ */
+class DisjointTypesException : public std::runtime_error {
+	 public:
+		 DisjointTypesException() : std::runtime_error("An individual may not have two disjoint types.") { }
+		 DisjointTypesException(const char* msg) : std::runtime_error(msg) { }
+};
+
+/**
+ * Thrown if an individual is set to have two different types (classes) which are disjoint.
+ */
+class NonBooleanDatatypePropertyException : public std::runtime_error {
+	 public:
+		 NonBooleanDatatypePropertyException() : std::runtime_error("The datatype property invoked from a Concept.is(property) is not boolean.") { }
+		 NonBooleanDatatypePropertyException(const char* msg) : std::runtime_error(msg) { }
 };
 
 }
