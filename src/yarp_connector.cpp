@@ -34,6 +34,9 @@
  *
 */
 
+#include <iostream>
+#include <iterator>
+
 #include "oro_exceptions.h"
 #include "yarp_connector.h"
 
@@ -80,64 +83,55 @@ YarpConnector::YarpConnector(const string port_name, const string oro_in_port_na
 	// Name the ports
 	oro_server = oro_in_port_name;
 
-	in_port = "/" + port_name + "_in";
-	out_port = "/" + port_name + "_out";
+	in_port = "/" + port_name + "/in";
+	out_port = "/" + port_name + "/out";
 	in.open( in_port.c_str() );
 	out.open( out_port.c_str());
 
-	// Connect the ports so that anything written from /out arrives to /in
-	Network::connect(out_port.c_str() ,("/" + oro_in_port_name).c_str() );
-
-	// Connect the ports so that anything written from /out arrives to /in
-	Network::connect(("/" + oro_in_port_name + "_out").c_str(), in_port.c_str());
+	// Connect the local output port to the ontology server incoming port.
+	// No connection to the server results port since this connection is handled by the ontology server itself.
+	Network::connect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );	
 	
-	cout << "Connection to Yarp network ok" << endl;
+	//cout << "Connection to Yarp network ok" << endl;
 
 }
 
-void YarpConnector::execute(const string query, const string args){
-	// Send one "Bottle" object.  The port is responsible for creating
-	// and reusing/destroying that object, since it needs to be sure
-	// it exists until communication to all recipients (just one in
-	// this case) is complete.
+ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
+	
+	ServerResponse res;
 
-	Bottle& outBot = out.prepare();   // Get the object
-	outBot.clear();
-	outBot.fromString((in_port + " " + query).c_str()); //Prepend the query with the port name where the server should send back the result.
-	Bottle& argsBot = outBot.addList();
-	argsBot.fromString(args.c_str());
-
-	printf("Writing bottle (%s)\n", outBot.toString().c_str());
-
-	out.write();                       // Now send it on its way
-
-}
-
-void YarpConnector::execute(const string query, const vector<string>& vect_args){
 	//TODO: Clean the mess in variable name
 	
 	// Send one "Bottle" object.  The port is responsible for creating
 	// and reusing/destroying that object, since it needs to be sure
 	// it exists until communication to all recipients (just one in
 	// this case) is complete.
-
+	
 	Bottle& outBot = out.prepare();   // Get the object
 	outBot.clear();
+
 	outBot.fromString((in_port + " " + query).c_str()); //Prepend the query with the port name where the server should send back the result.
+
 	Bottle& argsBot = outBot.addList();
 	
 	Bottle args;
 	vectorToBottle(vect_args, args);
 	
 	argsBot.append(args);
-
-	printf("Writing bottle (%s)\n", outBot.toString().c_str());
-
+	
+	//printf("Writing bottle (%s)\n", outBot.toString().c_str());
+	
 	out.write();                       // Now send it on its way
-
+	
+	read(res);
+	
+	return res;
 }
 
-void YarpConnector::execute(const string query){
+ServerResponse YarpConnector::execute(const string query){
+	
+	ServerResponse res;
+	
 	//TODO: Clean the mess in variable name
 	
 	// Send one "Bottle" object.  The port is responsible for creating
@@ -149,25 +143,48 @@ void YarpConnector::execute(const string query){
 	outBot.clear();
 	outBot.fromString((in_port + " " + query).c_str()); //Prepend the query with the port name where the server should send back the result.
 
-	printf("Writing bottle (%s)\n", outBot.toString().c_str());
+	//printf("Writing bottle (%s)\n", outBot.toString().c_str());
 
 	out.write();                       // Now send it on its way
-
+	
+	read(res);
+	
+	return res;
 }
 
 
-void YarpConnector::read(Bottle& inBot){
+void YarpConnector::read(ServerResponse& res){
+	
+		//cout << "Waiting for answer...";
 
 		Bottle *rawResult = in.read();
+		
+		//cout << "got it!" << endl;
+		
+		if (!rawResult->get(0).isString()) throw OntologyServerException("Internal error! The server answer should start with a status string!");
 
-		if (!rawResult->get(0).isString() || !(rawResult->get(0).asString() == OK || rawResult->get(0).asString() == "error")) throw OntologyServerException("The server answer should start with \"ok\" or \"error\"");
 
-		if (rawResult->get(0).asString() == ERROR)
-			throw OntologyServerException(rawResult->get(1).asString());
+		if (rawResult->get(0).asString() == ERROR){
+			//throw OntologyServerException(rawResult->get(1).asString());
+			res.status = ServerResponse::failed;
+			res.exception_msg = rawResult->get(1).asString();
+			cout << "ERROR Query to ontology server failed." << endl;
+			return;
+		}
 
-		inBot = *(rawResult->pop().asList());
+		if (rawResult->get(0).asString() == OK){
+			res.status = ServerResponse::ok;
+			
+			//TODO !!! segfault here. je ne récupère pas les résultats !!
+			//pourBottle(*(rawResult->pop().asList()), res.result);
+			
+			//cout << "Query to ontology server succeeded." << endl;
+			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
+			return;
+		}
 
-		//printf("Bottle recieved is: %s\n", inBot->toString().c_str());
+		throw OntologyServerException("Internal error! The server answer should start with \"ok\" or \"error\"");
+		
 }
 
 void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
@@ -190,8 +207,7 @@ YarpConnector::~YarpConnector()
 {
 
 //TODO Ca segfault ici...
-	Network::disconnect(out_port.c_str() ,("/" + oro_server).c_str() );
-	Network::disconnect(("/" + oro_server + "_out").c_str(), in_port.c_str());
+	Network::disconnect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );	
 
 	in.close();
 	out.close();
@@ -201,10 +217,12 @@ YarpConnector::~YarpConnector()
 void YarpConnector::pourBottle(Bottle& bottle, vector<string>& result)
 {
 	result.clear();
+	cout << bottle.size() << endl;
 
 	while (bottle.size() > 0)
 	{
 		string tmp = bottle.pop().asString().c_str();
+		cout << tmp << endl;
 		result.push_back(tmp);
 	}
 }

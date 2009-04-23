@@ -5,6 +5,9 @@
  *      Author: slemaign
  */
 
+#include <string>
+#include <sstream>
+
 #include "oro.h"
 
 using namespace std;
@@ -14,6 +17,22 @@ namespace oro {
 	
 	Statement::Statement(const Concept& _subject, const Property& _predicate, const std::string& _object):subject(_subject), predicate(_predicate), object(Concept::nothing), literal_object(_object), isObjectLiteral(true){}
 		
+	Statement Statement::create(const string stmt){
+		
+		string buf; // Have a buffer string
+		stringstream ss(stmt); // Insert the string into a stream
+
+		vector<string> tokens; // Create vector to hold the parts of the statement
+
+		while (ss >> buf)
+			tokens.push_back(buf);
+		
+		if (tokens.size() != 3)
+			throw InvalidStatementException();
+
+		//TODO This will always generate a statement with a literal object...
+		return Statement(Concept(tokens[0]), Property(tokens[1]), tokens[2]);
+	}
 	/**
 	 * Returns a computer-friendly string describing the statement.
 	 */

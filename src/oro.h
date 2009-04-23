@@ -40,6 +40,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <typeinfo>
 
 #include <boost/logic/tribool.hpp>
 
@@ -71,7 +72,7 @@ class Ontology {
 		 * Return a pointer to the current instance of the ontology server.
 		 * The server must be initialized by Oro::getInstance(local_port_name, oro_distant_server);
 		 *
-		 * TODO Throws UninitializedOntologyException if called before initialization.
+		 * Throws UninitializedOntologyException if called before initialization.
 		*/
 		static Ontology* getInstance();
 		
@@ -251,6 +252,12 @@ class Ontology {
  		*/
 		int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
 		
+		/**
+		* Saves the in-memory ontology model to a RDF/XML file.
+		* 
+		* @parameter path The path and name of the OWL file to save to (for instance {@code ./ontos/saved.owl})
+		*/
+		void save(const std::string& path);
 		
 		/**
 		* Generate a new random id which can be used to name new objects. Attention! no check for collision!
@@ -262,7 +269,8 @@ class Ontology {
 		void remove(const std::vector<Statement>& statements);
 				
 		void remove(const Statement& statement);
-		
+
+
 	protected:
 		IConnector& _connector;
 		Ontology(IConnector& connector);
@@ -301,9 +309,6 @@ class Class {
 			return stream;
 		}
 		
-		static Class& Nothing;
-		static Class& Thing;
-		
 	protected:
 		std::string _name;
 };
@@ -320,10 +325,13 @@ class Property {
 		 */
 		Property(const std::string& name);
 		
+		/**
+		 * Return the name of the property
+		 */
 		std::string name() const {return _name;}
 		
 		/**
-		 * Print, in a computer-friendly way, the property.
+		 * Return, in a computer-friendly way, the property id. Does currently the same as Property.name().
 		 */
 		std::string to_string() const {return _name;}
 		
@@ -346,11 +354,16 @@ class Concept {
 	public:
 		Concept();
 		Concept(const std::string& id);
-		
+				
 		//Creates and returns a copy of the newly created concept.
 		template<class T> static T create(const std::string& label) {
 			T concept;
 			concept.setLabel(label);
+			
+			//If the template type is one of these common classes, we set the right type for the ontology.
+			if (typeid(T).name() == "Agent") concept.setType(Class("Agent"));
+			if (typeid(T).name() == "Object") concept.setType(Class("Object"));
+			if (typeid(T).name() == "Action") concept.setType(Class("Action"));
 
 			return concept;
 		}
@@ -403,7 +416,7 @@ class Concept {
 		/**
 		 * Removes all the assertions in the ontology which have the current concept as subject and the given property as predicate.\n Assertions with subproperties as predicate are not removed.
 		 * \param predicate the property whose assertions are to be removed.
-				 */
+		 */
 		void clear(const Property& predicate);
 		
 		/**
@@ -427,6 +440,11 @@ class Concept {
 		 */
 		std::string id() const;
 
+		/**
+		 * Returns the status (true or false) of some boolean property.
+		 * @param boolDataproperty 
+		 * @return \p true of \p false if the property is set, \p indeterminate in other cases.
+		 */
 		boost::logic::tribool is(const Property& boolDataproperty) const;
 
 		/**
@@ -452,6 +470,11 @@ class Concept {
 		 * \return \p true or \p false if it's possible to infer the answer, \p indeterminate in other cases.
 		 */
 		void setType(const Class& type);
+		
+		/**
+		 * 
+		 */
+		const Class& type() const;
 
 		/**
 		 * Sets a human-readable label for this concept.\n
@@ -495,19 +518,22 @@ class Concept {
 
 /**
  * This represent an object (ie an instance of the "Object" class) of the OpenRobots ontology. An object is a spacially localized and at least partially tangible kind of thing.\n
- * This class provides common, higher-level functionnalities over the base class \p Concept .
+ * This class provides common, higher-level functionnalities over the base class \p Concept .\n
+ * To create a new Agent instance, use the Concept::create<Object>() factory.
  */
 class Object : public Concept {
 	public:		
 		boost::logic::tribool hasAbsolutePosition();
 		
 		/**
-		 * Returns a concept which represent the location of the current object, as far as it can be inderred from the ontology.\n
+		 * Returns a concept which represent the location of the current object, as far as it can be inferred from the ontology.\n
 		 * If no position has been asserted or can be inferred, \p Concept::nothing is returned.
 		 * 
 		 * \see Concept::nothing
 		 */
 		Concept hasPosition();
+		
+		void setColor(const std::string& hue);
 };
 
 //Forward declaration
@@ -515,17 +541,25 @@ class Action;
 
 /**
  * This represent an agent (ie an instance of the "Agent" class) of the OpenRobots ontology. An agent is a special kind of object, endowed with some kind of intelligence. In the OpenRobots ontology, agents are either humans or robots.\n
- * This class provides common, higher-level functionnalities over the base classes \p Concept and \p Object .
+ * This class provides common, higher-level functionnalities over the base classes \p Concept and \p Object \n
+ * To create a new Agent instance, use the Concept::create<Agent>() factory.
  */
 class Agent : public Object {
 	public:
+		/**
+		 * This static field is always accessible and represent in the ontology "myself", ie the agent doing the reasonning.
+		 */
+		//static const Agent myself;
 		void desires(const Action& action);
 		void currentlyPerforms(const Action& action);
 };
 
+//const Agent Agent::myself = Concept::create<Agent>("myself");
+
 /**
  * This represent an action (ie an instance of the "Action" class) of the OpenRobots ontology. An action is a special kind of event, carried out by an agent.\n
- * This class provides common, higher-level functionnalities over the base class \p Concept .
+ * This class provides common, higher-level functionnalities over the base class \p Concept .\n
+ * To create a new Agent instance, use the Concept::create<Action>() factory.
  */
 class Action : public Concept {
 	public:
@@ -535,17 +569,19 @@ class Action : public Concept {
 
 class Statement {
 	public:
-		const Concept& subject;
-		const Property& predicate;
+		Concept subject;
+		Property predicate;
 		
-		const Concept& object;
-		const std::string literal_object;
+		Concept object;
+		std::string literal_object;
 		
 		bool isObjectLiteral;
 		
 		
 		Statement(const Concept& subject, const Property& predicate, const Concept& object);
 		Statement(const Concept& subject, const Property& predicate, const std::string& object);
+		
+		static Statement create(const std::string stmt);
 		
 		/**
 		 * Returns a computer-friendly string describing the concept.

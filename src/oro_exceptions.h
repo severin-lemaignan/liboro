@@ -93,6 +93,15 @@ class ResourceNotFoundOntologyException : public OntologyException {
 		ResourceNotFoundOntologyException(const char* msg) : OntologyException(msg) { }
 };
 
+/**
+ * Thrown when a statement is not valid (for instance, contain only 2 tokens).
+ */
+class InvalidStatementException : public OntologyException {
+	public:
+		InvalidStatementException() : OntologyException("A statement must contain precisely 3 tokens (the subject, the predicate and the object)") { }
+		InvalidStatementException(const char* msg) : OntologyException(msg) { }
+};
+
 }
 
 #endif /* ORO_EXCEPTIONS_H_ */

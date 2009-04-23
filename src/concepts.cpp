@@ -6,6 +6,7 @@
  */
 
 #include "oro.h"
+#include "oro_library.h"
 
 using namespace boost::logic;
 using namespace std;
@@ -20,6 +21,7 @@ Concept::Concept():_id(Ontology::newId()), _label("") {}
 Concept::Concept(const std::string& id):_id(id), _label(""){}
 
 void Concept::assert(const Property& predicate, const std::string& value){
+	//cout << "Asserting " << _label << "(id: " << _id << ")" << predicate << " " << value << endl;
 	Ontology::getInstance()->add(Statement(*this, predicate, value));
 }
 
@@ -62,10 +64,11 @@ std::string Concept::id() const{
 
 boost::logic::tribool Concept::is(const Property& boolDataproperty) const{
 
-	throw OntologyException("Not yet implemented!");
 }
 
 boost::logic::tribool Concept::hasType(const Class& type) const{
+	
+	
 	throw OntologyException("Not yet implemented!");
 }
 void Concept::setType(const Class& type){
@@ -73,6 +76,7 @@ void Concept::setType(const Class& type){
 }
 
 void Concept::setLabel(const std::string& label){
+	assert(Property("rdfs:label"), "\"" + label + "\"");
 	_label = label;
 }
 std::string Concept::label() const{
@@ -80,11 +84,11 @@ std::string Concept::label() const{
 }
 
 void Concept::remove(const Property& predicate, const std::string& value){
-	throw OntologyException("Not yet implemented!");
+	Ontology::getInstance()->remove(Statement(*this, predicate, value));
 }
 
 void Concept::remove(const Property& predicate, const Concept& value){
-	throw OntologyException("Not yet implemented!");
+	Ontology::getInstance()->remove(Statement(*this, predicate, value.id()));
 }
 
 const Concept Concept::nothing = Concept();
@@ -98,6 +102,12 @@ boost::logic::tribool Object::hasAbsolutePosition(){
 
 Concept Object::hasPosition(){
 	throw OntologyException("Not yet implemented!");
+}
+
+void Object::setColor(const string& hue){
+	Concept color = Concept::create<Concept>(Classes::Color);
+	color.assert(Property("hue"), hue);
+	assert(Properties::hasColor, color);
 }
 		
 /*****************************************************************************
@@ -115,10 +125,10 @@ void Agent::currentlyPerforms(const Action& action){
 *                    	  Class Action					     *
 /****************************************************************************/
 void Action::object(const Concept& concept) {
-	throw OntologyException("Not yet implemented!");
+	assert(Properties::objectOfAction, concept);
 }
 void Action::recipient(const Object& object) {
-	throw OntologyException("Not yet implemented!");
+	assert(Properties::recipientOfAction, object);
 }
 
 }

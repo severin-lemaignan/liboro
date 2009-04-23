@@ -28,16 +28,13 @@ public:
 	
 	virtual ~YarpConnector();
 	
-	void execute(const std::string query, const std::vector<std::string>& args);
-	void execute(const std::string query);
+	ServerResponse execute(const std::string query, const std::vector<std::string>& args);
+	ServerResponse execute(const std::string query);
 	
-	void execute(const std::string query, const std::string args);
-
-
 private:
 	void pourBottle(yarp::os::Bottle&, std::vector<std::string>&);
 	void pourBottle(yarp::os::Bottle& bottle, std::vector<Concept>& result);
-	void read(yarp::os::Bottle& inBot);
+	void read(ServerResponse& response);
 	void vectorToBottle(const std::vector<std::string>& data, yarp::os::Bottle& bottle);
 
 	// Create two ports that we'll be using to transmit "Bottle" objects.

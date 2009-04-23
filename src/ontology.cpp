@@ -1,11 +1,12 @@
 /*
- * concept.cpp
+ * ontology.cpp
  *
  *  Created on: 2 févr. 2009
  *      Author: slemaign
  */
 
 #include "oro.h"
+#include "oro_exceptions.h"
 
 using namespace std;
 
@@ -13,7 +14,7 @@ namespace oro {
 
 Ontology* Ontology::_instance = NULL;
 
-// Private constructor
+// Protected constructor
 Ontology::Ontology(IConnector& connector) : _connector(connector) {
 	
 	//Initializes the random generator for later generation of unique id for concepts.
@@ -26,6 +27,8 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 Ontology* Ontology::createWithConnector(IConnector& connector){
 	if (_instance == NULL)
 		_instance = new Ontology(connector);
+	
+	cout << "liboro v.0.1 - ontology initialized" << endl;
 
 	return _instance;
 }
@@ -34,13 +37,11 @@ Ontology* Ontology::createWithConnector(IConnector& connector){
 Ontology* Ontology::getInstance(){
 	if (_instance != NULL)
 		return _instance;
-	else throw UninitializedOntologyException();
+	else throw UninitializedOntologyException("the ontology is not properly initialized. Created with Ontology::createWithConnector(IConnector&) before any access attempt.");
 }
 
 void Ontology::add(const Statement& statement){
-	//vector<string> tmp(1, statement.to_string());
-	//tmp.push_back(statement.to_string());
-	_connector.execute("add", vector<string>(1, statement.to_string()));
+	add(vector<Statement>(1, statement));	
 }
 
 void Ontology::add(const std::vector<Statement>& statements){
@@ -53,11 +54,13 @@ void Ontology::add(const std::vector<Statement>& statements){
 		++iterator;
 	}
 
-	_connector.execute("add", stringified_stmts);
+	ServerResponse res = _connector.execute("add", stringified_stmts);
+
+	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while adding statements. Server message was " + res.error_msg).c_str());
 }
 
 void Ontology::remove(const Statement& statement){
-	_connector.execute("remove", vector<string>(1, statement.to_string()));
+	remove(vector<Statement>(1, statement));
 }
 
 void Ontology::remove(const std::vector<Statement>& statements){
@@ -69,11 +72,17 @@ void Ontology::remove(const std::vector<Statement>& statements){
 		++iterator;
 	}
 
-	_connector.execute("remove", stringified_stmts);
+	ServerResponse res = _connector.execute("remove", stringified_stmts);
+	
+	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg).c_str());
 }
 
 bool Ontology::checkConsistency(){
 	_connector.execute("check_consistency");
+}	
+
+void Ontology::save(const std::string& path){
+	_connector.execute("save", vector<string>(1, path));
 }	
 
 int Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
@@ -99,15 +108,15 @@ int Ontology::query(const std::string& var_name, const std::string& query, std::
 
 		
 string Ontology::newId(int length)
+{
+	string result;
+
+	for(int i=0; i<length; i++)
 	{
-		string result;
-
-		for(int i=0; i<length; i++)
-		{
-			result += (char)(rand() % 26 + 97); //ASCII codes of letters starts at 98 for "a"
-		}
-
-		return result;
+		result += (char)(rand() % 26 + 97); //ASCII codes of letters starts at 98 for "a"
 	}
+
+	return result;
+}
 
 }
