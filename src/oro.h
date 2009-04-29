@@ -38,6 +38,8 @@
 #define ORO_H_
 
 #include <vector>
+#include <set>
+#include <map>
 #include <string>
 #include <iostream>
 #include <typeinfo>
@@ -147,7 +149,7 @@ class Ontology {
 		 * #include &quot;liboro.h&quot;
 		 *
 		 * using namespace std;
-		 * using namespace openrobots;
+		 * using namespace oro;
 		 * int main(void) {
 		 * 		vector&lt;Concept&gt; result;
 		 * 		vector&lt;string&gt; partial_stmts;
@@ -177,7 +179,7 @@ class Ontology {
 		 * #include &quot;liboro.h&quot;
 		 *
 		 * using namespace std;
-		 * using namespace openrobots;
+		 * using namespace oro;
 		 * int main(void) {
 		 * 		vector&lt;Concept&gt; result;
 		 * 		vector&lt;string&gt; partial_stmts;
@@ -210,7 +212,7 @@ class Ontology {
 		 * #include &quot;liboro.h&quot;
 		 *
 		 * using namespace std;
-		 * using namespace openrobots;
+		 * using namespace oro;
 		 * int main(void) {
 		 * 		vector&lt;string&gt; result;
 		 * 		vector&lt;string&gt; partial_stmts;
@@ -241,7 +243,7 @@ class Ontology {
 		 * #include &quot;liboro.h&quot;
 		 *
 		 * using namespace std;
-		 * using namespace openrobots;
+		 * using namespace oro;
 		 * int main(void) {
 		 * 		vector&lt;string&gt; result;
 		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
@@ -269,13 +271,61 @@ class Ontology {
 		void remove(const std::vector<Statement>& statements);
 				
 		void remove(const Statement& statement);
+		
+		/**
+		 * Enable the bufferization of queries to the ontology server. All subsequent request involving statement manipulation (like "add", "remove". It includes concept creation and manipulation) will be stored and retained until a call to {@link #flush()}.
+		 * 
+		 * Using bufferization can dramatically improve the performance since the call to the server are concatained. For instance:
+		 * 
+		 * \code
+		 * #include "liboro.h"
+		 *
+		 * using namespace std;
+		 * using namespace oro;
+		 * int main(void) {
+		 *
+		 * 		//Create a connector to the ontology server.
+		 *		YarpConnector connector("myDevice", "oro");
+		 *	
+		 *		//Instanciate the ontology with this connector.
+		 *		oro = Ontology::createWithConnector(connector);
+		 *
+		 * 		oro.bufferize();
+		 * 
+		 * 		oro.add("gorilla rdf:type Monkey");
+		 * 		oro.add("gorilla age 12^^xsd:int");
+		 * 		oro.add("gorilla weight 75.2");
+		 * 
+		 * 		oro.flush(); //here, the 3 "add" requests will be actually send in one "add" with 3 statements.
+		 *
+		 * 		return 0;
+		 * }
+		 * \endcode
+		 */
+		void bufferize();
+		
+		 /**
+		  * If buffering is enabled (cf {@link #bufferize()} ), optimize the buffer by concatenating what requests, actually send the requests, and flush the buffer.
+		  */
+		void flush();
 
 
 	protected:
 		IConnector& _connector;
 		Ontology(IConnector& connector);
 	private:
+		void addToBuffer(const std::string, const Statement&);
+		
 		static Ontology* _instance;
+		
+		bool _bufferize;
+		
+		/**hold the number of "on-going" bufferization operation. It allows to flush the buffer only at the end of the "stack".
+		 */
+		int _buf_op_counter; 
+		
+		typedef std::map<std::string, Statement> BufStatements;
+		std::map<std::string, BufStatements > _buffer;
 		
 	
 };
@@ -580,6 +630,8 @@ class Statement {
 		
 		Statement(const Concept& subject, const Property& predicate, const Concept& object);
 		Statement(const Concept& subject, const Property& predicate, const std::string& object);
+		
+		inline bool operator==(const Statement& stmt) const;
 		
 		static Statement create(const std::string stmt);
 		

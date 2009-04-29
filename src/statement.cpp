@@ -17,6 +17,12 @@ namespace oro {
 	
 	Statement::Statement(const Concept& _subject, const Property& _predicate, const std::string& _object):subject(_subject), predicate(_predicate), object(Concept::nothing), literal_object(_object), isObjectLiteral(true){}
 		
+	inline bool Statement::operator==(const Statement& stmt) const {
+	
+		//TODO: hyper lent. Ca peut s'ameillorer
+		return (stmt.to_string() == to_string());
+	}
+	
 	Statement Statement::create(const string stmt){
 		
 		string buf; // Have a buffer string

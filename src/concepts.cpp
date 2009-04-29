@@ -105,9 +105,11 @@ Concept Object::hasPosition(){
 }
 
 void Object::setColor(const string& hue){
+	Ontology::getInstance()->bufferize();
 	Concept color = Concept::create<Concept>(Classes::Color);
 	color.assert(Property("hue"), hue);
 	assert(Properties::hasColor, color);
+	Ontology::getInstance()->flush();
 }
 		
 /*****************************************************************************
