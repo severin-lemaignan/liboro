@@ -47,10 +47,10 @@ def addClassesDeclarations(dom, printDeclaration, destFile):
     classes = dom.getElementsByTagName("owl:Class")
     names=[[getAboutAttribute(c), getComment(c)] for c in classes]
 
-    if printDeclaration:
-	    for n in names:
-		if n[0] == None: names.remove(n)
+    for n in names:
+	    if n[0] == None: names.remove(n)
 
+    if printDeclaration:
 	    for c in names:
 		print >> destFile
 		if c[1] != None: print >> destFile,"\t\t/**\n\t\t* %s\n\t\t*/" % c[1]
