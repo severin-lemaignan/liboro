@@ -11,4 +11,5 @@ using namespace std;
 
 namespace oro {
 	Property::Property(const std::string& name):_name(name){}
+	Property::~Property(){}
 }

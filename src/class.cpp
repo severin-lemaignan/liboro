@@ -10,7 +10,9 @@
 using namespace std;
 
 namespace oro {
-	
+
 Class::Class(const std::string& name): _name(name){}
+
+Class::~Class(){}
 	
 }

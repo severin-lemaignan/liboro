@@ -68,8 +68,6 @@ void plannerModule(vector<Concept>) {
 
 int main(void) {
 	
-	//TODO: Manque pas l'initialisation du réseau pour YARP ?
-	
 	//Create a connector to the ontology server.
 	oro::YarpConnector connector("myDevice", "oro");
 	//oro::DummyConnector connector();

@@ -1,5 +1,15 @@
+Installation instruction
+========================
+
+Cf INSTALL
+
+
+History
+=======
+
+> git log
+
+
 TODO List
 =========
 
-* Bufferize statements
-* Overload the Concept(label) constructor for subclasses to set the type to, at least, the subclass type.

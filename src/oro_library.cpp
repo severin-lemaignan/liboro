@@ -1,7 +1,6 @@
 #include "oro_library.h"
 
 namespace oro {
-
 const Property Properties::belongsTo = Property("belongsTo");
 const Property Properties::canUndertakeNow = Property("canUndertakeNow");
 const Property Properties::currentlyPerforms = Property("currentlyPerforms");
@@ -24,6 +23,7 @@ const Property Properties::onTopOf = Property("onTopOf");
 const Property Properties::purposeOfAction = Property("purposeOfAction");
 const Property Properties::recipientOfAction = Property("recipientOfAction");
 const Property Properties::sees = Property("sees");
+
 const Property Properties::canBeManipulated = Property("canBeManipulated");
 const Property Properties::has3dCoordinate = Property("has3dCoordinate");
 const Property Properties::has3dMesh = Property("has3dMesh");
@@ -110,5 +110,3 @@ const Class Classes::ZoneOfInterest = Class("ZoneOfInterest");
 const Class Classes::None = Class("None");
 
 }
-
-

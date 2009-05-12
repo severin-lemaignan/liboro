@@ -15,10 +15,11 @@ INVOKE_SUBMAKES = for d in $(SUB_DIRS);\
 all %:
 	$(INVOKE_SUBMAKES)
 
-distclean:
-	$(INVOKE_SUBMAKES)
-	$(CLEAN) $(prefix)/*.sub $(prefix)/*.guess $(prefix)/configure $(prefix)/ltmain.sh
-	$(CLEAN) $(prefix)/autom4te.cache
-	$(CLEAN) $(prefix)/build
+# $(prefix) is wrong!! 
+#distclean:
+#	$(INVOKE_SUBMAKES)
+#	$(CLEAN) $(prefix)/*.sub $(prefix)/*.guess $(prefix)/configure $(prefix)/ltmain.sh
+#	$(CLEAN) $(prefix)/autom4te.cache
+#	$(CLEAN) $(prefix)/build
 
 

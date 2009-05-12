@@ -37,6 +37,8 @@
 #ifndef ORO_H_
 #define ORO_H_
 
+#define ORO_VERSION "0.3.2"
+
 #include <vector>
 #include <set>
 #include <map>
@@ -77,7 +79,6 @@ class Ontology {
 		 * Throws UninitializedOntologyException if called before initialization.
 		*/
 		static Ontology* getInstance();
-		
 		
 		/**
 		 * Adds a new statement to the ontology.\n
@@ -254,10 +255,17 @@ class Ontology {
  		*/
 		int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
 		
+		/** Subscribe to a specified event in the ontology.
+		 * 
+		 * @parameter watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
+		 * @parameter portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
+		*/
+		void subscribe(const std::string& watchExpression, const std::string& portToTrigger);
+		
 		/**
 		* Saves the in-memory ontology model to a RDF/XML file.
 		* 
-		* @parameter path The path and name of the OWL file to save to (for instance {@code ./ontos/saved.owl})
+		* @parameter path The path and name of the OWL file to save to (for instance \c ./ontos/saved.owl )
 		*/
 		void save(const std::string& path);
 		
@@ -330,9 +338,11 @@ class Ontology {
 	
 };
 
-/**
- * This represent a class of the OpenRobots ontology.
- * Strictly speaking (and as assumed in OWL Full for instance), a class is a kind of concept. However, since we stay in OWL DL, for simplicity and clarity, classes and concepts won't overlap in this API.
+/** This represents a class of the OpenRobots ontology.\n
+ * Strictly speaking (and as assumed in OWL Full for instance), a class is a kind of concept. However, since we stay in OWL DL, for simplicity and clarity, classes and concepts won't overlap in this API.\n
+ * 
+ * You can easily use classes defines in your ontology
+ * 
  */
 class Class {
 	public:
@@ -343,6 +353,8 @@ class Class {
 		 * \throw ResourceNotFoundOntologyException when the name can not be matched to a class name defined in the ontology.
 		 */
 		Class(const std::string& name);
+		
+		virtual ~Class();
 		
 		std::string name() const {return _name;}
 		
@@ -363,8 +375,7 @@ class Class {
 		std::string _name;
 };
 
-/**
- * This represent a property (or predicate) of the OpenRobots ontology.
+/** This represents a property (or predicate) of the OpenRobots ontology.
  */
 class Property {
 	public:
@@ -374,6 +385,8 @@ class Property {
 		 * \throw ResourceNotFoundOntologyException when the name can not be matched to a property name defined in the ontology.
 		 */
 		Property(const std::string& name);
+		
+		virtual ~Property();
 		
 		/**
 		 * Return the name of the property
@@ -397,8 +410,7 @@ class Property {
 		std::string _name;
 };
 
-/**
- * This represent a concept (an instance or an individual in OWL terminology) of the OpenRobots ontology.
+/** This represents a concept (an instance or an individual in OWL terminology) of the OpenRobots ontology.
  */
 class Concept {
 	public:
@@ -566,8 +578,8 @@ class Concept {
 };
 
 
-/**
- * This represent an object (ie an instance of the "Object" class) of the OpenRobots ontology. An object is a spacially localized and at least partially tangible kind of thing.\n
+/** This represents an object (ie an instance of the "Object" class) of the OpenRobots ontology.\n
+ * An object is a spacially localized and at least partially tangible kind of thing.\n
  * This class provides common, higher-level functionnalities over the base class \p Concept .\n
  * To create a new Agent instance, use the Concept::create<Object>() factory.
  */
@@ -583,14 +595,16 @@ class Object : public Concept {
 		 */
 		Concept hasPosition();
 		
-		void setColor(const std::string& hue);
+		void setColor(int hue);
+		
+		void setAbsolutePosition(double x, double y, double z);
 };
 
 //Forward declaration
 class Action;
 
-/**
- * This represent an agent (ie an instance of the "Agent" class) of the OpenRobots ontology. An agent is a special kind of object, endowed with some kind of intelligence. In the OpenRobots ontology, agents are either humans or robots.\n
+/** This represents an agent (ie an instance of the "Agent" class) of the OpenRobots ontology.\n
+ * An agent is a special kind of object, endowed with some kind of intelligence. In the OpenRobots ontology, agents are either humans or robots.\n
  * This class provides common, higher-level functionnalities over the base classes \p Concept and \p Object \n
  * To create a new Agent instance, use the Concept::create<Agent>() factory.
  */
@@ -606,8 +620,8 @@ class Agent : public Object {
 
 //const Agent Agent::myself = Concept::create<Agent>("myself");
 
-/**
- * This represent an action (ie an instance of the "Action" class) of the OpenRobots ontology. An action is a special kind of event, carried out by an agent.\n
+/** This represents an action (ie an instance of the "Action" class) of the OpenRobots ontology.\n
+ * An action is a special kind of event, carried out by an agent.\n
  * This class provides common, higher-level functionnalities over the base class \p Concept .\n
  * To create a new Agent instance, use the Concept::create<Action>() factory.
  */
@@ -617,6 +631,26 @@ class Action : public Concept {
 		void recipient(const Object& concept);
 };
 
+/** A statement is the atomic element of the ontology.\n
+ * It is made of a triplet (subject, predicate, object).\n
+ * While the subject and the predicate are respectively instances of Concepts and Properties, the object of the statement can be either a Concept or a literal.\n
+ * 
+ * See the classes Concept and Property for details regarding these objects.\n
+ * 
+ * You can refer to the SPARQL documentation (http://www.w3.org/TR/rdf-sparql-query/#QSynLiterals) to have an easy-to-read overview of the possible syntax for literals.\n
+ * Some examples of literals include:\n
+ * \li "chat"
+ * \li 'chat'@fr with language tag "fr"
+ * \li "xyz"^^<http://example.org/ns/userDatatype>
+ * \li "abc"^^appNS:appDataType
+ * \li '''The librarian said, "Perhaps you would enjoy 'War and Peace'."'''
+ * \li 1, which is the same as "1"^^xsd:integer
+ * \li 1.3, which is the same as "1.3"^^xsd:decimal
+ * \li 1.300, which is the same as "1.300"^^xsd:decimal
+ * \li 1.0e6, which is the same as "1.0e6"^^xsd:double
+ * \li true, which is the same as "true"^^xsd:boolean
+ * \li false, which is the same as "false"^^xsd:boolean
+ */
 class Statement {
 	public:
 		Concept subject;

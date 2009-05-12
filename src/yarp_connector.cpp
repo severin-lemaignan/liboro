@@ -49,25 +49,6 @@ namespace oro {
 	const char* OK = "ok";
 	const char* ERROR = "error";
 	
-
-
-/**
- * The YarpConnector class does actually send and recieve YARP messages.
- *
- * The structure of these messages is based on YARP bottles. *
- * This lib send that kind of message to the server:
- * \verbatim
- * ([YARP port for answering] [name of the method] ([param1] [param2] [...]))
- * \endverbatim
- * Parameters are enclosed in a nested bottle (a list), and these parameters can themselves be lists.
- * Currently, these list are casted to vectors of string.
- *
- * The server answer a result bottle of this kind:
- * \verbatim
- * ([ok|error] [result|error msg])
- * \endverbatim
- * Result is a list (a nested bottle) of objects.
- */
 YarpConnector::YarpConnector(const string port_name, const string oro_in_port_name){
 
 	// Work locally - don't rely on name server (just for this example).
@@ -90,10 +71,21 @@ YarpConnector::YarpConnector(const string port_name, const string oro_in_port_na
 
 	// Connect the local output port to the ontology server incoming port.
 	// No connection to the server results port since this connection is handled by the ontology server itself.
-	Network::connect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );	
+	Network::connect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );
 	
 	//cout << "Connection to Yarp network ok" << endl;
 
+}
+
+YarpConnector::~YarpConnector(){
+	//cout << "Terminating the YARP connection..." << endl;
+	
+	if (Network::isConnected(out_port.c_str() ,("/" + oro_server + "/in").c_str() )) {
+		executeDry("close");
+		Network::disconnect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );
+	}
+	in.close();
+	out.close();
 }
 
 ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
@@ -152,6 +144,15 @@ ServerResponse YarpConnector::execute(const string query){
 	return res;
 }
 
+void YarpConnector::executeDry(const string query){
+	
+	Bottle& outBot = out.prepare();   // Get the object
+	outBot.clear();
+	outBot.fromString((in_port + " " + query).c_str()); //Prepend the query with the port name where the server should send back the result.
+
+	out.write();                       // Now send it on its way
+}
+
 
 void YarpConnector::read(ServerResponse& res){
 	
@@ -179,7 +180,7 @@ void YarpConnector::read(ServerResponse& res){
 			//pourBottle(*(rawResult->pop().asList()), res.result);
 			
 			//cout << "Query to ontology server succeeded." << endl;
-			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
+			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n"));
 			return;
 		}
 
@@ -201,18 +202,6 @@ void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
 
 	}
 	}
-
-
-YarpConnector::~YarpConnector()
-{
-
-//TODO Ca segfault ici...
-	Network::disconnect(out_port.c_str() ,("/" + oro_server + "/in").c_str() );	
-
-	in.close();
-	out.close();
-
-}
 
 void YarpConnector::pourBottle(Bottle& bottle, vector<string>& result)
 {

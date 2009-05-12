@@ -16,7 +16,7 @@ datadir = @datadir@
 
 LIB_HDR = oro.h oro_connector.h oro_exceptions.h yarp_connector.h position.h oro_library.h dummy_connector.h
 LIB_SRC = ontology.cpp concepts.cpp yarp_connector.cpp class.cpp property.cpp statement.cpp dummy_connector.cpp oro_library.cpp
-TEST_SRC = oro_test.cpp
+TEST_SRC = oro_benchmark.cpp
 
 CXX = @CXX@
 INSTALL = @INSTALL@
@@ -44,14 +44,17 @@ TEST_OBJ = $(TEST_SRC:%.cpp=%.lo)
 %.lo : %.cpp
 	$(LTCC) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
-all : lib liboro-test
+all : lib
+
+test : install-test
+	$(prefix)/bin/oro_benchmark
 
 lib : liboro.la
 
 liboro.la : $(LIB_OBJ) 
 	$(LTLD) $(CPPFLAGS) $(LDFLAGS) $(LIBS) -o $@ $^ -rpath $(PATH_YARP)/lib
 
-liboro-test : $(TEST_OBJ) liboro.la
+oro_benchmark : $(TEST_OBJ) liboro.la
 	$(LTLD) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ -rpath $(prefix)/lib
 	
 install-header: $(LIB_HDR)
@@ -62,18 +65,15 @@ install : lib install-header
 	$(INSTALL) -d $(prefix)/lib
 	$(LTINST) liboro.la $(prefix)/lib
 
-install-test : liboro-test install
+install-test : oro_benchmark install
 	$(INSTALL) -d $(prefix)/bin
-	$(LTINST) liboro-test $(prefix)/bin
+	$(LTINST) oro_benchmark $(prefix)/bin
 
-distclean: clean
-	$(CLEAN) $(prefix)/include
-	$(CLEAN) $(prefix)/bin
-	$(CLEAN) $(prefix)/lib
+#Don't know how to remove only MY includes, bins and libs...
+#distclean: clean
+#	$(CLEAN) $(prefix)/include/
+#	$(CLEAN) $(prefix)/bin
+#	$(CLEAN) $(prefix)/lib
 
 clean :
-	$(LTCL) liboro-test liboro.la *.lo
-
-
-regress:
-	$(prefix)/bin/liboro-test
+	$(LTCL) oro_benchmark liboro.la *.lo

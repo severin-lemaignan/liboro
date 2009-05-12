@@ -5,6 +5,7 @@
  *      Author: slemaign
  */
 
+#include <sstream>
 #include "oro.h"
 #include "oro_library.h"
 
@@ -104,11 +105,36 @@ Concept Object::hasPosition(){
 	throw OntologyException("Not yet implemented!");
 }
 
-void Object::setColor(const string& hue){
+void Object::setColor(int hue){
+	std::ostringstream o;
+	
+	o << hue;
+	
 	Ontology::getInstance()->bufferize();
 	Concept color = Concept::create<Concept>(Classes::Color);
-	color.assert(Property("hue"), hue);
+	color.assert(Property("hue"), o.str());
 	assert(Properties::hasColor, color);
+	Ontology::getInstance()->flush();
+}
+
+void Object::setAbsolutePosition(double x, double y, double z){
+	
+	std::ostringstream o;
+	
+	Ontology::getInstance()->bufferize();
+	
+	Concept point = Concept::create<Concept>(Classes::Point);
+	o << x;
+	point.assert(Property("xCoord"), o.str());
+	o.str("");
+	o << y;
+	point.assert(Property("yCoord"), o.str());
+	o.str("");
+	o << z;
+	point.assert(Property("zCoord"), o.str());
+	
+	assert(Properties::isAt, point);
+	
 	Ontology::getInstance()->flush();
 }
 		

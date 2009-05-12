@@ -20,6 +20,8 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 	//Initializes the random generator for later generation of unique id for concepts.
 	srand(time(NULL));
 	
+	_bufferize = false;
+	
 	_buf_op_counter = 0;
 	
 	//TODO : destructor required if resources need to be released.
@@ -30,7 +32,7 @@ Ontology* Ontology::createWithConnector(IConnector& connector){
 	if (_instance == NULL)
 		_instance = new Ontology(connector);
 	
-	cout << "liboro v.0.2.2 - ontology initialized" << endl;
+	cout << "liboro v." << ORO_VERSION << " - ontology initialized" << endl;
 
 	return _instance;
 }
@@ -52,7 +54,7 @@ void Ontology::flush(){
 			
 	if (!(_buf_op_counter--)) return; //more that one on-going bufferization operation? decrement the counter and return.
 	
-	cout << "End of bufferization" << endl;
+	//cout << "End of bufferization" << endl;
 	_bufferize = false;
 	
 	vector<Statement> stmtToAdd;
@@ -179,6 +181,12 @@ int Ontology::query(const std::string& var_name, const std::string& query, std::
 	throw OntologyException("Not yet implemented!");
 }
 
+void Ontology::subscribe(const std::string& watchExpression, const std::string& portToTrigger){
+	vector<string> args;
+	args.push_back(portToTrigger);
+	args.push_back(watchExpression);
+	_connector.execute("subscribe", args);
+}
 		
 string Ontology::newId(int length)
 {

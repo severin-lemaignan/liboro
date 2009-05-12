@@ -2,6 +2,7 @@ config.guess
 config.sub
 configure
 ltmain.sh
+install-sh
 .cproject
 .project
 .cdtconfigure.Build (GNU)
@@ -12,3 +13,4 @@ lib/
 .libs/
 include/
 *~
+*kdev*

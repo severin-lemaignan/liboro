@@ -16,18 +16,22 @@ Then, for everyone:
 > make
 > make install
 
-Assuming a ontology server (started with oro_test.owl as test ontology for best results) and a YARP nameserver are both already running (and are accessible from your network), you can check everything is working with
-> make regress
+Assuming a ontology server (started with oro_bench.owl as ontology for best results) and a YARP nameserver are both already running (and are accessible from your network), you can check everything is working (and have a nice benchmark of your setup) with
+> make test
 
 
-Generating oro_library.h
-------------------------
+Generating oro_library.h and oro_library.cpp
+--------------------------------------------
 
 You can automatically generate a "library" of classes and properties from the ontology you're working on with the generate_oro_library_from_ontology.py Python script.
 The path to the ontology is curently hard-coded in the script (it could be easily improved... whatever...), so you may need to change it to match your setup.
 
 To invoke it:
-> python generate_oro_library_from_ontology.py > src/oro_library.h
+> chmod +x generate_oro_library_from_ontology.py
+> ./generate_oro_library_from_ontology.py
+
+The two files will be saved in ./src
+It can be as well changed in the script.
 
 
 Details, examples, barbapapa

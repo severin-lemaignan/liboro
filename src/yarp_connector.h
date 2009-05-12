@@ -16,20 +16,46 @@
 namespace oro
 {
 
-	
-/**
- * This class defines which methods are open to <a href="http://eris.liralab.it/yarp/">YARP</a> requests.<br/>
- */
+
+/** The YarpConnector class does actually send and recieve YARP messages.
+*
+* The structure of these messages is based on YARP bottles. *
+* This lib send that kind of message to the server:
+* \verbatim
+* ([YARP port for answering] [name of the method] ([param1] [param2] [...]))
+* \endverbatim
+* Parameters are enclosed in a nested bottle (a list), and these parameters can themselves be lists.
+* Currently, these list are casted to vectors of string.
+*
+* The server answer a result bottle of this kind:
+* \verbatim
+* ([ok|error] [result|error msg])
+* \endverbatim
+* Result is a list (a nested bottle) of objects.
+*/
 class YarpConnector : public IConnector {
 
 public:
 
-	YarpConnector(const std::string port_name, const std::string oro_in_port_name);
+
+	/** Creates a new connector to the ontology, using YARP as underlying communication framework.\n
+	 * You are responsible for calling the YARP Network::init() function before creating a new YARP port.\n
+	 * \param[in] port_name the name of the local YARP port (for instance, "my_application"), without any slashes.
+ 	 * \param[in] oro_in_port_name the name of the input YARP port of the ontology server, without any slashes. It will be suffixed with "/in". For instance, if you pass "oro", the actual port the connector will send request to will be "/oro/in"
+	 */
 	
+	YarpConnector(const std::string port_name, const std::string oro_in_port_name);
+
 	virtual ~YarpConnector();
 	
 	ServerResponse execute(const std::string query, const std::vector<std::string>& args);
 	ServerResponse execute(const std::string query);
+	
+	/** Executes a query but, unless execute(), don't wait for an answer.
+	 * 
+	 */
+	void executeDry(const std::string query);
+	
 	
 private:
 	void pourBottle(yarp::os::Bottle&, std::vector<std::string>&);
@@ -50,6 +76,7 @@ private:
 	
 	// Initialize YARP - some OSes need network and time service initialization
 	static yarp::os::Network _yarp_network;
+	
 };
 
 

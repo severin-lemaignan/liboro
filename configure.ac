@@ -1,7 +1,7 @@
 #########################
 # Autoconf requirements #
 #########################
-AC_INIT(liboro,0.2,slemaign@laas.fr)
+AC_INIT(liboro,0.3.2,slemaign@laas.fr)
 AC_PREREQ(2.59)
 
 #######################
@@ -27,6 +27,7 @@ AC_ARG_WITH(yarp,
 
 
 LIBS="$LIBS -lYARP_OS"
+
 CPPFLAGS="$CPPFLAGS -I$PATH_YARP/include"
 LDFLAGS="$LDFLAGS -L$PATH_YARP/lib"
 
@@ -34,4 +35,4 @@ LDFLAGS="$LDFLAGS -L$PATH_YARP/lib"
 
 AC_CONFIG_FILES(src/Makefile Makefile)
 AC_OUTPUT
-echo "Now, just a - make - to compile liboro and liboro-test"
+echo "Now, type 'make & make install' to compile and install liboro to the provided prefix, 'make test' to compile and run a oro server benchmark."
