@@ -15,7 +15,7 @@ libdir = @libdir@
 datadir = @datadir@
 
 LIB_HDR = oro.h oro_connector.h oro_exceptions.h yarp_connector.h position.h oro_library.h dummy_connector.h
-LIB_SRC = ontology.cpp concepts.cpp yarp_connector.cpp class.cpp property.cpp statement.cpp dummy_connector.cpp
+LIB_SRC = ontology.cpp concepts.cpp yarp_connector.cpp class.cpp property.cpp statement.cpp dummy_connector.cpp oro_library.cpp
 TEST_SRC = oro_test.cpp
 
 CXX = @CXX@
@@ -58,10 +58,12 @@ install-header: $(LIB_HDR)
 	$(INSTALL) -d $(prefix)/include
 	$(INSTALL) $^ $(prefix)/include
 
-install : lib liboro-test install-header
+install : lib install-header
 	$(INSTALL) -d $(prefix)/lib
-	$(INSTALL) -d $(prefix)/bin
 	$(LTINST) liboro.la $(prefix)/lib
+
+install-test : liboro-test install
+	$(INSTALL) -d $(prefix)/bin
 	$(LTINST) liboro-test $(prefix)/bin
 
 distclean: clean

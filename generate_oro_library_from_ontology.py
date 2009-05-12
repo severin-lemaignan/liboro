@@ -2,12 +2,16 @@
 # coding=utf-8
 
 from xml.dom import minidom
-import os
+import os, sys
 
 ontology = "openrobots.owl"
 path = "../oro/"
+output_path = "src/"
 
 dom = minidom.parse(path + ontology)
+
+f_h = open(output_path + "oro_library.h", "w")
+f_cpp = open(output_path + "oro_library.cpp", "w")
 
 def formatLines(text, length):
     if len(text) > length:
@@ -26,81 +30,99 @@ def getComment(element):
 	if node.nodeName == "rdfs:comment": return formatLines(node.firstChild.data, 70).replace("\n", "\n\t\t* ")
     return None
 
-def addPropertiesDeclarations(dom, propertyType,printDeclaration):
+def addPropertiesDeclarations(dom, propertyType, printDeclaration, destFile):
     properties = dom.getElementsByTagName(propertyType)
     names=[[getAboutAttribute(p), getComment(p)] for p in properties]
 
     if printDeclaration:
 	    for p in names:
-		print
-		if p[1] != None: print "\t\t/**\n\t\t* %s\n\t\t*/" % p[1]
-		print "\t\tstatic const Property %s;" % p[0]
+		print >>destFile
+		if p[1] != None: print >> destFile, "\t\t/**\n\t\t* %s\n\t\t*/" % p[1]
+		print >> destFile,"\t\tstatic const Property %s;" % p[0]
     else:
 	    for p in names:
-		print "const Property Properties::%s = Property(\"%s\");" % (p[0], p[0])
+		print >> destFile,"const Property Properties::%s = Property(\"%s\");" % (p[0], p[0])
 
-def addClassesDeclarations(dom):
+def addClassesDeclarations(dom, printDeclaration, destFile):
     classes = dom.getElementsByTagName("owl:Class")
     names=[[getAboutAttribute(c), getComment(c)] for c in classes]
 
-    for n in names:
-	if n[0] == None: names.remove(n)
+    if printDeclaration:
+	    for n in names:
+		if n[0] == None: names.remove(n)
 
-    for c in names:
-	print
-	if c[1] != None: print "\t\t/**\n\t\t* %s\n\t\t*/" % c[1]
-	print "\t\tstatic const Class %s;" % c[0]
-    print "};"
-    print
-    for c in names:
-	print "const Class Classes::%s = Class(\"%s\");" % (c[0], c[0])
+	    for c in names:
+		print >> destFile
+		if c[1] != None: print >> destFile,"\t\t/**\n\t\t* %s\n\t\t*/" % c[1]
+		print >> destFile,"\t\tstatic const Class %s;" % c[0]
+	    print >> destFile,"};"
+	    print >> destFile
+    else:
+	    for c in names:
+		print >> destFile,"const Class Classes::%s = Class(\"%s\");" % (c[0], c[0])
 
 
-print "/** \\file"
-print " * This header defines a \"library\" of C++ properties and classes (or concepts) matching the ones defines in the " + ontology + " ontology.\\n"
-print " * It has been automatically generated from " + ontology + " by the \"generate_oro_library_from_ontology.py\" Python script."
-print " * If you need to regenerate this file (for your own ontology or after a modification of the ontology), just run <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>"
-print " */"
-#print "// openrobots.owl version: " + os.system("../oro/git log -1 --pretty=format%ai")
-print "#ifndef ORO_LIBRARY_H_"
-print "#define ORO_LIBRARY_H_"
-print
-print "#include \"oro.h\""
-print
-print "namespace oro {"
-print
-print "/** This class lists all the OWL properties defined in the " + ontology + " ontology.\\n"
-print " * It provides handy shortcuts when asserting new facts on concepts."
-print " * \see Concept::assert(const Property& predicate, const Concept& value)"
-print " */"
-print "class Properties {"
-print "\tpublic:"
-print
-print "// Object properties"
+#################
+# oro_library.h #
+#################
 
-addPropertiesDeclarations(dom, "owl:ObjectProperty", True)
-print
-print "// Datatype properties"
-addPropertiesDeclarations(dom, "owl:DatatypeProperty", True)
+print >> f_h, "/** \\file"
+print >> f_h, " * This header defines a \"library\" of C++ properties and classes (or concepts) matching the ones defines in the " + ontology + " ontology.\\n"
+print >> f_h, " * It has been automatically generated from " + ontology + " by the \"generate_oro_library_from_ontology.py\" Python script."
+print >> f_h, " * If you need to regenerate this file (for your own ontology or after a modification of the ontology), just run <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>"
+print >> f_h, " */"
+#print >> f_h, "// openrobots.owl version: " + os.system("../oro/git log -1 --pretty=format%ai")
+print >> f_h, "#ifndef ORO_LIBRARY_H_"
+print >> f_h, "#define ORO_LIBRARY_H_"
+print >> f_h
+print >> f_h, "#include \"oro.h\""
+print >> f_h
+print >> f_h, "namespace oro {"
+print >> f_h
+print >> f_h, "/** This class lists all the OWL properties defined in the " + ontology + " ontology.\\n"
+print >> f_h, " * It provides handy shortcuts when asserting new facts on concepts."
+print >> f_h, " * \see Concept::assert(const Property& predicate, const Concept& value)"
+print >> f_h, " */"
+print >> f_h, "class Properties {"
+print >> f_h, "\tpublic:"
+print >> f_h
+print >> f_h, "// Object properties"
 
-print "};"
+addPropertiesDeclarations(dom, "owl:ObjectProperty", True, f_h)
+print >> f_h
+print >> f_h, "// Datatype properties"
+addPropertiesDeclarations(dom, "owl:DatatypeProperty", True, f_h)
 
-addPropertiesDeclarations(dom, "owl:ObjectProperty", False)
-addPropertiesDeclarations(dom, "owl:DatatypeProperty", False)
+print >> f_h, "};"
 
-print
-print "/** This class lists all the OWL concepts defined in the " + ontology + " ontology.\\n"
-print " * It provides handy shortcuts when asserting the class of a concept."
-print " * \see Concept::isA(const Class& type) const"
-print " */"
-print "class Classes {"
-print "\tpublic:"
+print >> f_h
+print >> f_h, "/** This class lists all the OWL concepts defined in the " + ontology + " ontology.\\n"
+print >> f_h, " * It provides handy shortcuts when asserting the class of a concept."
+print >> f_h, " * \see Concept::isA(const Class& type) const"
+print >> f_h, " */"
+print >> f_h, "class Classes {"
+print >> f_h, "\tpublic:"
 
-addClassesDeclarations(dom)
+addClassesDeclarations(dom, True, f_h)
 
-print
+print >> f_h
 
-print "}"
-print
-print "#endif /* ORO_LIBRARY_H_ */"
+print >> f_h, "}"
+print >> f_h
+print >> f_h, "#endif /* ORO_LIBRARY_H_ */"
 
+
+###################
+# oro_library.cpp #
+###################
+
+print >> f_cpp, "#include \"oro_library.h\""
+print >> f_cpp
+print >> f_cpp, "namespace oro {"
+addPropertiesDeclarations(dom, "owl:ObjectProperty", False, f_cpp)
+print >> f_cpp
+addPropertiesDeclarations(dom, "owl:DatatypeProperty", False, f_cpp)
+print >> f_cpp
+addClassesDeclarations(dom, False, f_cpp)
+print >> f_cpp
+print >> f_cpp, "}"
