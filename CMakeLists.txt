@@ -4,7 +4,8 @@
 cmake_minimum_required (VERSION 2.6)
 PROJECT(LIBORO)
 
-SET(CMAKE_VERBOSE_MAKEFILE true)
+#Uncomment next line to get verbose makefiles.
+#SET(CMAKE_VERBOSE_MAKEFILE true)
 
 # Pick up our scripts - they are all in the conf subdirectory
 SET(LIBORO_MODULE_PATH ${PROJECT_SOURCE_DIR}/conf)
@@ -19,6 +20,8 @@ SET(BUILD_SHARED_LIBS true)
 # Get the current liboro version
 INCLUDE(LiboroVersion)
 ADD_DEFINITIONS(-DORO_VERSION="${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
+INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 
 # Recurse into the "Hello" and "Demo" subdirectories. This does not actually
 # cause another cmake executable to run. The same process will walk through

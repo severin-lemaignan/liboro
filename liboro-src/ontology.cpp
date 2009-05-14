@@ -188,7 +188,7 @@ int Ontology::query(const std::string& var_name, const std::string& query, std::
 	throw OntologyException("Not yet implemented!");
 }
 
-bool Ontology::getInfos(){
+bool Ontology::getInfos(const string& resource, vector<std::string>& result){
 	_connector.execute("getInfos");
 }
 
