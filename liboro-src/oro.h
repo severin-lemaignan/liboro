@@ -37,7 +37,7 @@
 #ifndef ORO_H_
 #define ORO_H_
 
-#define ORO_VERSION "0.3.2"
+// #define ORO_VERSION "0.3.2" //defines at compile time by cmake (cf conf/LiboroVersion.cmake to change it)
 
 #include <vector>
 #include <set>
@@ -142,21 +142,25 @@ class Ontology {
 		
 		/**
 		 * Tries to identify a resource given a set of partially defined statements plus restrictions about this resource.
-		 * Wrapper for to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)}. Please follow the link for details.<br/>
+		 * Wrapper for to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)}. Please follow the link for details.\n
 		 *
 		 * Code snippet:
 		 *
 		 * \code
-		 * #include &quot;liboro.h&quot;
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
-		 * 		vector&lt;Concept&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
-		 * 		vector&lt;string&gt; filters;
+		 * 		vector<Concept> result;
+		 * 		vector<string> partial_stmts;
+		 * 		vector<string> filters;
 		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		oro = Ontology::createWithConnector(connector);
 		 *
 		 * 		partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
 		 * 		partial_stmts.push_back("?mysterious oro:weight ?value");
@@ -172,25 +176,29 @@ class Ontology {
 
 		/**
 		 * Tries to identify a resource given a set of partially defined statements about this resource.
-		 * Wrapper for to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector)}. Please follow the link for details.<br/>
+		 * Wrapper for to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector)}. Please follow the link for details.\n
 		 *
- 		 * Code snippet:
+ 		 * Working code snippet:
 		 *
 		 * \code
-		 * #include &quot;liboro.h&quot;
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
-		 * 		vector&lt;Concept&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
+		 * 		vector<Concept> result;
+		 * 		vector<string> partial_stmts;
 		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		oro = Ontology::createWithConnector(connector);
 		 *
 		 * 		partial_stmts.push_back("?mysterious oro:eats oro:banana_tree");
 		 * 		partial_stmts.push_back("?mysterious oro:isFemale true^^xsd:boolean");
 		 *
-		 * 		oro.find(&quot;mysterious&quot;, partial_stmts, result);
+		 * 		oro.find("mysterious", partial_stmts, result);
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -202,28 +210,32 @@ class Ontology {
 
 		/**
 		 * Tries to approximately identify an individual given a set of known
-		 * statements about this resource.<br/>
+		 * statements about this resource.\n
 		 * Wrapper for
 		 * {@link laas.openrobots.ontology.OpenRobotsOntology#guess(String, Vector, double)}
-		 * . Please follow the link for details.<br/>
+		 * . Please follow the link for details.\n
 		 *
-		 * Code snippet:
+		 * Working code snippet:
 		 *
 		 * \code
-		 * #include &quot;liboro.h&quot;
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		vector&lt;string&gt; partial_stmts;
+		 * 		vector<string> result;
+		 * 		vector<string> partial_stmts;
 		 *
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
+		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		partial_stmts.push_back(&quot;?mysterious age \&quot;40\&quot;&circ;&circ;xsd:int&quot;);
-		 * 		partial_stmts.push_back(&quot;?mysterious weight \&quot;60\&quot;&circ;&circ;xsd:double&quot;);
+		 * 		partial_stmts.push_back("?mysterious age \"40\"^^xsd:int");
+		 * 		partial_stmts.push_back("?mysterious weight \"60\"^^xsd:double");
 		 *
-		 * 		oro.guess(&quot;mysterious&quot;, 0.8, partial_stmts, result);
+		 * 		oro->guess("mysterious", 0.8, partial_stmts, result);
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -231,48 +243,66 @@ class Ontology {
 		int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
 
 		/**
-		 * Performs a SPARQL query on the OpenRobots ontology.<br/>
-		 * Wrapper for
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#query(String)}. Please
-		 * follow the link for details.<br/>
+		 * Performs a SPARQL query on the OpenRobots ontology.\n
 		 * This method can only have one variable to select. See
-		 * {@link #queryAsXML(Value)} to select several variables.<br/>
+		 * {@link #queryAsXML(Value)} to select several variables.\n
 		 *
- 		 * Code snippet:
+ 		 * Working code snippet:
 		 *
 		 * \code
-		 * #include &quot;liboro.h&quot;
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
-		 * 		vector&lt;string&gt; result;
-		 * 		Oro oro(&quot;myDevice&quot;, &quot;oro&quot;);
-		 * 		oro.query(&quot;instances&quot;, &quot;SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n&quot;, result);
+		 * 		vector<string> result;
+		 * 
+		 *		YarpConnector connector("myDevice", "oro");
+		 *		oro = Ontology::createWithConnector(connector);
+		 * 
+		 * 		oro->query("instances", "SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n, result);
 		 * 		return 0;
 		 * }
 		 * \endcode
  		*/
 		int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
 		
+		/**
+		 * Returns the set of asserted and inferred statements whose the given node is part of. It represents the "usages" of a resource.\n
+		 * Usage example:\n
+		 * \code
+
+		 * \endcode
+		 * 
+		 * This example would print all the types (classes) of the instance ns:individual1.
+		 * 
+		 * @param resource the lexical form of an existing resource.
+		 * @param result a vector of string related to the resource.
+		 * @throw NotFoundException thrown if the lex_resource doesn't exist in the ontology.
+		 */
+		bool getInfos(const std::string& resource, std::vector<std::string>& result);
+				
 		/** Subscribe to a specified event in the ontology.
 		 * 
-		 * @parameter watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
-		 * @parameter portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
+		 * @param watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
+		 * @param portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
 		*/
 		void subscribe(const std::string& watchExpression, const std::string& portToTrigger);
 		
 		/**
 		* Saves the in-memory ontology model to a RDF/XML file.
 		* 
-		* @parameter path The path and name of the OWL file to save to (for instance \c ./ontos/saved.owl )
+		* @param path The path and name of the OWL file to save to (for instance \c ./ontos/saved.owl )
 		*/
 		void save(const std::string& path);
 		
 		/**
 		* Generate a new random id which can be used to name new objects. Attention! no check for collision!
 		*
-		* @parameter length the length of the id. Default is 8 characters.
+		* @param length the length of the id. Default is 8 characters.
 		*/
 		static std::string newId(int length = 8);
 		
@@ -286,7 +316,10 @@ class Ontology {
 		 * Using bufferization can dramatically improve the performance since the call to the server are concatained. For instance:
 		 * 
 		 * \code
-		 * #include "liboro.h"
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
@@ -298,11 +331,11 @@ class Ontology {
 		 *		//Instanciate the ontology with this connector.
 		 *		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		oro.bufferize();
+		 * 		oro->bufferize();
 		 * 
-		 * 		oro.add("gorilla rdf:type Monkey");
-		 * 		oro.add("gorilla age 12^^xsd:int");
-		 * 		oro.add("gorilla weight 75.2");
+		 * 		oro->add("gorilla rdf:type Monkey");
+		 * 		oro->add("gorilla age 12^^xsd:int");
+		 * 		oro->add("gorilla weight 75.2");
 		 * 
 		 * 		oro.flush(); //here, the 3 "add" requests will be actually send in one "add" with 3 statements.
 		 *
@@ -349,8 +382,8 @@ class Class {
 		
 		/**
 		 * Create a metaclass instance (ie, a class) from its literal name, in the default namespace (oro namespace).
-		 * \param name the literal name of the class.
-		 * \throw ResourceNotFoundOntologyException when the name can not be matched to a class name defined in the ontology.
+		 * @param name the literal name of the class.
+		 * @throw ResourceNotFoundOntologyException when the name can not be matched to a class name defined in the ontology.
 		 */
 		Class(const std::string& name);
 		
@@ -640,7 +673,7 @@ class Action : public Concept {
  * You can refer to the SPARQL documentation (http://www.w3.org/TR/rdf-sparql-query/#QSynLiterals) to have an easy-to-read overview of the possible syntax for literals.\n
  * Some examples of literals include:\n
  * \li "chat"
- * \li 'chat'@fr with language tag "fr"
+ * \li 'chat'\@fr with language tag "fr"
  * \li "xyz"^^<http://example.org/ns/userDatatype>
  * \li "abc"^^appNS:appDataType
  * \li '''The librarian said, "Perhaps you would enjoy 'War and Peace'."'''

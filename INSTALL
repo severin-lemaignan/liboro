@@ -4,20 +4,18 @@
 Quick steps
 -----------
 
-If freshly checkouted, first do:
-
-> autogen.sh
-
-Then, for everyone:
-
 > mkdir build
 > cd build
-> ../configure --prefix=[INSTALLATION PATH] --with-yarp=[PATH TO YARP INSTALLATION]
+> cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=. ..
+
+Then
 > make
-> make install
+
+You can also use the interactive cmake:
+> ccmake ..
 
 Assuming a ontology server (started with oro_bench.owl as ontology for best results) and a YARP nameserver are both already running (and are accessible from your network), you can check everything is working (and have a nice benchmark of your setup) with
-> make test
+> ${INSTALL_PREFIX}/bin/oro-benchmark
 
 
 Generating oro_library.h and oro_library.cpp

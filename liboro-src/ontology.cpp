@@ -153,8 +153,15 @@ void Ontology::remove(const std::vector<Statement>& statements){
 }
 
 bool Ontology::checkConsistency(){
-	_connector.execute("check_consistency");
-}	
+	ServerResponse res = _connector.execute("checkConsistency");
+	
+	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
+	
+	if(res.result.size() != 1) throw OntologyServerException("Internal error! Wrong number of result element returned by the server while executing checkConsistency()");
+	
+	if(res.result[0] == "true") return true;
+	return false;
+}
 
 void Ontology::save(const std::string& path){
 	_connector.execute("save", vector<string>(1, path));
@@ -179,6 +186,10 @@ int Ontology::guess(const std::string& resource, const double threshold, const s
 
 int Ontology::query(const std::string& var_name, const std::string& query, std::vector<std::string>& result){
 	throw OntologyException("Not yet implemented!");
+}
+
+bool Ontology::getInfos(){
+	_connector.execute("getInfos");
 }
 
 void Ontology::subscribe(const std::string& watchExpression, const std::string& portToTrigger){

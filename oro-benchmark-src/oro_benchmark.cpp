@@ -28,6 +28,7 @@ struct ltstr
 
 //Forward declarations
 void sigproc(int);
+void displayVector(const vector<string>& result);
 void displayTime(void);
 
 
@@ -39,6 +40,7 @@ YarpConnector connector(local_port, oro_port);
 
 int main(void) {
 
+	char* name;
 	Ontology* onto;
 
 	cout << "********* ORO Benchmark *********" << endl;
@@ -62,10 +64,18 @@ int main(void) {
 
 	timetable["0- start"] = clock();
 
-	int nb_stmt = 100;
-
 	//  TEST 1 //
-	cout << " * <BENCH1> Insertion of " << nb_stmt << " statements" << endl;
+	cout << " * <BENCH1> Assertion of some initial facts" << endl;
+
+	onto->add("gorilla rdf:type Monkey");
+	onto->add("gorilla age 12^^xsd:int");
+	onto->add("gorilla weight 75.2");
+
+	timetable["1- simple assertions"] = clock();
+	
+	//  TEST 2 //
+	int nb_stmt = 100;
+	cout << " * <BENCH2> Insertion of " << nb_stmt << " statements" << endl;
 
 	for (int i = 0 ; i < nb_stmt ; i++)
 	{
@@ -73,10 +83,10 @@ int main(void) {
 		Concept test = Concept::create<Concept>(testClass);
 	}
 
-	timetable["1- insertion statements"] = clock();
+	timetable["2- insertion statements"] = clock();
 
-	//  TEST 2 //
-	cout << " * <BENCH2> Insertion of "<< nb_stmt << " statements with buffering" << endl;
+	//  TEST 3 //
+	cout << " * <BENCH3> Insertion of "<< nb_stmt << " statements with buffering" << endl;
 
 	onto->bufferize();
 	for (int i = 0 ; i < nb_stmt ; i++)
@@ -86,8 +96,21 @@ int main(void) {
 	}
 	onto->flush();
 
-	timetable["2- insertion buffered statements"] = clock();
+	timetable["3- insertion buffered statements"] = clock();
 
+	//  TEST 4 //
+	vector<string> result;
+	
+	name = "<BENCH4> Simple getInfos query";
+	
+	cout << " * " << name << endl;
+
+	onto->getInfos("gorilla", result);
+	
+	timetable[name] = clock();
+	
+	displayVector(result);
+	
 	///////////////////////////
 	///////////////////////////
 
@@ -110,6 +133,15 @@ void displayTime()
 	}
 
 	cout << "*******************************************" << endl;
+
+}
+
+void displayVector(const vector<string>& result)
+{
+
+	cout << "Results:" << endl;
+
+	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
 
 }
 
