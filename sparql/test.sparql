@@ -1,0 +1,3 @@
+SELECT ?object
+WHERE
+{?object rdf:type oro:Robot }
