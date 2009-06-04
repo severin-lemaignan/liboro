@@ -1,0 +1,4 @@
+SELECT ?object
+WHERE
+{?color rdf:type oro:Green .
+ ?object oro:hasColor ?color }

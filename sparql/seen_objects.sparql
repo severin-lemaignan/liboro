@@ -1,0 +1,4 @@
+SELECT ?object
+WHERE
+{?object rdf:type oro:Artifact .
+ myself oro:sees ?object }

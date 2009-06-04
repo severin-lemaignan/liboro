@@ -1,0 +1,6 @@
+SELECT ?situation
+WHERE
+{?action rdf:type oro:Talk .
+ ?action oro:bringsToStaticSituation ?situation .
+ ?situation oro:involves oro:myself .
+}
