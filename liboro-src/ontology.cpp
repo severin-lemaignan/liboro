@@ -126,7 +126,7 @@ void Ontology::add(const std::vector<Statement>& statements){
 	if (!_bufferize) {
 		ServerResponse res = _connector.execute("add", stringified_stmts);
 
-		if (res.status == ServerResponse::failed) throw OntologyServerException(("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg).c_str());
+		if (res.status == ServerResponse::failed) throw OntologyServerException("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg);
 	}
 }
 
@@ -148,7 +148,7 @@ void Ontology::remove(const std::vector<Statement>& statements){
 	if (!_bufferize) {
 		ServerResponse res = _connector.execute("remove", stringified_stmts);
 	
-		if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg).c_str());
+		if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg);
 	}
 }
 
@@ -156,8 +156,6 @@ bool Ontology::checkConsistency(){
 	ServerResponse res = _connector.execute("checkConsistency");
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
-	
-	if(res.result.size() != 1) throw OntologyServerException("Internal error! Wrong number of result element returned by the server while executing checkConsistency()");
 	
 	if(res.result[0] == "true") return true;
 	return false;
@@ -167,16 +165,58 @@ void Ontology::save(const std::string& path){
 	_connector.execute("save", vector<string>(1, path));
 }	
 
-int Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
-	throw OntologyException("Not yet implemented!");
+void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
+	vector<vector<string> > args;
+	vector<string> rawResult;
+	args.push_back(vector<string>(1,resource));
+	args.push_back(partial_statements);
+	args.push_back(restrictions);
+	
+	ServerResponse res = _connector.execute("filtredFind", args);
+	
+	if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("\"filtredFind\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	
+	rawResult = res.result;
+	
+	vector<string>::iterator itRawResult;
+	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
+	{
+		result.push_back(Concept(*(itRawResult)));
+	}
 }
 
-int Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result){
-	_connector.execute("find", partial_statements);
+void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result){
+	
+	vector<vector<string> > args;
+	vector<string> rawResult;
+	args.push_back(vector<string>(1,resource));
+	args.push_back(partial_statements);
+	
+	ServerResponse res = _connector.execute("find", args);
+	
+	if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("\"Find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	
+	rawResult = res.result;
+	
+	vector<string>::iterator itRawResult;
+	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
+	{
+		result.push_back(Concept(*(itRawResult)));
+	}
+	
+	
 }
 
-int Ontology::find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result){
-	throw OntologyException("Not yet implemented!");
+void Ontology::find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result){
+	
+	find(resource, vector<string>(1,partial_statement), result);
+	
 }
 
 

@@ -190,7 +190,7 @@ class Ontology {
 		 * }
 		 * \endcode
  		*/
-		int find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result);
 
 		/**
 		 * Tries to identify a resource given a set of partially defined statements about this resource.
@@ -221,9 +221,9 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		int find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result);
 
-		int find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result);
 
 
 		/**

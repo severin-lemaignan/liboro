@@ -86,6 +86,7 @@ int main(void) {
 
 	timetable["<BENCH1> simple assertions"] = clock();
 	
+	/*
 	//  TEST 2 //
 	int nb_stmt = 100;
 	cout << " * <BENCH2> Insertion of " << nb_stmt << " statements" << endl;
@@ -97,7 +98,9 @@ int main(void) {
 	}
 
 	timetable["<BENCH2> insertion statements"] = clock();
-
+	*/
+	
+	/*
 	//  TEST 3 //
 	
 	cout << " * <BENCH3> Insertion of "<< nb_stmt << " statements with buffering" << endl;
@@ -111,7 +114,8 @@ int main(void) {
 	onto->flush();
 
 	timetable["<BENCH3> insertion buffered statements"] = clock();
-
+	*/
+	
 	//  TEST 4 //
 	vector<string> result;
 	
@@ -165,12 +169,52 @@ int main(void) {
 	name = "<BENCH6> SPARQL test";
 	
 	cout << " * " << name << endl;
+	result.clear();
 	
-	string query = "SELECT ?object WHERE { ?object rdf:type oro:Discussion }";
+	string query = "SELECT ?object WHERE { ?object rdf:type oro:Monkey }";
 	
 	onto->query("object", query, result);
 
 	displayVector(result);
+
+	timetable[name] = clock();
+	
+	//  TEST 7 //
+	
+	name = "<BENCH7> Find test";
+	
+	cout << " * " << name << endl;
+	
+	vector<Concept> resultConcepts;
+	
+	onto->find("object", "?object rdf:type Monkey", resultConcepts);
+
+	copy(resultConcepts.begin(), resultConcepts.end(), ostream_iterator<Concept>(cout, "\n"));
+	
+
+	timetable[name] = clock();
+	
+	
+	//  TEST 8 //
+	
+	name = "<BENCH8> Filtred find test";
+	
+	cout << " * " << name << endl;
+	
+	resultConcepts.clear();
+	
+	vector<string> partial_stmts;
+	vector<string> filters;
+	
+	partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
+	partial_stmts.push_back("?mysterious oro:weight ?value");
+ 
+	filters.push_back("?value >= 50");
+ 
+	onto->find("mysterious", partial_stmts, filters, resultConcepts);
+
+
+	copy(resultConcepts.begin(), resultConcepts.end(), ostream_iterator<Concept>(cout, "\n"));
 
 	timetable[name] = clock();
 	
@@ -241,6 +285,7 @@ void displayVector(const vector<string>& result)
 	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
 
 }
+
 
 void sigproc(int sig)
 {

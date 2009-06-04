@@ -48,6 +48,8 @@ public:
 
 	virtual ~YarpConnector();
 	
+	ServerResponse execute(const std::string query, const yarp::os::Bottle& args);
+	ServerResponse execute(const std::string query, const std::vector<std::vector<std::string> >& args);
 	ServerResponse execute(const std::string query, const std::vector<std::string>& args);
 	ServerResponse execute(const std::string query);
 	

@@ -88,17 +88,15 @@ YarpConnector::~YarpConnector(){
 	out.close();
 }
 
-ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
+ServerResponse YarpConnector::execute(const string query, const Bottle& args){
 	
 	ServerResponse res;
-
-	//TODO: Clean the mess in variable name
 	
 	// Send one "Bottle" object.  The port is responsible for creating
 	// and reusing/destroying that object, since it needs to be sure
 	// it exists until communication to all recipients (just one in
 	// this case) is complete.
-	
+		
 	Bottle& outBot = out.prepare();   // Get the object
 	outBot.clear();
 
@@ -106,18 +104,40 @@ ServerResponse YarpConnector::execute(const string query, const vector<string>& 
 
 	Bottle& argsBot = outBot.addList();
 	
-	Bottle args;
-	vectorToBottle(vect_args, args);
-	
 	argsBot.append(args);
 	
-	//printf("Writing bottle (%s)\n", outBot.toString().c_str());
+	printf("Writing bottle (%s)\n", outBot.toString().c_str());
 	
 	out.write();                       // Now send it on its way
 	
 	read(res);
 	
 	return res;
+}
+
+ServerResponse YarpConnector::execute(const string query, const vector<vector<string> >& vect_args){
+	
+	Bottle args;
+	
+	vector<vector<string> >::const_iterator itArgs;
+	for(itArgs = vect_args.begin(); itArgs != vect_args.end(); itArgs++)
+	{
+		//if ((*(itArgs)).size() == 1) args.addString((*(itArgs))[0].c_str());
+		//else {
+			vectorToBottle(*(itArgs), args.addList());
+		//}
+		
+	}
+		
+	return execute(query, args);
+}
+
+ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
+	
+	Bottle args;
+	vectorToBottle(vect_args, args);
+	
+	return execute(query, args);
 }
 
 ServerResponse YarpConnector::execute(const string query){
@@ -163,6 +183,8 @@ void YarpConnector::read(ServerResponse& res){
 		//cout << "got it!" << endl;
 			
 		//cout << "Taille: " << rawResult->size() << endl;
+		
+		if (rawResult->size() < 2 || rawResult->size() > 3) throw OntologyServerException("Internal error! Wrong number of result element returned by the server.");
 		
 		if (!rawResult->get(0).isString()) throw OntologyServerException("Internal error! The server answer should start with a status string!");
 

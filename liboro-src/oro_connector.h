@@ -49,6 +49,7 @@ struct  ServerResponse {
 class IConnector {
 	public:
 		virtual ServerResponse execute(const std::string query, const std::vector<std::string>& args) {}
+		virtual ServerResponse execute(const std::string query, const std::vector<std::vector<std::string> >& args) {}
 		virtual ServerResponse execute(const std::string query) {}
 	
 };
