@@ -21,6 +21,8 @@ class Properties {
 
 		static const Property belongsTo;
 
+		static const Property bringsToStaticSituation;
+
 		/**
 		* Links an agent to an action it can starts now. When required, this
 		* relationship is to be computed by a planner (or inferred from a model
@@ -64,6 +66,14 @@ class Properties {
 		static const Property hasFrameOfReference;
 
 		static const Property holds_Underspecified;
+
+		static const Property in;
+
+		/**
+		* Binds a static situation (a state of the world) to the agents
+		* involved in the situation.
+		*/
+		static const Property involves;
 
 		/**
 		* (isAbleTo AGENT ACTION) says that AGENT it technically/physically
@@ -149,6 +159,8 @@ class Properties {
 		* Links an agent to an object visible for him.
 		*/
 		static const Property sees;
+
+		static const Property None;
 
 // Datatype properties
 
@@ -275,6 +287,8 @@ class Classes {
 		* components.
 		*/
 		static const Class Component;
+
+		static const Class Discussion;
 
 		/**
 		* Doorway is a specialization of Portal, CavityWithWalls, and
@@ -489,6 +503,8 @@ class Classes {
 		static const Class SensingComponent;
 
 		static const Class Shelf;
+
+		static const Class Shelter;
 
 		/**
 		* Represents the action of an agent showing something to some other

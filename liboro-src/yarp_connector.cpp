@@ -106,7 +106,7 @@ ServerResponse YarpConnector::execute(const string query, const Bottle& args){
 	
 	argsBot.append(args);
 	
-	printf("Writing bottle (%s)\n", outBot.toString().c_str());
+	//printf("Writing bottle (%s)\n", outBot.toString().c_str());
 	
 	out.write();                       // Now send it on its way
 	

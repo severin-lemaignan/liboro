@@ -48,8 +48,22 @@ struct  ServerResponse {
  */
 class IConnector {
 	public:
+		
+		/**
+	 	* This method is intended to perform a query execution with a flat list of parameters on the remote server, to wait for an answer and to return this answer.
+		 */
 		virtual ServerResponse execute(const std::string query, const std::vector<std::string>& args) {}
+		
+		/**
+		 * This method is intended to perform a query execution with a list of list of data as parameter on the remote server, to wait for an answer and to return this answer.
+		 * 
+		 * Examples of RPC call possibly relying on this prototype of \p execute include the \link Ontology::find(const std::string&, const std::vector<std::string>&, std::vector<Concept>&) find \endlink and \link Ontology::find(const std::string&, const std::vector<std::string>&, const std::vector<std::string>&, std::vector<Concept>&) filtredFind \endlink methods.
+		 */
 		virtual ServerResponse execute(const std::string query, const std::vector<std::vector<std::string> >& args) {}
+		
+		/**
+		 * This method is intended to perform a query execution without parameters on the remote server, to wait for an answer and to return this answer.
+		 */
 		virtual ServerResponse execute(const std::string query) {}
 	
 };

@@ -2,6 +2,7 @@
 
 namespace oro {
 const Property Properties::belongsTo = Property("belongsTo");
+const Property Properties::bringsToStaticSituation = Property("bringsToStaticSituation");
 const Property Properties::canUndertakeNow = Property("canUndertakeNow");
 const Property Properties::currentlyPerforms = Property("currentlyPerforms");
 const Property Properties::desires = Property("desires");
@@ -11,6 +12,8 @@ const Property Properties::hasColor = Property("hasColor");
 const Property Properties::hasComponent = Property("hasComponent");
 const Property Properties::hasFrameOfReference = Property("hasFrameOfReference");
 const Property Properties::holds_Underspecified = Property("holds_Underspecified");
+const Property Properties::in = Property("in");
+const Property Properties::involves = Property("involves");
 const Property Properties::isAbleTo = Property("isAbleTo");
 const Property Properties::isAt = Property("isAt");
 const Property Properties::knowsAbout = Property("knowsAbout");
@@ -23,6 +26,7 @@ const Property Properties::onTopOf = Property("onTopOf");
 const Property Properties::purposeOfAction = Property("purposeOfAction");
 const Property Properties::recipientOfAction = Property("recipientOfAction");
 const Property Properties::sees = Property("sees");
+const Property Properties::None = Property("None");
 
 const Property Properties::canBeManipulated = Property("canBeManipulated");
 const Property Properties::has3dCoordinate = Property("has3dCoordinate");
@@ -47,6 +51,7 @@ const Class Classes::Bottle = Class("Bottle");
 const Class Classes::Ceilling = Class("Ceilling");
 const Class Classes::Color = Class("Color");
 const Class Classes::Component = Class("Component");
+const Class Classes::Discussion = Class("Discussion");
 const Class Classes::Doorway = Class("Doorway");
 const Class Classes::EnduringThing_Localized = Class("EnduringThing_Localized");
 const Class Classes::Event = Class("Event");
@@ -87,6 +92,7 @@ const Class Classes::Robot = Class("Robot");
 const Class Classes::See = Class("See");
 const Class Classes::SensingComponent = Class("SensingComponent");
 const Class Classes::Shelf = Class("Shelf");
+const Class Classes::Shelter = Class("Shelter");
 const Class Classes::Show = Class("Show");
 const Class Classes::Situation = Class("Situation");
 const Class Classes::SpaceRegion = Class("SpaceRegion");

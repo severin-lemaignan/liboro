@@ -6,7 +6,7 @@ import os, sys
 
 ontology = "openrobots.owl"
 path = "../oro/"
-output_path = "src/"
+output_path = "liboro-src/"
 
 dom = minidom.parse(path + ontology)
 

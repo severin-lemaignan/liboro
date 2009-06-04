@@ -160,14 +160,12 @@ class Ontology {
 		
 		/**
 		 * Tries to identify a resource given a set of partially defined statements plus restrictions about this resource.
-		 * Wrapper for to {@link laas.openrobots.ontology.OpenRobotsOntology#find(String, Vector, Vector)}. Please follow the link for details.\n
+		 * Wrapper for the server's \p laas.openrobots.ontology.OpenRobotsOntology#find(String,Vector,Vector) method. Please follow the link for details.\n
 		 *
 		 * Code snippet:
 		 *
 		 * \code
 		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
 		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
@@ -185,7 +183,11 @@ class Ontology {
 		 *
 		 * 		filters.push_back("?value >= 50");
 		 *
-		 * 		oro.find(&quot;mysterious&quot;, partial_stmts, filters, result);
+		 * 		oro->find("mysterious", partial_stmts, filters, result);
+		 * 
+		 *		//display the results on std_out
+		 * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 * 
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -200,8 +202,6 @@ class Ontology {
 		 *
 		 * \code
 		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
 		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
@@ -216,7 +216,11 @@ class Ontology {
 		 * 		partial_stmts.push_back("?mysterious oro:eats oro:banana_tree");
 		 * 		partial_stmts.push_back("?mysterious oro:isFemale true^^xsd:boolean");
 		 *
-		 * 		oro.find("mysterious", partial_stmts, result);
+		 * 		oro->find("mysterious", partial_stmts, result);
+		 * 
+		 *		//display the results on std_out
+		 * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 * 
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -227,18 +231,13 @@ class Ontology {
 
 
 		/**
-		 * Tries to approximately identify an individual given a set of known
-		 * statements about this resource.\n
-		 * Wrapper for
-		 * {@link laas.openrobots.ontology.OpenRobotsOntology#guess(String, Vector, double)}
-		 * . Please follow the link for details.\n
+		 * Tries to approximately identify an individual given a set of known statements about this resource.\n
+		 * Wrapper for server's \p laas.openrobots.ontology.OpenRobotsOntology#guess(String,Vector,double) method.\n
 		 *
-		 * Working code snippet:
+		 * Working code snippet:\n
 		 *
 		 * \code
 		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
 		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
@@ -254,6 +253,10 @@ class Ontology {
 		 * 		partial_stmts.push_back("?mysterious weight \"60\"^^xsd:double");
 		 *
 		 * 		oro->guess("mysterious", 0.8, partial_stmts, result);
+		 * 
+		 *		//display the results on std_out
+		 * 		copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n"));
+		 * 
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -262,15 +265,14 @@ class Ontology {
 
 		/**
 		 * Performs a SPARQL query on the OpenRobots ontology.\n
-		 * This method can only have one variable to select. See
-		 * {@link #queryAsXML(Value)} to select several variables.\n
-		 *
- 		 * Working code snippet:
+		 * This method can only have one variable to select.\n
+		 *\n
+		 * Please note that resources within the SPARQL request must have their namespace specified (either the complete URI or the short one). Common prefixes are included. More can be specified at the server level.\n
+		 * 
+ 		 * Working code snippet:\n
 		 *
 		 * \code
 		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
 		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
@@ -282,6 +284,10 @@ class Ontology {
 		 *		oro = Ontology::createWithConnector(connector);
 		 * 
 		 * 		oro->query("instances", "SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n, result);
+		 * 
+		 *		//display the results on std_out
+		 * 		copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n"));
+		 * 
 		 * 		return 0;
 		 * }
 		 * \endcode
@@ -304,14 +310,12 @@ class Ontology {
 		 */
 		void getInfos(const std::string& resource, std::vector<std::string>& result);
 				
-		/** Subscribe to a specified event in the ontology.
+		/** Subscribe to a specified event in the ontology.\n
 		 * 
-		 * Working code snippet:
+		 * Working code snippet:\n
 		 *
 		 * \code
 		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
 		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
@@ -327,8 +331,9 @@ class Ontology {
 		 * }
 		 * \endcode
 		 * 
-		 * @param watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
-		 * @param portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
+		 * \param watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
+		 * \param triggerType the way the event is triggered. Cf \link EventTriggeringType the EventTriggeringType enum documentation \endlink for the list of available types.
+		 * \param portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
 		*/
 		void subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger);
 		
