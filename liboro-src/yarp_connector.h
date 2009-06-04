@@ -51,15 +51,15 @@ public:
 	ServerResponse execute(const std::string query, const std::vector<std::string>& args);
 	ServerResponse execute(const std::string query);
 	
-	/** Executes a query but, unless execute(), don't wait for an answer.
+	/** Executes a query but, unlike execute(), don't wait for an answer.
 	 * 
 	 */
 	void executeDry(const std::string query);
 	
 	
 private:
-	void pourBottle(yarp::os::Bottle&, std::vector<std::string>&);
-	void pourBottle(yarp::os::Bottle& bottle, std::vector<Concept>& result);
+	void pourBottle(const yarp::os::Bottle&, std::vector<std::string>&);
+	void pourBottle(const yarp::os::Bottle& bottle, std::vector<Concept>& result);
 	void read(ServerResponse& response);
 	void vectorToBottle(const std::vector<std::string>& data, yarp::os::Bottle& bottle);
 

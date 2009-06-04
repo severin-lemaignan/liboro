@@ -126,7 +126,7 @@ void Ontology::add(const std::vector<Statement>& statements){
 	if (!_bufferize) {
 		ServerResponse res = _connector.execute("add", stringified_stmts);
 
-		if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while adding statements. Server message was " + res.error_msg).c_str());
+		if (res.status == ServerResponse::failed) throw OntologyServerException(("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg).c_str());
 	}
 }
 
@@ -172,7 +172,7 @@ int Ontology::find(const std::string& resource, const std::vector<std::string>& 
 }
 
 int Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result){
-	throw OntologyException("Not yet implemented!");
+	_connector.execute("find", partial_statements);
 }
 
 int Ontology::find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result){
@@ -185,17 +185,62 @@ int Ontology::guess(const std::string& resource, const double threshold, const s
 }
 
 int Ontology::query(const std::string& var_name, const std::string& query, std::vector<std::string>& result){
-	throw OntologyException("Not yet implemented!");
-}
-
-bool Ontology::getInfos(const string& resource, vector<std::string>& result){
-	_connector.execute("getInfos");
-}
-
-void Ontology::subscribe(const std::string& watchExpression, const std::string& portToTrigger){
 	vector<string> args;
-	args.push_back(portToTrigger);
+	 args.push_back(var_name);
+	 args.push_back(query);
+	
+	ServerResponse res = _connector.execute("query", args);
+	
+	if (res.status != ServerResponse::ok)
+	{
+		if (res.exception_msg.find(SERVER_QUERYPARSE_EXCEPTION) != string::npos)
+			throw InvalidQueryException(query + "\nYour SPARQL query is invalid: " + res.error_msg);
+		throw OntologyServerException("Query was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	result = res.result;
+}
+
+void Ontology::getInfos(const string& resource, vector<std::string>& result){
+	ServerResponse res = _connector.execute("getInfos", vector<string>(1, resource));
+	if (res.status != ServerResponse::ok)
+	{
+		if (res.exception_msg.find(SERVER_NOTFOUND_EXCEPTION) != string::npos)
+			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
+		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + ".");	
+	}
+	result = res.result;
+	
+}
+
+void Ontology::subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger){
+	vector<string> args;
+	string port(portToTrigger);
 	args.push_back(watchExpression);
+	switch (triggerType){
+		case ON_TRUE:
+			args.push_back("ON_TRUE");
+			break;
+		case ON_TRUE_ONE_SHOT:
+			args.push_back("ON_TRUE_ONE_SHOT");
+			break;
+		case ON_FALSE:
+			args.push_back("ON_FALSE");
+			break;
+		case ON_FALSE_ONE_SHOT:
+			args.push_back("ON_FALSE_ONE_SHOT");
+			break;
+		case ON_TOGGLE:
+			args.push_back("ON_TOGGLE");
+			break;
+		default:
+			args.push_back("UNSUPPORTED_TRIGGER_TYPE");
+			break;
+	}
+	
+	if (port.find("0/") != 0) port = "/" + port;
+	
+	args.push_back(port);
+	
 	_connector.execute("subscribe", args);
 }
 		

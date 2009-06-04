@@ -14,8 +14,17 @@
 #define ORO_EXCEPTIONS_H_
 
 #include <stdexcept>
+#include <string>
 
 namespace oro {
+
+	/** The string identifying a "NotFoundException" as emitted by the ontology server.
+	 */	
+	static const std::string SERVER_NOTFOUND_EXCEPTION = "com.hp.hpl.jena.shared.NotFoundException";
+	
+	/** The string identifying a "QueryParseException" as emitted by the ontology server.
+	 */	
+	static const std::string SERVER_QUERYPARSE_EXCEPTION = "com.hp.hpl.jena.query.QueryParseException";
 
 /*********************************************************
  *                      Exceptions                       *
@@ -28,6 +37,7 @@ class OntologyException : public std::runtime_error {
 	public:
 		OntologyException() : std::runtime_error("An exception occured related to the ontology.") { }
 		OntologyException(const char* msg) : std::runtime_error(msg) { }
+		OntologyException(const std::string& msg) : std::runtime_error(msg.c_str()) { }
 };
 
 /**
@@ -37,6 +47,7 @@ class OntologyServerException : public std::runtime_error {
 	public:
 		OntologyServerException() : std::runtime_error("OntologyServerException") { }
 		OntologyServerException(const char* msg) : std::runtime_error(msg) { }
+		OntologyServerException(const std::string& msg) : std::runtime_error(msg.c_str()) { }
 };
 
 /**
@@ -91,6 +102,17 @@ class ResourceNotFoundOntologyException : public OntologyException {
 	public:
 		ResourceNotFoundOntologyException() : OntologyException("A resource was not found. Wrong class or property name?") { }
 		ResourceNotFoundOntologyException(const char* msg) : OntologyException(msg) { }
+		ResourceNotFoundOntologyException(const std::string& msg) : OntologyException(msg.c_str()) { }
+};
+
+/**
+ * Thrown when a query (currently, SPARQL) is not valid (not parsable -> syntax error).
+ */
+class InvalidQueryException : public OntologyException {
+	public:
+		InvalidQueryException() : OntologyException("Invalid query. Check your syntax!") { }
+		InvalidQueryException(const char* msg) : OntologyException(msg) { }
+		InvalidQueryException(const std::string& msg) : OntologyException(msg.c_str()) { }
 };
 
 /**

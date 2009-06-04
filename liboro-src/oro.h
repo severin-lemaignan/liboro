@@ -37,7 +37,10 @@
 #ifndef ORO_H_
 #define ORO_H_
 
-// #define ORO_VERSION "0.3.2" //defines at compile time by cmake (cf conf/LiboroVersion.cmake to change it)
+// #define ORO_VERSION "0.3.2" //defined at compile time by cmake (cf conf/LiboroVersion.cmake to change it)
+
+//a simple macro to display the symbolic name of enums
+#define NAME_OF(x) #x
 
 #include <vector>
 #include <set>
@@ -65,6 +68,21 @@ class Statement;
 class Ontology {
 
 	public:
+		
+		/** Constants that defines the way an event occuring in the ontology is triggered.\n
+		* 
+		* <ul>
+		*  <li>\p ON_TRUE : the event is triggered each time the corresponding watch expression <em>becomes</em> true.</li>
+		*  <li>\p ON_TRUE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> true. The watcher is then deleted.</li>
+		*  <li>\p ON_FALSE : the event is triggered each time the corresponding watch expression <em>becomes</em> false.</li>
+		*  <li>\p ON_FALSE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> false. The watcher is then deleted.</li>
+		*  <li>\p ON_TOGGLE : the event is triggered each time the corresponding watch expression <em>becomes</em> true or false.</li>
+		* </ul>
+		* 
+	 	* \see subscribe(const std::string&, EventTriggeringType, const std::string&)
+		*/
+		//When adding new trigger type, remember to update as well the implementation of Ontology::subscribe
+		enum EventTriggeringType {ON_TRUE, ON_TRUE_ONE_SHOT, ON_FALSE, ON_FALSE_ONE_SHOT, ON_TOGGLE};
 		
 		/**
 	 	* This static getter for the ontology must be called once to initialize the ontology server.
@@ -281,16 +299,38 @@ class Ontology {
 		 * 
 		 * @param resource the lexical form of an existing resource.
 		 * @param result a vector of string related to the resource.
-		 * @throw NotFoundException thrown if the lex_resource doesn't exist in the ontology.
+		 * @throw ResourceNotFoundOntologyException thrown if the resource doesn't exist in the ontology.
+		 * @throw OntologyServerException thrown an error occured on the server during the query processing.
 		 */
-		bool getInfos(const std::string& resource, std::vector<std::string>& result);
+		void getInfos(const std::string& resource, std::vector<std::string>& result);
 				
 		/** Subscribe to a specified event in the ontology.
+		 * 
+		 * Working code snippet:
+		 *
+		 * \code
+		 * #include "oro.h"
+		 * #include "oro_library.h"
+		 * #include "oro_connector.h"
+		 * #include "yarp_connector.h"
+		 *
+		 * using namespace std;
+		 * using namespace oro;
+		 * int main(void) {
+		 * 		vector<string> result;
+		 * 
+		 *		YarpConnector connector("myDevice", "oro");
+		 *		oro = Ontology::createWithConnector(connector);
+		 * 
+		 * 		oro->subscribe("?object rdf:type Bottle", ON_TRUE_ONE_SHOT, "myDevice_events");
+		 * 		return 0;
+		 * }
+		 * \endcode
 		 * 
 		 * @param watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
 		 * @param portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
 		*/
-		void subscribe(const std::string& watchExpression, const std::string& portToTrigger);
+		void subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger);
 		
 		/**
 		* Saves the in-memory ontology model to a RDF/XML file.

@@ -161,6 +161,8 @@ void YarpConnector::read(ServerResponse& res){
 		Bottle *rawResult = in.read();
 		
 		//cout << "got it!" << endl;
+			
+		//cout << "Taille: " << rawResult->size() << endl;
 		
 		if (!rawResult->get(0).isString()) throw OntologyServerException("Internal error! The server answer should start with a status string!");
 
@@ -169,18 +171,26 @@ void YarpConnector::read(ServerResponse& res){
 			//throw OntologyServerException(rawResult->get(1).asString());
 			res.status = ServerResponse::failed;
 			res.exception_msg = rawResult->get(1).asString();
-			cout << "ERROR Query to ontology server failed." << endl;
+			res.error_msg = rawResult->get(2).asString();
+			//cout << "ERROR Query to ontology server failed." << endl;
 			return;
 		}
 
 		if (rawResult->get(0).asString() == OK){
 			res.status = ServerResponse::ok;
-			
-			//TODO !!! segfault here. je ne récupère pas les résultats !!
-			//pourBottle(*(rawResult->pop().asList()), res.result);
+
+			if(rawResult->get(1).isList()){
+				Value tmp(rawResult->get(1));
+				pourBottle(*(tmp.asList()), res.result);
+			}
+			else
+			{
+				throw OntologyServerException("Internal error! The second element of the server answer should be a list (bottle) of results!");
+			}
+		
+			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n"));
 			
 			//cout << "Query to ontology server succeeded." << endl;
-			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n"));
 			return;
 		}
 
@@ -203,60 +213,35 @@ void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
 	}
 	}
 
-void YarpConnector::pourBottle(Bottle& bottle, vector<string>& result)
+void YarpConnector::pourBottle(const Bottle& bottle, vector<string>& result)
 {
 	result.clear();
-	cout << bottle.size() << endl;
+	//cout << bottle.size() << endl;
 
-	while (bottle.size() > 0)
+	int size = bottle.size();
+	
+	for (int i = 0;i < size; i++)
 	{
-		string tmp = bottle.pop().asString().c_str();
-		cout << tmp << endl;
+		string tmp = bottle.get(i).asString().c_str();
+		//cout << tmp << endl;
 		result.push_back(tmp);
 	}
 }
 
-void YarpConnector::pourBottle(Bottle& bottle, vector<Concept>& result)
+void YarpConnector::pourBottle(const Bottle& bottle, vector<Concept>& result)
 {
 	result.clear();
 
-	while (bottle.size() > 0)
+	int size = bottle.size();
+	
+	for (int i = 0;i < size; i++)
 	{
-		Concept tmp = Concept(bottle.pop().asString().c_str());
+		Concept tmp = Concept(bottle.get(i).asString().c_str());
 		result.push_back(tmp);
 	}
 }
 
 /*
-bool YarpConnector::add(const string& statement)
-{
-	Bottle inBot;
-
-	yarp->execute("add", "\"" + statement + "\"");
-
-	yarp->read(inBot);
-
-	if (inBot.pop().asString() == "true") return true;
-	else return false;
-}
-
-bool YarpConnector::add(const vector<string>& statements)
-{
-	Bottle inBot;
-	Bottle args;
-
-	yarp->vectorToBottle(statements, args.addList());
-
-	yarp->execute("addMultiple", args);
-
-	yarp->read(inBot);
-
-
-
-
-	if (inBot.pop().asString() == "true") return true;
-			else return false;
-}
 
 int YarpConnector::find(const string& resource, const vector<string>& partial_statements, const vector<string>& restrictions, vector<Concept>& result)
 {
@@ -291,18 +276,6 @@ int YarpConnector::find(const string& resource, const string& partial_statement,
 	return Oro::find(resource, partial_statements, restrictions, result);
 }
 
-int YarpConnector::getInfos(const string& resource, vector<string>& result)
-{
-	Bottle inBot;
-
-	yarp->execute("getInfos", resource);
-
-	yarp->read(inBot);
-
-	pourBottle(inBot, result);
-
-	return 0;
-}
 
 
 int YarpConnector::getHumanReadableInfos(const string& resource, vector<string>& result)
