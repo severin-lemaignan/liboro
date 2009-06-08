@@ -18,6 +18,8 @@
 # author Jan Woetzel 2004-2006
 # www.mip.informatik.uni-kiel.de/~jw
 
+SET (MKDIR_DOC ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/share/doc/liboro)
+SET (INSTALL_DOC ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/doc/html ${CMAKE_INSTALL_PREFIX}/share/doc/liboro)
 
 FIND_PACKAGE(Doxygen)
 
@@ -71,6 +73,7 @@ IF (DOXYGEN_FOUND)
   ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in")
   
   ADD_CUSTOM_TARGET(doc ${DOXYGEN_EXECUTABLE} ${DOXY_CONFIG})
+  ADD_CUSTOM_TARGET(install-doc ${MKDIR_DOC} COMMAND ${INSTALL_DOC})
   
   # create a windows help .chm file using hhc.exe
   # HTMLHelp DLL must be in path!
