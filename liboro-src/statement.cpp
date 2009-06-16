@@ -26,7 +26,7 @@ namespace oro {
 	/**
 	 * Creates a new statement from its literal string representation.
 	*/
-	Statement Statement::create(const string stmt){
+	Statement Statement::create(const string& stmt){
 		
 		string buf = stmt; // Have a buffer string
 		//stringstream ss(stmt); // Insert the string into a stream

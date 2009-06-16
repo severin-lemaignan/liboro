@@ -62,11 +62,12 @@
  *		//First, create some instances (ie, objects).
   * 		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
  * 		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
- * 
+ *		
  * 		Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
  * 		Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
  * 		unknown_object.setColor(212); //the Object class offers some high-level setters like setColor. See the class documentation for the list.
- * 		//if no setter is available for a given property, then direct assertion can be made.
+ * 
+ *		//if no setter is available for a given property, then direct assertion can be made.
  *		//the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
  * 		unknown_object.assert(Properties::isOnTopOf, table);
  * 
@@ -481,6 +482,22 @@ class Ontology {
 		void save(const std::string& path);
 		
 		/**
+		 * Returns several statistics on the ontology server.
+		 * 
+		 * In this order,
+		 * <ul>
+		 * 	<li>the hostname where the server runs</li>
+		 * 	<li>server uptime</li>
+		 * 	<li>the current amount of classes in the ontology</li>
+		 * 	<li>the current amount of instances in the ontology</li>
+		 * 	<li>the current amount of client connected to the server</li>
+		 * </ul>
+		 * 
+		 * \param stats a vector of strings containing the various statistics.
+		 */
+		void stats(std::vector<std::string>& stats);
+		
+		/**
 		* Generate a new random id which can be used to name new objects. Attention! no check for collision!
 		*
 		* @param length the length of the id. Default is 8 characters.
@@ -566,12 +583,12 @@ class Class {
 		
 		virtual ~Class();
 		
-		std::string name() const {return _name;}
+		const std::string& name() const {return _name;}
 		
 		/**
 		 * Return a computer-friendly string describing the class.
 		 */
-		std::string to_string() const {return _name;}
+		const std::string& to_string() const {return _name;}
 		
 		/**
 		 * Print, in a computer-friendly way, the class.
@@ -601,12 +618,12 @@ class Property {
 		/**
 		 * Return the name of the property
 		 */
-		std::string name() const {return _name;}
+		const std::string& name() const {return _name;}
 		
 		/**
 		 * Return, in a computer-friendly way, the property id. Does currently the same as Property.name().
 		 */
-		std::string to_string() const {return _name;}
+		const std::string& to_string() const {return _name;}
 		
 		/**
 		 * Print, in a computer-friendly way, the property.
@@ -938,7 +955,7 @@ class Statement {
 		 * Creates a new statement from its literal string representation.
 		 * For details regarding the syntax, please refer to the Statement class main documentation page.
 		 */
-		static Statement create(const std::string stmt);
+		static Statement create(const std::string& stmt);
 		
 		/**
 		 * Returns a computer-friendly string describing the concept.

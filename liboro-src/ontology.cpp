@@ -161,9 +161,24 @@ bool Ontology::checkConsistency(){
 	return false;
 }
 
-void Ontology::save(const std::string& path){
+void Ontology::save(const string& path){
 	_connector.execute("save", vector<string>(1, path));
 }	
+
+void Ontology::stats(vector<string>& result){
+	ServerResponse res = _connector.execute("stats");
+	
+	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while fetching stats. Server message was " + res.error_msg).c_str());
+	
+	vector<string> rawResult = res.result;
+	
+	vector<string>::iterator itRawResult;
+	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
+	{
+		result.push_back(*(itRawResult));
+	}
+}	
+
 
 void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
 	vector<vector<string> > args;
