@@ -154,7 +154,7 @@ int main(void) {
 
 	onto->subscribe("?object rdf:type Donkey", Ontology::ON_TRUE_ONE_SHOT, event_port);
 
-	Concept dudule = Concept::create<Concept>(Class("Donkey"));
+	Concept dudule = Concept::create(Class("Donkey"));
 
 	timetable[name] = clock();
 	

@@ -19,6 +19,8 @@ class Properties {
 
 // Object properties
 
+		static const Property actionInvolves;
+
 		static const Property belongsTo;
 
 		static const Property bringsToStaticSituation;
@@ -65,14 +67,10 @@ class Properties {
 
 		static const Property hasFrameOfReference;
 
+		static const Property holds;
+
 		static const Property holds_Underspecified;
 
-		static const Property in;
-
-		/**
-		* Binds a static situation (a state of the world) to the agents
-		* involved in the situation.
-		*/
 		static const Property involves;
 
 		/**
@@ -85,6 +83,12 @@ class Properties {
 		static const Property isAbleTo;
 
 		static const Property isAt;
+
+		static const Property isIn;
+
+		static const Property isNextTo;
+
+		static const Property isOnTopOf;
 
 		/**
 		* (knowsAbout AGENT THING) means that the IntelligentAgent AGENT knows
@@ -112,8 +116,6 @@ class Properties {
 
 		static const Property mainColorOfObject;
 
-		static const Property nextTo;
-
 		/**
 		* Links a localizable thing to its location.
 		*/
@@ -130,8 +132,6 @@ class Properties {
 		* as specified by the "receiverOfAction" property.
 		*/
 		static const Property objectOfAction;
-
-		static const Property onTopOf;
 
 		/**
 		* binds an action to a state of the world (a Situation) which is
@@ -159,6 +159,12 @@ class Properties {
 		* Links an agent to an object visible for him.
 		*/
 		static const Property sees;
+
+		/**
+		* Binds a static situation (a state of the world) to the agents
+		* involved in the situation.
+		*/
+		static const Property staticSituationInvolves;
 
 		static const Property None;
 
@@ -211,6 +217,11 @@ class Properties {
 		static const Property isHolder;
 
 		static const Property isMovable;
+
+		/**
+		* True if the object is currently reachable by the robot.
+		*/
+		static const Property isReachable;
 
 		static const Property isTraversable;
 
@@ -619,6 +630,8 @@ class Classes {
 		static const Class Violet;
 
 		static const Class VisualMark;
+
+		static const Class Walk;
 
 		static const Class Wall;
 

@@ -95,7 +95,7 @@ void Ontology::addToBuffer(const string action, const Statement& stmt) {
 	
 	else if (action == "remove") {
 
-		//here we remove all the previous requests to "remove" this very statement, since the "add" cancel them.	
+		//here we remove all the previous requests to "add" this very statement, since the "remove" cancel them.	
 		BufStatements::iterator i = _buffer["add"].find(stmt.to_string());
 
 		if( i != _buffer["add"].end()) {
@@ -109,7 +109,7 @@ void Ontology::add(const Statement& statement){
 	add(vector<Statement>(1, statement));	
 }
 
-//TODO replace vectors by sets or lists. It's stupid to use vectors.
+//TODO replace vectors by sets. It's stupid to use vectors.
 void Ontology::add(const std::vector<Statement>& statements){
 	
 	vector<string> stringified_stmts;

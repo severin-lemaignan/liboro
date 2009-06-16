@@ -1,3 +1,6 @@
+/** \file
+ * This header defines the IConnector abstract base class (an inteface) that must be implemented by all the transport modules which aim to be used as connector to the ontology server.
+ */
 
 #ifndef ORO_CONNECTOR_H_
 #define ORO_CONNECTOR_H_

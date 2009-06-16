@@ -37,6 +37,122 @@
 #ifndef ORO_H_
 #define ORO_H_
 
+/** \mainpage liboro: a C++ wrapper for the OpenRobots Ontology server
+ * This library is a wrapper that enables programmers to easily interface their applications with the LAAS' OpenRobots Ontology server (\p oro-server ). It allows to easily declare, update, remove concepts, to check that the knowledge base is consistent, to look for specific concepts or execute complex queries on the ontology.
+ * 
+ * The current version (0.4.x) relies on YARP for remote procedure calls (RPC) with \p oro-server .
+ * 
+ * This is a simple example that assumes the ontology server is loaded with the OpenRobots ontology \p oro (\link ../../wiki/doku.php?id=openrobotsontology more details...\endlink):
+ * \code
+ * #include <iostream>
+ * #include <iterator>
+ * #include "oro.h"
+ * #include "oro_library.h"
+ * #include "yarp_connector.h"
+ *
+ * using namespace std;
+ * using namespace oro;
+ * int main(void) {
+ * 		vector<Concept> result;
+ * 		vector<string> partial_stmts;
+ *
+ * 		YarpConnector connector("myRobot", "oro"); //liboro currently relies on YARP for the RPCs with the server.
+ * 		Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
+ * 
+ *		//First, create some instances (ie, objects).
+  * 		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
+ * 		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
+ * 
+ * 		Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
+ * 		Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
+ * 		unknown_object.setColor(212); //the Object class offers some high-level setters like setColor. See the class documentation for the list.
+ * 		//if no setter is available for a given property, then direct assertion can be made.
+ *		//the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
+ * 		unknown_object.assert(Properties::isOnTopOf, table);
+ * 
+ * 		Agent myself("myself"); //"myself" is a special, unique instance representing the robot itself. This instance is built from the already existing identifier "myself". Hence the constructor of the Agent class can be directly called.
+ * 
+ * 		myself.sees(unknown_object);
+ * 		myself.sees(human);
+ * 
+ *		//Then, try to find back the unknown object...
+ * 		partial_stmts.push_back("?mysterious oro:isAt ?table");
+ * 		partial_stmts.push_back("?table rdf:type oro:Table");
+ * 		partial_stmts.push_back("oro:myself oro:sees ?mysterious");
+ *
+ * 		oro->find("mysterious", partial_stmts, result);
+ * 
+ *		//display the results on std_out
+ * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+ * 
+ * 		return 0;
+ * }
+ * \endcode
+ * 
+ * Same example, but at a "lower" level:
+ * \code
+ * #include <iostream>
+ * #include <iterator>
+ * #include "oro.h"
+ * #include "yarp_connector.h"
+ *
+ * using namespace std;
+ * using namespace oro;
+ * int main(void) {
+ * 		vector<Concept> result;
+ * 		vector<Statement> assertions;
+ * 		vector<string> partial_stmts;
+ *
+ * 		YarpConnector connector("myRobot", "oro");
+ * 		Ontology *oro = Ontology::createWithConnector(connector);
+ * 
+ *		//First, add assertions to the ontology (namespaces are not mandatory when it's the default namespace, as configured in the server config file).
+ * 		assertions.push_back(Statement::create("robot1 rdf:type Robot"));
+ * 		assertions.push_back(Statement::create("robot1 rdfs:label \"Nice Robot\""));
+ * 		assertions.push_back(Statement::create("human rdf:type Human"));
+ * 		assertions.push_back(Statement::create("human rdfs:label \"Young PhD\""));
+ * 		assertions.push_back(Statement::create("table rdf:type Table"));
+ * 		assertions.push_back(Statement::create("object rdf:type Object"));
+ * 		assertions.push_back(Statement::create("object hasColor color"));
+ * 		assertions.push_back(Statement::create("color hue 212"));
+ * 		assertions.push_back(Statement::create("object isOnTopOf table"));
+ * 		assertions.push_back(Statement::create("myself sees object"));
+ * 		assertions.push_back(Statement::create("myself sees human"));
+ * 
+ * 		oro->add(assertions);
+ * 
+ *		//Then, try to find back the unknown object...
+ * 		partial_stmts.push_back("?mysterious oro:isAt ?table");
+ * 		partial_stmts.push_back("?table rdf:type oro:Table");
+ * 		partial_stmts.push_back("oro:myself oro:sees ?mysterious");
+ *
+ * 		oro->find("mysterious", partial_stmts, result);
+ * 
+ *		//display the results on std_out
+ * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+ * 
+ * 		return 0;
+ * }
+ * \endcode
+ * 
+ * When several statements are to be inserted (or removed) from the ontology at the same time, it's strongly advised to bufferize the IO. Performances will be greatly improved. Cf Ontology::bufferize().
+ * In the previous example, use of bufferize would look like that:
+ * \code
+ * ...
+ * oro->bufferize();
+ * oro->add(assertions);
+ * oro->flush();
+ * ...
+ * \endcode
+ * 
+ * \author S. Lemaignan - severin.lemaignan@laas.fr
+ * \date 2009
+ */
+
+/** \file
+ * This is the main header of the \p liboro library. All the core classes like Ontology, Class, Property, Concept are defined here. This header is mandatory when you want to work with \p liboro .
+ */
+
 // #define ORO_VERSION "0.3.2" //defined at compile time by cmake (cf conf/LiboroVersion.cmake to change it)
 
 //a simple macro to display the symbolic name of enums
@@ -57,6 +173,9 @@
 //TODO To be replaced with a proper lib
 #include "position.h"
 
+/**
+ * The main \p liboro namespace.
+ */
 namespace oro {
 
 class Concept;
@@ -100,21 +219,23 @@ class Ontology {
 		
 		/**
 		 * Adds a new statement to the ontology.\n
-		 * Interface to \p laas.openrobots.ontology.OpenRobotsOntology#add(String) . Please follow the link for details.\n
+		 * Interface to the \p oro-server \link https://www.laas.fr/~slemaign/doc/oro-server/laas/openrobots/ontology/backends/IOntologyBackend.html#add(java.lang.String) OpenRobotsOntology#add(String) method \endlink. Please follow the link for details.\n
 		 *
 		* Example:
 		 * \code
-		 * #include "liboro.h"
+		 * #include "oro.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
 		 *
-		 * 		IConnector oro("myDevice", "oro");
+		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		oro.add("gorilla rdf:type Monkey");
-		 * 		oro.add("gorilla age 12^^xsd:int");
-		 * 		oro.add("gorilla weight 75.2");
+		 * 		oro->add(Statement::create("gorilla rdf:type Monkey"));
+		 * 		oro->add(Statement::create("gorilla age 12^^xsd:int"));
+		 * 		oro->add(Statement::create("gorilla weight 75.2"));
 		 *
 		 * 		return 0;
 		 * }
@@ -124,32 +245,47 @@ class Ontology {
 	
 		/**
 		 * Adds a set of statements to the ontology.
-		 * Like \p add(String) but for sets of statements.\n
+		 * Like \p add(String) but for sets of statements. Please note that no automatic buffering is done. If you're adding several statements, you're strongly advised to use Ontology::bufferize() and Ontology::flush() (cf example below).\n
 		 *
 		* Example:
 		 *
 		 * \code
-		 * #include "liboro.h";
+		 * #include "oro.h"
+		 * #include "yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
 		 *
-		 * 		vector<string> stmts;
+		 * 		vector<Statement> stmts;
 		 *
-		 * 		IConnector oro("myDevice", "oro");
+		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		stmts.push_back("gorilla rdf:type Monkey");
-		 * 		stmts.push_back("gorilla age 12^^xsd:int");
-		 * 		stmts.push_back("gorilla weight 75.2");
+		 * 		stmts.push_back(Statement::create("gorilla rdf:type Monkey"));
+		 * 		stmts.push_back(Statement::create("gorilla age 12^^xsd:int"));
+		 * 		stmts.push_back(Statement::create("gorilla weight 75.2"));
 		 *
-		 * 		oro.add(stmts);
+		 * 		oro->bufferize();
+		 * 		oro->add(stmts);
+		 * 		oro->flush();
 		 *
 		 * 		return 0;
 		 * }
 		 * \endcode
 		 */
 		void add(const std::vector<Statement>& statements);
+		
+		/**
+		 * Removes a set of statements from the ontology. Silently ignore statements that don't exist.\n
+		 * Like \p remove(String) but for sets of statements. Please note that no automatic buffering is done. If you're removing several statements, you're strongly advised to use Ontology::bufferize() and Ontology::flush() before and after the call to \p remove() .\n
+		*/
+		void remove(const std::vector<Statement>& statements);
+		
+		/**
+		 * Removes one statements from the ontology. Does nothing is the statement doesn't exist.
+		 */
+		void remove(const Statement& statement);
 	
 		/**
 		 * Checks the ontology consistency.
@@ -351,10 +487,6 @@ class Ontology {
 		*/
 		static std::string newId(int length = 8);
 		
-		void remove(const std::vector<Statement>& statements);
-				
-		void remove(const Statement& statement);
-		
 		/**
 		 * Enable the bufferization of queries to the ontology server. All subsequent request involving statement manipulation (like "add", "remove". It includes concept creation and manipulation) will be stored and retained until a call to {@link #flush()}.
 		 * 
@@ -492,37 +624,23 @@ class Property {
  */
 class Concept {
 	public:
+		/**
+		 * Constructs a new, under-specified instance (actually an instance of owl:Thing) associated to a random identifier.
+		 */
 		Concept();
+		
+		/**
+		 * Constructs a object from a previous identifier. From a semantic point of view, the new object is strictly equal to the concept whose identifier is passed as parameter.
+		 */
 		Concept(const std::string& id);
+		
+						
+		static Concept create(const std::string& label);
+		
+		static Concept create(const std::string& label, const Class& type);
+		
+		static Concept create(const Class& type);
 				
-		//Creates and returns a copy of the newly created concept.
-		template<class T> static T create(const std::string& label) {
-			T concept;
-			concept.setLabel(label);
-			
-			//If the template type is one of these common classes, we set the right type for the ontology.
-			if (typeid(T).name() == "Agent") concept.setType(Class("Agent"));
-			if (typeid(T).name() == "Object") concept.setType(Class("Object"));
-			if (typeid(T).name() == "Action") concept.setType(Class("Action"));
-
-			return concept;
-		}
-		
-		template<class T> static T create(const std::string& label, const Class& type){
-			T concept;
-			concept.setLabel(label);
-			concept.setType(type);
-
-			return concept;
-		}
-		
-		template<class T> static T create(const Class& type){
-			T concept;
-			concept.setType(type);
-
-			return concept;
-		}
-		
 		/**
 		 * This is a special member of the Concept class representing the semantic of the "nothing" concept. It's the unique, virtual, instance of the class Nothing.
 		 * \see Class::Nothing
@@ -563,8 +681,8 @@ class Concept {
 		 * Returns whether the object has or not some property, ie at least one assertion involves the current concept as subject, and the property (or any subproperty) you want to check as predicate.\n
 		 * For instance,
 		 * \code
-		 * OroConcept robot = OroConcept.createWithType("Robot");
-		 * robot.has(Property("isAt"));
+		 * Agent robot = Agent::create(Classes::Robot);
+		 * robot.has(Properties::isAt);
 		 * \endcode
 		 * 
 		 * \param predicate the property you want to check.
@@ -574,6 +692,38 @@ class Concept {
 		boost::logic::tribool has(const Property& predicate, const std::string& value) const;
 		boost::logic::tribool has(const Property& predicate, const Concept& value) const;
 
+		/**
+		 * Returns all the objects that are bound to the current concept through the given predicate (either directly asserted or inferred).
+		 * 
+		 * For instance,
+		 * \code
+		 * #include "oro.h"
+		 * #include "yarp_connector.h"
+		 *
+		 * using namespace std;
+		 * using namespace oro;
+		 * int main(void) {
+		 * 
+		 *	YarpConnector connector("myDevice", "oro");
+		 *	oro = Ontology::createWithConnector(connector);
+		 *
+		 *	Agent myself("myself");
+		 *	Concept human = new Concept(Classes::Human);
+		 *
+		 *	human.sees(myself);
+		 * 
+		 * 	set<concept> whatTheHumanSees = human.getObjectForPredicate(Properties::sees);
+		 *	if(whatTheHumanSees.find(myself) != whatTheHumanSees.end())
+		 *	{
+		 *   	//The human sees me...
+		 * 	}
+		 * \endcode
+		 * 
+		 * \param predicate the property you want to check.
+		 * \return a set of concepts that are linked to the current concept by the given property.
+		 */
+		std::set<Concept> getObjectsForPredicate(const Property& predicate) const;
+		
 		/**
 		 * Returns the ID of the concept. Beware: two different ID may refer to the same actual concept (OWL doesn't rely on the Unique Name Assumption).
 		 * \return the ID of the concept.
@@ -662,7 +812,19 @@ class Concept {
  * To create a new Agent instance, use the Concept::create<Object>() factory.
  */
 class Object : public Concept {
-	public:		
+	protected:
+		Object() {};
+	public:
+		Object(const std::string& id) : Concept(id) {};
+		
+		static Object create();
+		
+		static Object create(const std::string& label);
+		
+		static Object create(const std::string& label, const Class& type);
+		
+		static Object create(const Class& type);
+		
 		boost::logic::tribool hasAbsolutePosition();
 		
 		/**
@@ -687,13 +849,27 @@ class Action;
  * To create a new Agent instance, use the Concept::create<Agent>() factory.
  */
 class Agent : public Object {
+	protected:
+		Agent() {};
 	public:
+		Agent(const std::string& id) : Object(id) {};
+		
+		static Agent create();
+		
+		static Agent create(const std::string& label);
+		
+		static Agent create(const std::string& label, const Class& type);
+		
+		static Agent create(const Class& type);
+		
 		/**
 		 * This static field is always accessible and represent in the ontology "myself", ie the agent doing the reasonning.
 		 */
 		//static const Agent myself;
+		
 		void desires(const Action& action);
 		void currentlyPerforms(const Action& action);
+		void sees(const Concept& object);
 };
 
 //const Agent Agent::myself = Concept::create<Agent>("myself");
@@ -704,7 +880,19 @@ class Agent : public Object {
  * To create a new Agent instance, use the Concept::create<Action>() factory.
  */
 class Action : public Concept {
+	protected:
+		Action() {};
 	public:
+		Action(const std::string& id) : Concept(id) {};
+		
+		static Action create();
+		
+		static Action create(const std::string& label);
+		
+		static Action create(const std::string& label, const Class& type);
+		
+		static Action create(const Class& type);
+		
 		void object(const Concept& concept);
 		void recipient(const Object& concept);
 };
@@ -715,7 +903,8 @@ class Action : public Concept {
  * 
  * See the classes Concept and Property for details regarding these objects.\n
  * 
- * You can refer to the SPARQL documentation (http://www.w3.org/TR/rdf-sparql-query/#QSynLiterals) to have an easy-to-read overview of the possible syntax for literals.\n
+ * You can refer to the SPARQL documentation (http://www.w3.org/TR/rdf-sparql-query/#QSynLiterals) to have an easy-to-read overview of the possible syntax for literals. Please refer as well to the \p oro-server documentation, here: \link https://www.laas.fr/~slemaign/doc/oro-server/laas/openrobots/ontology/backends/IOntologyBackend.html#createStatement(java.lang.String) IOntologyBackend::createStatement \endlink \n
+ * 
  * Some examples of literals include:\n
  * \li "chat"
  * \li 'chat'\@fr with language tag "fr"
@@ -745,6 +934,10 @@ class Statement {
 		
 		inline bool operator==(const Statement& stmt) const;
 		
+		/**
+		 * Creates a new statement from its literal string representation.
+		 * For details regarding the syntax, please refer to the Statement class main documentation page.
+		 */
 		static Statement create(const std::string stmt);
 		
 		/**

@@ -1,3 +1,7 @@
+/** \file
+ * This header defines the YarpConnector class, which is the YARP-based implementation of the IConnector interface. It implements a connector to the ontology server based on the YARP middleware.
+ */
+
 #ifndef YARP_CONNECTOR_H_
 #define YARP_CONNECTOR_H_
 

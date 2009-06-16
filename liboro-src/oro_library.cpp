@@ -1,6 +1,7 @@
 #include "oro_library.h"
 
 namespace oro {
+const Property Properties::actionInvolves = Property("actionInvolves");
 const Property Properties::belongsTo = Property("belongsTo");
 const Property Properties::bringsToStaticSituation = Property("bringsToStaticSituation");
 const Property Properties::canUndertakeNow = Property("canUndertakeNow");
@@ -11,21 +12,23 @@ const Property Properties::hasCharacteristicLocation = Property("hasCharacterist
 const Property Properties::hasColor = Property("hasColor");
 const Property Properties::hasComponent = Property("hasComponent");
 const Property Properties::hasFrameOfReference = Property("hasFrameOfReference");
+const Property Properties::holds = Property("holds");
 const Property Properties::holds_Underspecified = Property("holds_Underspecified");
-const Property Properties::in = Property("in");
 const Property Properties::involves = Property("involves");
 const Property Properties::isAbleTo = Property("isAbleTo");
 const Property Properties::isAt = Property("isAt");
+const Property Properties::isIn = Property("isIn");
+const Property Properties::isNextTo = Property("isNextTo");
+const Property Properties::isOnTopOf = Property("isOnTopOf");
 const Property Properties::knowsAbout = Property("knowsAbout");
 const Property Properties::knowsAboutArtifact = Property("knowsAboutArtifact");
 const Property Properties::mainColorOfObject = Property("mainColorOfObject");
-const Property Properties::nextTo = Property("nextTo");
 const Property Properties::objectFoundInLocation = Property("objectFoundInLocation");
 const Property Properties::objectOfAction = Property("objectOfAction");
-const Property Properties::onTopOf = Property("onTopOf");
 const Property Properties::purposeOfAction = Property("purposeOfAction");
 const Property Properties::recipientOfAction = Property("recipientOfAction");
 const Property Properties::sees = Property("sees");
+const Property Properties::staticSituationInvolves = Property("staticSituationInvolves");
 const Property Properties::None = Property("None");
 
 const Property Properties::canBeManipulated = Property("canBeManipulated");
@@ -37,6 +40,7 @@ const Property Properties::hue = Property("hue");
 const Property Properties::isAtomicAction = Property("isAtomicAction");
 const Property Properties::isHolder = Property("isHolder");
 const Property Properties::isMovable = Property("isMovable");
+const Property Properties::isReachable = Property("isReachable");
 const Property Properties::isTraversable = Property("isTraversable");
 const Property Properties::xCoord = Property("xCoord");
 const Property Properties::yCoord = Property("yCoord");
@@ -106,6 +110,7 @@ const Class Classes::Touch = Class("Touch");
 const Class Classes::Trashbin = Class("Trashbin");
 const Class Classes::Violet = Class("Violet");
 const Class Classes::VisualMark = Class("VisualMark");
+const Class Classes::Walk = Class("Walk");
 const Class Classes::Wall = Class("Wall");
 const Class Classes::Window = Class("Window");
 const Class Classes::Yellow = Class("Yellow");

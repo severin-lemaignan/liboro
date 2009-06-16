@@ -21,6 +21,28 @@ Concept::Concept():_id(Ontology::newId()), _label("") {}
 
 Concept::Concept(const std::string& id):_id(id), _label(""){}
 
+Concept Concept::create(const std::string& label) {
+	Concept concept;
+	concept.setLabel(label);
+
+	return concept;
+}
+
+Concept Concept::create(const std::string& label, const Class& type){
+	Concept concept;
+	concept.setLabel(label);
+	concept.setType(type);
+
+	return concept;
+}
+
+Concept Concept::create(const Class& type){
+	Concept concept;
+	concept.setType(type);
+
+	return concept;
+}
+
 void Concept::assert(const Property& predicate, const std::string& value){
 	//cout << "Asserting " << _label << "(id: " << _id << ")" << predicate << " " << value << endl;
 	Ontology::getInstance()->add(Statement(*this, predicate, value));
@@ -59,17 +81,19 @@ boost::logic::tribool Concept::has(const Property& predicate, const Concept& val
 	return has(predicate, value.id());
 }
 
+std::set<Concept> Concept::getObjectsForPredicate(const Property& predicate) const{
+	throw OntologyException("Not yet implemented!");
+}
+
 std::string Concept::id() const{
 	return _id;
 }
 
 boost::logic::tribool Concept::is(const Property& boolDataproperty) const{
-
+	throw OntologyException("Not yet implemented!");
 }
 
 boost::logic::tribool Concept::hasType(const Class& type) const{
-	
-	
 	throw OntologyException("Not yet implemented!");
 }
 void Concept::setType(const Class& type){
@@ -97,6 +121,36 @@ const Concept Concept::nothing = Concept();
 *                    	  Class Object					     *
 /****************************************************************************/
 
+Object Object::create() {
+	Object concept;
+	concept.setType(Class("Object"));
+
+	return concept;
+}
+
+Object Object::create(const std::string& label) {
+	Object concept;
+	concept.setLabel(label);
+	concept.setType(Class("Object"));
+
+	return concept;
+}
+
+Object Object::create(const std::string& label, const Class& type){
+	Object concept;
+	concept.setLabel(label);
+	concept.setType(type);
+
+	return concept;
+}
+
+Object Object::create(const Class& type){
+	Object concept;
+	concept.setType(type);
+
+	return concept;
+}
+		
 boost::logic::tribool Object::hasAbsolutePosition(){
 	throw OntologyException("Not yet implemented!");
 }
@@ -111,8 +165,8 @@ void Object::setColor(int hue){
 	o << hue;
 	
 	Ontology::getInstance()->bufferize();
-	Concept color = Concept::create<Concept>(Classes::Color);
-	color.assert(Property("hue"), o.str());
+	Concept color = Concept::create(Classes::Color);
+	color.assert(Properties::hue, o.str());
 	assert(Properties::hasColor, color);
 	Ontology::getInstance()->flush();
 }
@@ -123,15 +177,15 @@ void Object::setAbsolutePosition(double x, double y, double z){
 	
 	Ontology::getInstance()->bufferize();
 	
-	Concept point = Concept::create<Concept>(Classes::Point);
+	Concept point = Concept::create(Classes::Point);
 	o << x;
-	point.assert(Property("xCoord"), o.str());
+	point.assert(Properties::xCoord, o.str());
 	o.str("");
 	o << y;
-	point.assert(Property("yCoord"), o.str());
+	point.assert(Properties::yCoord, o.str());
 	o.str("");
 	o << z;
-	point.assert(Property("zCoord"), o.str());
+	point.assert(Properties::zCoord, o.str());
 	
 	assert(Properties::isAt, point);
 	
@@ -141,17 +195,83 @@ void Object::setAbsolutePosition(double x, double y, double z){
 /*****************************************************************************
 *                    	  Class Agent					     *
 /****************************************************************************/
+
+Agent Agent::create() {
+	Agent concept;
+	concept.setType(Class("Agent"));
+
+	return concept;
+}
+
+Agent Agent::create(const std::string& label) {
+	Agent concept;
+	concept.setLabel(label);
+	concept.setType(Class("Agent"));
+
+	return concept;
+}
+		
+Agent Agent::create(const std::string& label, const Class& type){
+	Agent concept;
+	concept.setLabel(label);
+	concept.setType(type);
+
+	return concept;
+}
+
+Agent Agent::create(const Class& type){
+	Agent concept;
+	concept.setType(type);
+
+	return concept;
+}
+
+void Agent::sees(const Concept& concept) {
+	assert(Properties::sees, concept);
+}
+		
 void Agent::desires(const Action& action) {
-	throw OntologyException("Not yet implemented!");
+	assert(Properties::desires, action);
 }
 
 void Agent::currentlyPerforms(const Action& action){
-	throw OntologyException("Not yet implemented!");
+	assert(Properties::currentlyPerforms, action);
 }
 		
 /*****************************************************************************
 *                    	  Class Action					     *
 /****************************************************************************/
+		
+Action Action::create() {
+	Action concept;
+	concept.setType(Class("Action"));
+
+	return concept;
+}
+		
+Action Action::create(const std::string& label) {
+	Action concept;
+	concept.setLabel(label);
+	concept.setType(Class("Action"));
+
+	return concept;
+}
+
+Action Action::create(const std::string& label, const Class& type){
+	Action concept;
+	concept.setLabel(label);
+	concept.setType(type);
+
+	return concept;
+}
+
+Action Action::create(const Class& type){
+	Action concept;
+	concept.setType(type);
+
+	return concept;
+}
+		
 void Action::object(const Concept& concept) {
 	assert(Properties::objectOfAction, concept);
 }

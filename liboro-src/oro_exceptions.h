@@ -1,14 +1,6 @@
-//
-// C++ Interface: oro_exceptions
-//
-// Description: 
-//
-//
-// Author: Severin Lemaignan,B69,7844 <slemaign@goedel>, (C) 2009
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+/** \file
+ * This header defines some C++ exceptions specific to \p liboro .
+ */
 
 #ifndef ORO_EXCEPTIONS_H_
 #define ORO_EXCEPTIONS_H_

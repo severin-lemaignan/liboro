@@ -23,18 +23,31 @@ namespace oro {
 		return (stmt.to_string() == to_string());
 	}
 	
+	/**
+	 * Creates a new statement from its literal string representation.
+	*/
 	Statement Statement::create(const string stmt){
 		
-		string buf; // Have a buffer string
-		stringstream ss(stmt); // Insert the string into a stream
+		string buf = stmt; // Have a buffer string
+		//stringstream ss(stmt); // Insert the string into a stream
 
 		vector<string> tokens; // Create vector to hold the parts of the statement
 
-		while (ss >> buf)
-			tokens.push_back(buf);
+		//while (ss >> buf) //nice and efficient to tokenize a string on the spaces
+		//	tokens.push_back(buf);
 		
-		if (tokens.size() != 3)
-			throw InvalidStatementException();
+		//pas super élégant...
+		int cutAt;
+		cutAt = buf.find(" ");
+		tokens.push_back(buf.substr(0,cutAt));
+		buf = buf.substr(cutAt+1);
+		cutAt = buf.find(" ");
+		tokens.push_back(buf.substr(0,cutAt));
+		buf = buf.substr(cutAt+1);
+		tokens.push_back(buf);
+		
+		//if (tokens.size() != 3)
+		//	throw InvalidStatementException();
 
 		//TODO This will always generate a statement with a literal object...
 		return Statement(Concept(tokens[0]), Property(tokens[1]), tokens[2]);
