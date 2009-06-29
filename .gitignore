@@ -15,3 +15,8 @@ include/
 *~
 *kdev*
 doc/
+Doxyfile
+html/
+xml/
+*.tag
+*.tar.gz
