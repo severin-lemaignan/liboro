@@ -238,6 +238,10 @@ class Properties {
  */
 class Classes {
 	public:
+		/**
+		* The most generic concept available.
+		*/
+		static const Class Thing;
 
 		/**
 		* The collection of Events (q.v.) that are carried out by some "doer".

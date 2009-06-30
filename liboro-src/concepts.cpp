@@ -17,9 +17,9 @@ namespace oro {
 /*****************************************************************************
 *                    	  Class Concept					     *
 /****************************************************************************/
-Concept::Concept():_id(Ontology::newId()), _label("") {}
+Concept::Concept():_id(Ontology::newId()), _label(""), _class(Classes::Thing) {}
 
-Concept::Concept(const std::string& id):_id(id), _label(""){}
+Concept::Concept(const std::string& id):_id(id), _label(""), _class(Classes::Thing) {}
 
 Concept Concept::create(const std::string& label) {
 	Concept concept;
@@ -43,7 +43,7 @@ Concept Concept::create(const Class& type){
 	return concept;
 }
 
-void Concept::assert(const Property& predicate, const std::string& value){
+void Concept::assert(const Property& predicate, const string& value){
 	//cout << "Asserting " << _label << "(id: " << _id << ")" << predicate << " " << value << endl;
 	Ontology::getInstance()->add(Statement(*this, predicate, value));
 }
@@ -85,10 +85,6 @@ std::set<Concept> Concept::getObjectsForPredicate(const Property& predicate) con
 	throw OntologyException("Not yet implemented!");
 }
 
-std::string Concept::id() const{
-	return _id;
-}
-
 boost::logic::tribool Concept::is(const Property& boolDataproperty) const{
 	throw OntologyException("Not yet implemented!");
 }
@@ -98,14 +94,12 @@ boost::logic::tribool Concept::hasType(const Class& type) const{
 }
 void Concept::setType(const Class& type){
 	assert(Property("rdf:type"), type.to_string());
+	_class = type;
 }
 
 void Concept::setLabel(const std::string& label){
 	assert(Property("rdfs:label"), "\"" + label + "\"");
 	_label = label;
-}
-std::string Concept::label() const{
-	return _label;
 }
 
 void Concept::remove(const Property& predicate, const std::string& value){
@@ -226,8 +220,11 @@ Agent Agent::create(const Class& type){
 	return concept;
 }
 
-void Agent::sees(const Concept& concept) {
-	assert(Properties::sees, concept);
+void Agent::sees(const Concept& concept, bool asserted = true) {
+	if (asserted)
+		assert(Properties::sees, concept);
+	else
+		remove(Properties::sees, concept);
 }
 		
 void Agent::desires(const Action& action) {

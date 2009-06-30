@@ -26,7 +26,7 @@ namespace oro
 			it = args.begin();
 			while ( it != args.end() )
 			{
-				_stmt_storage.push_back ( Statement::create ( *it ) );
+				_stmt_storage.push_back ( Statement( *it ) );
 				++it;
 			}
 

@@ -110,11 +110,11 @@ void Ontology::add(const Statement& statement){
 }
 
 //TODO replace vectors by sets. It's stupid to use vectors.
-void Ontology::add(const std::vector<Statement>& statements){
+void Ontology::add(const vector<Statement>& statements){
 	
 	vector<string> stringified_stmts;
 	vector<Statement>::const_iterator iterator = statements.begin();
-	
+		
 	while( iterator != statements.end() ) {
 		
 		if (_bufferize) addToBuffer("add", (Statement)*iterator);
@@ -129,6 +129,7 @@ void Ontology::add(const std::vector<Statement>& statements){
 		if (res.status == ServerResponse::failed) throw OntologyServerException("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg);
 	}
 }
+
 
 void Ontology::remove(const Statement& statement){
 	remove(vector<Statement>(1, statement));

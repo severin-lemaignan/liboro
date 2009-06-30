@@ -689,6 +689,32 @@ class Concept {
 		void assert(const Property& predicate, const Concept& value);
 
 		/**
+		 * Removes an assertion regarding the current concept to the ontology.\n
+		 * It removes the triple \p [this_object] \p [the_predicate] \p [the_value] from the ontology.
+		 * If the triple is not present, nothing is done.
+		 * 
+		 * \param predicate the predicate of the statement.
+		 * \param value the literal representation of the object of the statement.
+		 * \throw ResourceNotFoundOntologyException when the predicate name can not be matched to a property name defined in the ontology.
+		 * \throw OntologySemanticException if the removal of a statement causes the ontology to become inconsistent.
+		 * \see remove
+		*/
+		void remove(const Property& predicate, const std::string& value);
+
+		/**
+		 * Removes an assertion regarding the current concept to the ontology.\n
+		 * It removes the triple \p [this_object] \p [the_predicate] \p [the_value] from the ontology.
+		 * If the triple is not present, nothing is done.
+		 * 
+		 * \param predicate the predicate of the statement.
+		 * \param value the object of the statement.
+		 * \throw ResourceNotFoundOntologyException when the predicate name can not be matched to a property name defined in the ontology.
+		 * \throw OntologySemanticException if the removal of a statement causes the ontology to become inconsistent.
+		 * \see remove
+		 */
+		void remove(const Property& predicate, const Concept& value);
+		
+		/**
 		 * Removes all the assertions in the ontology which have the current concept as subject and the given property as predicate.\n Assertions with subproperties as predicate are not removed.
 		 * \param predicate the property whose assertions are to be removed.
 		 */
@@ -745,7 +771,7 @@ class Concept {
 		 * Returns the ID of the concept. Beware: two different ID may refer to the same actual concept (OWL doesn't rely on the Unique Name Assumption).
 		 * \return the ID of the concept.
 		 */
-		std::string id() const;
+		const std::string id() const {return _id;};
 
 		/**
 		 * Returns the status (true or false) of some boolean property.
@@ -781,7 +807,7 @@ class Concept {
 		/**
 		 * 
 		 */
-		const Class& type() const;
+		const Class& type() const {return _class;};
 
 		/**
 		 * Sets a human-readable label for this concept.\n
@@ -796,11 +822,9 @@ class Concept {
 		 * 
 		 * \return the human-readable form of the concept name, or an empty string if no label has been defined.
 		 */
-		std::string label() const;
+		const std::string& label() const {return _label;};
 
-		void remove(const Property& predicate, const std::string& value);		
-		void remove(const Property& predicate, const Concept& value);
-		
+
 
 		/**
 		 * Returns a computer-friendly string describing the concept.
@@ -811,13 +835,15 @@ class Concept {
 		 * Print, in a computer-friendly way, the concept.
 		 */
 		friend std::ostream& operator<<(std::ostream& stream,const Concept& c){
-			stream<<c._id;
+			//stream<< c._class << ":" << c._id;
+			stream << c._id;
 			return stream;
 		}
 
 	protected:
 		std::string _id;
 		std::string _label;
+		Class _class;
 		
 
 };
@@ -886,7 +912,12 @@ class Agent : public Object {
 		
 		void desires(const Action& action);
 		void currentlyPerforms(const Action& action);
-		void sees(const Concept& object);
+	
+		/**
+		 * Asserts that the agent
+		 * \param object the object that is seen or not
+		 */
+		void sees(const Concept& object, bool asserted);
 };
 
 //const Agent Agent::myself = Concept::create<Agent>("myself");
@@ -945,18 +976,16 @@ class Statement {
 		
 		bool isObjectLiteral;
 		
-		
+		/**
+		 * Constructs a new statement from its literal string representation.
+		 * For details regarding the syntax, please refer to the Statement class main documentation page.
+		 */
+		Statement(const std::string& stmt);
 		Statement(const Concept& subject, const Property& predicate, const Concept& object);
 		Statement(const Concept& subject, const Property& predicate, const std::string& object);
 		
 		inline bool operator==(const Statement& stmt) const;
-		
-		/**
-		 * Creates a new statement from its literal string representation.
-		 * For details regarding the syntax, please refer to the Statement class main documentation page.
-		 */
-		static Statement create(const std::string& stmt);
-		
+			
 		/**
 		 * Returns a computer-friendly string describing the concept.
 		*/
@@ -966,10 +995,12 @@ class Statement {
 		 * Print, in a computer-friendly way, the statement.
 		 */
 		friend std::ostream& operator<<(std::ostream& stream,const Statement& stmt){
-			stream<<stmt.subject<<" "<<stmt.predicate<<" " << (stmt.isObjectLiteral?stmt.literal_object:stmt.object);
-			return stream;
+			stream <<  stmt._originalStmt;
+			return stream;	
 		}
 
+	private:
+		std::string _originalStmt;
 		
 };
 }

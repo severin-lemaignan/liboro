@@ -46,6 +46,7 @@ const Property Properties::xCoord = Property("xCoord");
 const Property Properties::yCoord = Property("yCoord");
 const Property Properties::zCoord = Property("zCoord");
 
+const Class Classes::Thing = Class("owl:Thing");
 const Class Classes::Action = Class("Action");
 const Class Classes::Agent = Class("Agent");
 const Class Classes::Artifact = Class("Artifact");

@@ -80,9 +80,9 @@ int main(void) {
 	//  TEST 1 //
 	cout << " * <BENCH1> Assertion of some initial facts" << endl;
 
-	onto->add(Statement::create("gorilla rdf:type Monkey"));
-	onto->add(Statement::create("gorilla age 12^^xsd:int"));
-	onto->add(Statement::create("gorilla weight 75.2"));
+	onto->add(Statement("gorilla rdf:type Monkey"));
+	onto->add(Statement("gorilla age 12^^xsd:int"));
+	onto->add(Statement("gorilla weight 75.2"));
 
 	timetable["<BENCH1> simple assertions"] = clock();
 	
