@@ -102,6 +102,8 @@ print >> f_h, " * \see Concept::isA(const Class& type) const"
 print >> f_h, " */"
 print >> f_h, "class Classes {"
 print >> f_h, "\tpublic:"
+print >> f_h,"\t\t/**\n\t\t* The most generic concept available.\n\t\t*/"
+print >> f_h, "\t\tstatic const Class Thing;"
 
 addClassesDeclarations(dom, True, f_h)
 
@@ -123,6 +125,7 @@ addPropertiesDeclarations(dom, "owl:ObjectProperty", False, f_cpp)
 print >> f_cpp
 addPropertiesDeclarations(dom, "owl:DatatypeProperty", False, f_cpp)
 print >> f_cpp
+print >> f_cpp, "const Class Classes::Thing = Class(\"owl:Thing\");"
 addClassesDeclarations(dom, False, f_cpp)
 print >> f_cpp
 print >> f_cpp, "}"
