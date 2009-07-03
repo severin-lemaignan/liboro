@@ -120,7 +120,7 @@ ServerResponse YarpConnector::execute(const string query, const vector<vector<st
 	Bottle args;
 	
 	vector<vector<string> >::const_iterator itArgs;
-	for(itArgs = vect_args.begin(); itArgs != vect_args.end(); itArgs++)
+	for(itArgs = vect_args.begin(); itArgs != vect_args.end(); ++itArgs)
 	{
 		//if ((*(itArgs)).size() == 1) args.addString((*(itArgs))[0].c_str());
 		//else {
@@ -159,7 +159,9 @@ ServerResponse YarpConnector::execute(const string query){
 
 	out.write();                       // Now send it on its way
 	
+	cout << "Waiting for an answer from oro-server" << endl;
 	read(res);
+	cout << "Got the answer!" << endl;
 	
 	return res;
 }

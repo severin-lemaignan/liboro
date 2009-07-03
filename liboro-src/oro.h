@@ -917,7 +917,7 @@ class Agent : public Object {
 		 * Asserts that the agent
 		 * \param object the object that is seen or not
 		 */
-		void sees(const Concept& object, bool asserted);
+		void sees(const Concept& object, bool asserted = true);
 };
 
 //const Agent Agent::myself = Concept::create<Agent>("myself");

@@ -220,7 +220,7 @@ Agent Agent::create(const Class& type){
 	return concept;
 }
 
-void Agent::sees(const Concept& concept, bool asserted = true) {
+void Agent::sees(const Concept& concept, bool asserted) {
 	if (asserted)
 		assert(Properties::sees, concept);
 	else

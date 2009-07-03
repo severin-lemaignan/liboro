@@ -117,8 +117,10 @@ void Ontology::add(const vector<Statement>& statements){
 		
 	while( iterator != statements.end() ) {
 		
-		if (_bufferize) addToBuffer("add", (Statement)*iterator);
-		else stringified_stmts.push_back(((Statement)*iterator).to_string());
+		if (_bufferize) addToBuffer("add", *iterator);
+		else stringified_stmts.push_back(iterator->to_string());
+		
+		//cout << iterator->to_string() << endl;
 		
 		++iterator;
 	}
