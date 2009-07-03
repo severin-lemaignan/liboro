@@ -31,6 +31,22 @@ ADD_DEFINITIONS(-DORO_VERSION="${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VE
 
 INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 
+##########################################
+##       PKGCONFIG file                ###
+##########################################
+
+IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
+    MESSAGE(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc")
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in 
+      ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
+      @ONLY )
+
+	INSTALL(FILES
+		${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
+		DESTINATION lib/pkgconfig
+	)
+ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
+
 
 ADD_SUBDIRECTORY (liboro-src)
 ADD_SUBDIRECTORY (oro-apps-src) 

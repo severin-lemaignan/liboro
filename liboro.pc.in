@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: liboro
+Description: Allows to easily interface with the oro-server ontology server in C++.
+Version: @CPACK_PACKAGE_VERSION_MAJOR@.@CPACK_PACKAGE_VERSION_MINOR@.@CPACK_PACKAGE_VERSION_PATCH@
+Libs: -L${libdir} -loro -lYARP_OS
+Cflags: -I${includedir}/liboro
