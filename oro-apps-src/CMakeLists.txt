@@ -58,16 +58,16 @@ INSTALL (TARGETS oro-export
 #                ORO-STATS                       #
 ##################################################
 
-add_executable (oro-stats oro_stats.cpp)
+add_executable (oro-qos oro_stats.cpp)
 
-target_link_libraries (oro-stats oro ${LIBS}) 
+target_link_libraries (oro-qos oro ${LIBS}) 
 
-SET_TARGET_PROPERTIES(oro-stats PROPERTIES
+SET_TARGET_PROPERTIES(oro-qos PROPERTIES
 	INSTALL_RPATH_USE_LINK_PATH TRUE
 	INSTALL_RPATH ${INSTALL_PREFIX}/lib
 	BUILD_WITH_INSTALL_RPATH TRUE )
 
-INSTALL (TARGETS oro-stats
+INSTALL (TARGETS oro-qos
 	RUNTIME DESTINATION bin
 )
 

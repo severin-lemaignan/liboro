@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 	//We catch ctrl+c to cleanly close the application
 	signal( SIGINT,sigproc);
 	
-	cout << "********* ORO - Server statistics *********" << endl;
+	cout << "********* ORO - Quality of Service *********" << endl;
 	if (argc > 1 && (argv[2] == "-h")){
 		cout << "Syntax:\n> oro-stats [yarp port of the oro server]" << endl << "By default, the oro-server yarp port is \"oro\"."<<endl;
 		return(0);
