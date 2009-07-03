@@ -38,6 +38,23 @@ INSTALL (TARGETS oro-query
 )
 
 ##################################################
+#                ORO-EXPORT                      #
+##################################################
+
+add_executable (oro-export oro_export.cpp)
+
+target_link_libraries (oro-export oro ${LIBS}) 
+
+SET_TARGET_PROPERTIES(oro-export PROPERTIES
+	INSTALL_RPATH_USE_LINK_PATH TRUE
+	INSTALL_RPATH ${INSTALL_PREFIX}/lib
+	BUILD_WITH_INSTALL_RPATH TRUE )
+
+INSTALL (TARGETS oro-export
+	RUNTIME DESTINATION bin
+)
+
+##################################################
 #                ORO-STATS                       #
 ##################################################
 
