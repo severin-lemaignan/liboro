@@ -549,6 +549,13 @@ class Ontology {
 		IConnector& _connector;
 		Ontology(IConnector& connector);
 	private:
+		
+		/** This method performs a basic connection check to be sure the ontology server is up and responsive.
+		 * 
+		 * \return true if the server is up.
+		 */
+		bool checkOntologyServer();
+		
 		void addToBuffer(const std::string, const Statement&);
 		
 		static Ontology* _instance;

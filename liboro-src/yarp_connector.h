@@ -5,6 +5,9 @@
 #ifndef YARP_CONNECTOR_H_
 #define YARP_CONNECTOR_H_
 
+//the maximum amount of ms the processus should wait for an answer from the ontology server.
+#define ORO_MAX_DELAY 1500
+
 #include <yarp/os/Network.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Bottle.h>
@@ -68,6 +71,7 @@ private:
 	void pourBottle(const yarp::os::Bottle& bottle, std::vector<Concept>& result);
 	void read(ServerResponse& response);
 	void vectorToBottle(const std::vector<std::string>& data, yarp::os::Bottle& bottle);
+	int msleep(unsigned long milisec);
 
 	// Create two ports that we'll be using to transmit "Bottle" objects.
 	// The ports are buffered, so that sending and receiving can happen

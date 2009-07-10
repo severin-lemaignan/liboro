@@ -61,11 +61,12 @@ int main(int argc, char* argv[]) {
 	onto->stats(result);
 
 	cout << "* oro-server found!" << endl;
-	cout << "* Hostname: " << result[0] << endl;
-	cout << "* Uptime: " << result[1] << endl;
-	cout << "* Nb of classes in the ontology: " << result[2] << endl;
-	cout << "* Nb of instances in the ontology: " << result[3] << endl;
-	cout << "* Nb of currently connected clients: " << result[4] << endl;
+	cout << "* oro-server version: " << result[0] << endl;
+	cout << "* Hostname: " << result[1] << endl;
+	cout << "* Uptime: " << result[2] << endl;
+	cout << "* Nb of classes in the ontology: " << result[3] << endl;
+	cout << "* Nb of instances in the ontology: " << result[4] << endl;
+	cout << "* Nb of currently connected clients: " << result[5] << endl;
 
 }
 

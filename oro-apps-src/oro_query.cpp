@@ -58,7 +58,13 @@ int main(int argc, char* argv[]) {
 	
 	//Instanciate the ontology with the YARP connector.
 	YarpConnector connector(local_port, oro_port);
-	onto = Ontology::createWithConnector(connector);
+	
+	try {
+		onto = Ontology::createWithConnector(connector);
+	} catch (OntologyServerException ose) {
+		cout << "Server error: " << ose.what() << endl;
+		return 0;
+	}
 
 	cout << "Now opening " + sparql_file + " (variable: "+ variable + ") and executing the query on " + oro_port << endl;
 
@@ -79,7 +85,16 @@ int main(int argc, char* argv[]) {
 	
 	cout << query << endl;
 	
-	onto->query(variable, query, result);
+	try {
+		onto->query(variable, query, result);
+	} catch (InvalidQueryException iqe) {
+		cout << "Invalid query: " << iqe.what() << endl;
+		return 0;
+	} catch (OntologyServerException ose) {
+		cout << "Server error: " << ose.what() << endl;
+		return 0;
+	}
+	
 
 	cout << endl << "**********************\n" << "*       Result       *\n" << "**********************" << endl;
 	displayVector(result);
@@ -91,6 +106,8 @@ int main(int argc, char* argv[]) {
 	///////////////////////////
 
 	displayTime();
+	
+	return 0;
 
 }
 

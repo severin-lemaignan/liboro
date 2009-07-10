@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <time.h>
 
 #include "oro_exceptions.h"
 #include "yarp_connector.h"
@@ -51,10 +52,18 @@ namespace oro {
 	
 YarpConnector::YarpConnector(const string port_name, const string oro_in_port_name){
 
+	Network::init();
+	
 	// Work locally - don't rely on name server (just for this example).
 	// If you have a YARP name server running, you can remove this line.
 	//Network::setLocalMode(true);
 
+	//Checks that a YARP nameserver is reachable.
+	if (! Network::checkNetwork()) {
+		cerr << "Looks like there is no YARP server started! Exiting.";
+		throw ConnectorException("No YARP server can be found. Abandon.");
+		exit(0);
+	}
 
 	// we will want to read every message, with no skipping of "old" messages
 	// when new ones come in
@@ -66,8 +75,9 @@ YarpConnector::YarpConnector(const string port_name, const string oro_in_port_na
 
 	in_port = "/" + port_name + "/in";
 	out_port = "/" + port_name + "/out";
+	
 	in.open( in_port.c_str() );
-	out.open( out_port.c_str());
+	out.open( out_port.c_str() );
 
 	// Connect the local output port to the ontology server incoming port.
 	// No connection to the server results port since this connection is handled by the ontology server itself.
@@ -78,7 +88,7 @@ YarpConnector::YarpConnector(const string port_name, const string oro_in_port_na
 }
 
 YarpConnector::~YarpConnector(){
-	//cout << "Terminating the YARP connection..." << endl;
+	cout << "Closing YARP connection...";
 	
 	if (Network::isConnected(out_port.c_str() ,("/" + oro_server + "/in").c_str() )) {
 		executeDry("close");
@@ -86,6 +96,10 @@ YarpConnector::~YarpConnector(){
 	}
 	in.close();
 	out.close();
+	
+	Network::fini();
+	
+	cout << "done." << endl;
 }
 
 ServerResponse YarpConnector::execute(const string query, const Bottle& args){
@@ -135,6 +149,7 @@ ServerResponse YarpConnector::execute(const string query, const vector<vector<st
 ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
 	
 	Bottle args;
+	
 	vectorToBottle(vect_args, args);
 	
 	return execute(query, args);
@@ -159,9 +174,9 @@ ServerResponse YarpConnector::execute(const string query){
 
 	out.write();                       // Now send it on its way
 	
-	cout << "Waiting for an answer from oro-server" << endl;
+	//cout << "Waiting for an answer from oro-server" << endl;
 	read(res);
-	cout << "Got the answer!" << endl;
+	//cout << "Got the answer!" << endl;
 	
 	return res;
 }
@@ -180,7 +195,23 @@ void YarpConnector::read(ServerResponse& res){
 	
 		//cout << "Waiting for answer...";
 
-		Bottle *rawResult = in.read();
+		Bottle *rawResult = NULL;
+		int delay = 0;
+		
+		rawResult = in.read(false);
+		
+		while (rawResult == NULL && delay < ORO_MAX_DELAY){
+			msleep(50);
+			delay += 50;
+			rawResult = in.read(false);
+		}
+		
+		//The server doesn't answer quickly enough.
+		if (rawResult == NULL){
+			res.status = ServerResponse::failed;
+			res.error_msg = "oro-server read timeout.";
+			return;
+		}		
 		
 		//cout << "got it!" << endl;
 			
@@ -224,18 +255,12 @@ void YarpConnector::read(ServerResponse& res){
 
 void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
 {
-	string tmp;
+	vector<string>::const_iterator itData = data.begin();
 
-	for(unsigned int i = 0 ; i < data.size() ; i++)
-	{
-		tmp = data.at(i).c_str();
+	for( ; itData != data.end() ; ++itData)
+		bottle.addString((*itData).c_str());
 
-		//if (data.at(i).find(" ") != string::npos) tmp = "\"" + tmp + "\"";
-
-		bottle.addString(tmp.c_str());
-
-	}
-	}
+}
 
 void YarpConnector::pourBottle(const Bottle& bottle, vector<string>& result)
 {
@@ -265,114 +290,17 @@ void YarpConnector::pourBottle(const Bottle& bottle, vector<Concept>& result)
 	}
 }
 
-/*
-
-int YarpConnector::find(const string& resource, const vector<string>& partial_statements, const vector<string>& restrictions, vector<Concept>& result)
+int YarpConnector::msleep(unsigned long milisec)
 {
-	Bottle inBot;
-	Bottle args;
-
-	args.addString(resource.c_str());
-	yarp->vectorToBottle(partial_statements, args.addList());
-	if (restrictions.size() > 0) yarp->vectorToBottle(restrictions, args.addList());
-
-	yarp->execute("filteredFind", args);
-
-	yarp->read(inBot);
-
-
-	pourBottleAsConcepts(*(inBot.pop().asList()), result);
-
-	return 0;
+    struct timespec req={0};
+     time_t sec=(int)(milisec/1000);
+     milisec=milisec-(sec*1000);
+     req.tv_sec=sec;
+     req.tv_nsec=milisec*1000000L;
+     while(nanosleep(&req,&req)==-1)
+          continue;
+     return 1;
 }
-
-int YarpConnector::find(const string& resource, const vector<string>& partial_statements, vector<Concept>& result)
-{
-	vector<string> restrictions;
-	return Oro::find(resource, partial_statements, restrictions, result);
-}
-
-int YarpConnector::find(const string& resource, const string& partial_statement, vector<Concept>& result)
-{
-	vector<string> restrictions;
-	vector<string> partial_statements;
-	partial_statements.push_back(partial_statement);
-	return Oro::find(resource, partial_statements, restrictions, result);
-}
-
-
-
-int YarpConnector::getHumanReadableInfos(const string& resource, vector<string>& result)
-{
-	Bottle inBot;
-
-	yarp->execute("getHumanReadableInfos", resource);
-
-	yarp->read(inBot);
-
-	pourBottle(inBot, result);
-
-	return 0;
-}
-
-int YarpConnector::guess(const string& resource, const double threshold, const vector<string>& partial_statements, vector<string>& result)
-{
-	Bottle inBot;
-	Bottle args;
-
-	args.addString(resource.c_str());
-	args.addDouble(threshold);
-	yarp->vectorToBottle(partial_statements, args.addList());
-
-	yarp->execute("guess", args);
-
-	yarp->read(inBot);
-
-
-	pourBottle(*(inBot.pop().asList()), result);
-
-	return 0;
-}
-
-int YarpConnector::query(const string& var_name, const string& query, vector<string>& result)
-{
-	Bottle inBot;
-
-	yarp->execute("query", var_name + " \"" + query + "\"");
-
-	yarp->read(inBot);
-
-	pourBottle(inBot, result);
-
-	return 0;
-}
-
-int YarpConnector::queryAsXML(const string& query, string& result)
-{
-	Bottle inBot;
-
-	yarp->execute("queryAsXML", "\"" + query + "\"");
-
-	yarp->read(inBot);
-
-	result = inBot.pop().asString().c_str();
-
-	return 0;
-}
-
-int YarpConnector::test(const string& test, string& result)
-{
-	Bottle inBot;
-
-	yarp->execute("test", test);
-
-	yarp->read(inBot);
-
-	result = inBot.pop().asString().c_str();
-
-	return 0;
-}
-*/
 
 }
 

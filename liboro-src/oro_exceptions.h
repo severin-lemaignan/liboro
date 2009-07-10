@@ -43,6 +43,16 @@ class OntologyServerException : public std::runtime_error {
 };
 
 /**
+ * Exception for every conenctor-related problems.
+ */
+class ConnectorException : public std::runtime_error {
+	public:
+		ConnectorException() : std::runtime_error("ConnectorException") { }
+		ConnectorException(const char* msg) : std::runtime_error(msg) { }
+		ConnectorException(const std::string& msg) : std::runtime_error(msg.c_str()) { }
+};
+
+/**
  * Generic exception when the ontology loose its consistency (<=> semantic error).
  */
 class OntologySemanticException : public OntologyException {

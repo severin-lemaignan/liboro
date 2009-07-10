@@ -17,12 +17,19 @@ Ontology* Ontology::_instance = NULL;
 // Protected constructor
 Ontology::Ontology(IConnector& connector) : _connector(connector) {
 	
+	cout << "liboro v." << ORO_VERSION;
 	//Initializes the random generator for later generation of unique id for concepts.
 	srand(time(NULL));
 	
 	_bufferize = false;
 	
 	_buf_op_counter = 0;
+	
+	if (! checkOntologyServer()) {
+		cerr << "Cannot reach the ontology server! Check it is started. Exiting.";
+		throw OntologyServerException("Cannot reach the ontology server. Abandon.");
+		exit(0);
+	}
 	
 	//TODO : destructor required if resources need to be released.
 }
@@ -32,7 +39,7 @@ Ontology* Ontology::createWithConnector(IConnector& connector){
 	if (_instance == NULL)
 		_instance = new Ontology(connector);
 	
-	cout << "liboro v." << ORO_VERSION << " - ontology initialized" << endl;
+	cout << " - ontology initialized." << endl;
 
 	return _instance;
 }
@@ -42,6 +49,18 @@ Ontology* Ontology::getInstance(){
 	if (_instance != NULL)
 		return _instance;
 	else throw UninitializedOntologyException("the ontology is not properly initialized. Created with Ontology::createWithConnector(IConnector&) before any access attempt.");
+}
+
+bool Ontology::checkOntologyServer(){
+	vector<string> result;
+	
+	ServerResponse res = _connector.execute("stats");
+	
+	if (res.status != ServerResponse::ok) return false;
+	
+	cout << " - oro-server v." << res.result[0];
+	
+	return true;
 }
 
 void Ontology::bufferize(){
@@ -180,8 +199,7 @@ void Ontology::stats(vector<string>& result){
 	{
 		result.push_back(*(itRawResult));
 	}
-}	
-
+}
 
 void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
 	vector<vector<string> > args;
