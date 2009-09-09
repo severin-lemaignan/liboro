@@ -5,6 +5,8 @@
 #include <iterator>
 #include <signal.h>
 #include <map>
+#include <set>
+#include <vector>
 #include <time.h>
 
 #include <boost/thread/thread.hpp>
@@ -29,7 +31,7 @@ using namespace boost;
 
 struct ltstr
 {
-  bool operator()(const string s1, const string s2) const
+  bool operator()(const string& s1, const string& s2) const
   {
     return s1.compare(s2) < 0;
   }
@@ -38,7 +40,8 @@ struct ltstr
 //Forward declarations
 class eventHandler;
 void sigproc(int);
-void displayVector(const vector<string>& result);
+void displayCollec(const vector<string>& result);
+void displayCollec(const set<string>& result);
 void displayTime(void);
 
 //boost::condition cond;
@@ -117,7 +120,7 @@ int main(void) {
 	*/
 	
 	//  TEST 4 //
-	vector<string> result;
+	set<string> result;
 	
 	name = "<BENCH4> Simple getInfos query";
 	
@@ -127,7 +130,7 @@ int main(void) {
 			
 	onto->getInfos("gorilla", result);
 	
-	displayVector(result);
+	displayCollec(result);
 	
 	timetable["<BENCH4> Simple getInfos query (existing resource)"] = clock();
 	
@@ -175,7 +178,7 @@ int main(void) {
 	
 	onto->query("object", query, result);
 
-	displayVector(result);
+	displayCollec(result);
 
 	timetable[name] = clock();
 	
@@ -185,7 +188,7 @@ int main(void) {
 	
 	cout << " * " << name << endl;
 	
-	vector<Concept> resultConcepts;
+	set<Concept> resultConcepts;
 	
 	onto->find("object", "?object rdf:type Monkey", resultConcepts);
 
@@ -277,7 +280,16 @@ void displayTime()
 
 }
 
-void displayVector(const vector<string>& result)
+void displayCollec(const vector<string>& result)
+{
+
+	cout << "Results:" << endl;
+
+	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
+
+}
+
+void displayCollec(const set<string>& result)
 {
 
 	cout << "Results:" << endl;

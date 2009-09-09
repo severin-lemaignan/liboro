@@ -213,7 +213,7 @@ void YarpConnector::read(ServerResponse& res){
 			return;
 		}		
 		
-		//cout << "got it!" << endl;
+		//cout << "got it! "  << endl;
 			
 		//cout << "Taille: " << rawResult->size() << endl;
 		
@@ -240,7 +240,7 @@ void YarpConnector::read(ServerResponse& res){
 			}
 			else
 			{
-				throw OntologyServerException("Internal error! The second element of the server answer should be a list (bottle) of results!");
+				throw OntologyServerException("INTERNAL ERROR! The second element of the server answer should be a list (bottle) of results!");
 			}
 		
 			//copy(res.result.begin(), res.result.end(), ostream_iterator<string>(cout, "\n"));
@@ -262,18 +262,59 @@ void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
 
 }
 
-void YarpConnector::pourBottle(const Bottle& bottle, vector<string>& result)
+void YarpConnector::pourBottle(const Bottle& bottle, server_return_types& result)
 {
-	result.clear();
+	//result.clear();
 	//cout << bottle.size() << endl;
 
 	int size = bottle.size();
 	
-	for (int i = 0;i < size; i++)
+	if (size == 1) {
+		if (bottle.get(0).isString())
+			result = bottle.get(0).asString().c_str();
+		if (bottle.get(0).isList())
+			result = makeCollec(*(bottle.get(0).asList()));
+	}
+	
+}
+
+server_return_types YarpConnector::makeCollec(const Bottle& bottle) {
+
+	bool isValidMap = true;
+	bool isValidSet = false;
+	
+	//First, inspect the bottle to determine the type.
+	for (int i = 0; i < bottle.size(); i++)
 	{
-		string tmp = bottle.get(i).asString().c_str();
-		//cout << tmp << endl;
-		result.push_back(tmp);
+		if (!isValidMap || !bottle.get(i).isList() || bottle.get(i).asList()->size() != 2 || !bottle.get(i).asList()->get(0).isString() || !bottle.get(i).asList()->get(1).isString())
+			isValidMap = false;
+			
+		if (!isValidSet || !bottle.get(i).isString())
+			isValidSet = false;
+	}
+	
+	assert(!(isValidMap && isValidSet));
+	
+	if (!isValidMap && !isValidSet) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+	
+	//TODO: avoid the unnecessary copy
+	if (isValidMap) {
+		map<string, string> result;
+		for (int i = 0; i < bottle.size(); i++)
+		{
+			result[bottle.get(i).asList()->get(0).asString().c_str()] = bottle.get(i).asList()->get(1).asString().c_str();
+		}
+		
+		return result;
+	} else {
+		assert(isValidSet);
+		set<string> result;
+	
+		for (int i = 0; i < bottle.size(); i++)
+			{
+				result.insert(bottle.get(i).asString().c_str());
+			}
+		return result;
 	}
 }
 

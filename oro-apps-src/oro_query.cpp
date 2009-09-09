@@ -29,7 +29,7 @@ struct ltstr
 
 //Forward declarations
 void sigproc(int);
-void displayVector(const vector<string>& result);
+void displayCollec(const set<string>& result);
 void displayTime(void);
 
 const string oro_port = "oro";
@@ -40,7 +40,7 @@ map<string, clock_t, ltstr> timetable;
 int main(int argc, char* argv[]) {
 
 	string query;
-	vector<string> result;
+	set<string> result;
 	Ontology* onto;
 
 	//We catch ctrl+c to cleanly close the application
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 	
 
 	cout << endl << "**********************\n" << "*       Result       *\n" << "**********************" << endl;
-	displayVector(result);
+	displayCollec(result);
 
 	timetable["Execution duration"] = clock();
 	
@@ -129,7 +129,7 @@ void displayTime()
 	cout << "********************************" << endl;
 }
 
-void displayVector(const vector<string>& result)
+void displayCollec(const set<string>& result)
 {
 	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
 

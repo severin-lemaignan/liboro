@@ -329,7 +329,7 @@ class Ontology {
 		 * }
 		 * \endcode
  		*/
-		void find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::set<Concept>& result);
 
 		/**
 		 * Tries to identify a resource given a set of partially defined statements about this resource.
@@ -362,9 +362,9 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		void find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::vector<std::string>& partial_statements, std::set<Concept>& result);
 
-		void find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result);
+		void find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result);
 
 
 		/**
@@ -398,7 +398,7 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::vector<std::string>& result);
+		int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::set<std::string>& result);
 
 		/**
 		 * Performs a SPARQL query on the OpenRobots ontology.\n
@@ -429,7 +429,7 @@ class Ontology {
 		 * }
 		 * \endcode
  		*/
-		int query(const std::string& var_name, const std::string& query, std::vector<std::string>& result);
+		int query(const std::string& var_name, const std::string& query, std::set<std::string>& result);
 		
 		/**
 		 * Returns the set of asserted and inferred statements whose the given node is part of. It represents the "usages" of a resource.\n
@@ -445,7 +445,7 @@ class Ontology {
 		 * @throw ResourceNotFoundOntologyException thrown if the resource doesn't exist in the ontology.
 		 * @throw OntologyServerException thrown an error occured on the server during the query processing.
 		 */
-		void getInfos(const std::string& resource, std::vector<std::string>& result);
+		void getInfos(const std::string& resource, std::set<std::string>& result);
 				
 		/** Subscribe to a specified event in the ontology.\n
 		 * 
@@ -486,6 +486,7 @@ class Ontology {
 		 * 
 		 * In this order,
 		 * <ul>
+		 *	<li>the server version</li>
 		 * 	<li>the hostname where the server runs</li>
 		 * 	<li>server uptime</li>
 		 * 	<li>the current amount of classes in the ontology</li>
@@ -495,7 +496,7 @@ class Ontology {
 		 * 
 		 * \param stats a vector of strings containing the various statistics.
 		 */
-		void stats(std::vector<std::string>& stats);
+		void stats(std::map<std::string, std::string>& stats);
 		
 		/**
 		* Generate a new random id which can be used to name new objects. Attention! no check for collision!
@@ -658,6 +659,8 @@ class Concept {
 		 */
 		Concept(const std::string& id);
 		
+		inline bool operator<(const Concept& concept) const {return _id < concept.id();}
+		
 						
 		static Concept create(const std::string& label);
 		
@@ -681,7 +684,7 @@ class Concept {
 		 * \throw OntologySemanticException if the addition of a statement causes the ontology to become inconsistent.
 		 * \see remove
 		 */
-		void assert(const Property& predicate, const std::string& value);
+		void assertThat(const Property& predicate, const std::string& value);
 		
 		/**
 		 * Adds a new assertion regarding the current concept to the ontology.\n
@@ -693,7 +696,7 @@ class Concept {
 		 * \throw OntologySemanticException if the addition of a statement causes the ontology to become inconsistent.
 		 * \see remove
 		 */
-		void assert(const Property& predicate, const Concept& value);
+		void assertThat(const Property& predicate, const Concept& value);
 
 		/**
 		 * Removes an assertion regarding the current concept to the ontology.\n

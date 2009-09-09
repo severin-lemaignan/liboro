@@ -43,7 +43,7 @@ vector<Concept> hriModule(void){
 	
 	//TODO SuperModule::which(obj2);
  
-	obj1.assert(Properties::onTopOf, obj2);
+	obj1.assertThat(Properties::onTopOf, obj2);
  
 	Object obj3 = Concept::create<Object>(Classes::Trashbin);
 	//TODO SuperModule::which(obj3);

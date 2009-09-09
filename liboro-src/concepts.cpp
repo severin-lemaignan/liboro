@@ -43,13 +43,13 @@ Concept Concept::create(const Class& type){
 	return concept;
 }
 
-void Concept::assert(const Property& predicate, const string& value){
+void Concept::assertThat(const Property& predicate, const string& value){
 	//cout << "Asserting " << _label << "(id: " << _id << ")" << predicate << " " << value << endl;
 	Ontology::getInstance()->add(Statement(*this, predicate, value));
 }
 
-void Concept::assert(const Property& predicate, const Concept& value){
-	assert(predicate, value.id());
+void Concept::assertThat(const Property& predicate, const Concept& value){
+	assertThat(predicate, value.id());
 }
 
 void Concept::clear(const Property& predicate){
@@ -93,12 +93,12 @@ boost::logic::tribool Concept::hasType(const Class& type) const{
 	throw OntologyException("Not yet implemented!");
 }
 void Concept::setType(const Class& type){
-	assert(Property("rdf:type"), type.to_string());
+	assertThat(Property("rdf:type"), type.to_string());
 	_class = type;
 }
 
 void Concept::setLabel(const std::string& label){
-	assert(Property("rdfs:label"), "\"" + label + "\"");
+	assertThat(Property("rdfs:label"), "\"" + label + "\"");
 	_label = label;
 }
 
@@ -160,8 +160,8 @@ void Object::setColor(int hue){
 	
 	Ontology::getInstance()->bufferize();
 	Concept color = Concept::create(Classes::Color);
-	color.assert(Properties::hue, o.str());
-	assert(Properties::hasColor, color);
+	color.assertThat(Properties::hue, o.str());
+	assertThat(Properties::hasColor, color);
 	Ontology::getInstance()->flush();
 }
 
@@ -173,15 +173,15 @@ void Object::setAbsolutePosition(double x, double y, double z){
 	
 	Concept point = Concept::create(Classes::Point);
 	o << x;
-	point.assert(Properties::xCoord, o.str());
+	point.assertThat(Properties::xCoord, o.str());
 	o.str("");
 	o << y;
-	point.assert(Properties::yCoord, o.str());
+	point.assertThat(Properties::yCoord, o.str());
 	o.str("");
 	o << z;
-	point.assert(Properties::zCoord, o.str());
+	point.assertThat(Properties::zCoord, o.str());
 	
-	assert(Properties::isAt, point);
+	assertThat(Properties::isAt, point);
 	
 	Ontology::getInstance()->flush();
 }
@@ -222,17 +222,17 @@ Agent Agent::create(const Class& type){
 
 void Agent::sees(const Concept& concept, bool asserted) {
 	if (asserted)
-		assert(Properties::sees, concept);
+		assertThat(Properties::sees, concept);
 	else
 		remove(Properties::sees, concept);
 }
 		
 void Agent::desires(const Action& action) {
-	assert(Properties::desires, action);
+	assertThat(Properties::desires, action);
 }
 
 void Agent::currentlyPerforms(const Action& action){
-	assert(Properties::currentlyPerforms, action);
+	assertThat(Properties::currentlyPerforms, action);
 }
 		
 /*****************************************************************************
@@ -270,10 +270,10 @@ Action Action::create(const Class& type){
 }
 		
 void Action::object(const Concept& concept) {
-	assert(Properties::objectOfAction, concept);
+	assertThat(Properties::objectOfAction, concept);
 }
 void Action::recipient(const Object& object) {
-	assert(Properties::recipientOfAction, object);
+	assertThat(Properties::recipientOfAction, object);
 }
 
 }

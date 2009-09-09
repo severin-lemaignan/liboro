@@ -58,7 +58,12 @@ bool Ontology::checkOntologyServer(){
 	
 	if (res.status != ServerResponse::ok) return false;
 	
-	cout << " - oro-server v." << res.result[0];
+	try {
+		cout << " - oro-server v." << (boost::get<map<string, string> >(res.result))["version"];
+	} catch (boost::bad_get e) {
+		cerr << "Internal error: oro-server answered malformed results at initialization!";
+		return false;
+	}
 	
 	return true;
 }
@@ -179,7 +184,7 @@ bool Ontology::checkConsistency(){
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
 	
-	if(res.result[0] == "true") return true;
+	if(boost::get<bool>(res.result) == true) return true;
 	return false;
 }
 
@@ -187,23 +192,21 @@ void Ontology::save(const string& path){
 	_connector.execute("save", vector<string>(1, path));
 }	
 
-void Ontology::stats(vector<string>& result){
+void Ontology::stats(map<string, string>& result){
 	ServerResponse res = _connector.execute("stats");
 	
-	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while fetching stats. Server message was " + res.error_msg).c_str());
+	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server " + res.exception_msg + " while fetching stats. Server message was " + res.error_msg).c_str());
 	
-	vector<string> rawResult = res.result;
-	
-	vector<string>::iterator itRawResult;
-	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
-	{
-		result.push_back(*(itRawResult));
+	try {
+		result = boost::get<map<string, string> >(res.result);
+	} catch (boost::bad_get e) {
+		throw OntologyServerException("INTERNAL ERROR! Server returned wrong type of data while fetching stats. Please contact the maintener (openrobots@laas.fr)");
 	}
 }
 
-void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::vector<Concept>& result){
+void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::set<Concept>& result){
 	vector<vector<string> > args;
-	vector<string> rawResult;
+	set<string> rawResult;
 	args.push_back(vector<string>(1,resource));
 	args.push_back(partial_statements);
 	args.push_back(restrictions);
@@ -215,19 +218,20 @@ void Ontology::find(const std::string& resource, const std::vector<std::string>&
 		throw OntologyServerException("\"filtredFind\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = res.result;
+	rawResult = boost::get<set<string> >(res.result);
 	
-	vector<string>::iterator itRawResult;
+	set<string>::iterator itRawResult;
 	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
 	{
-		result.push_back(Concept(*(itRawResult)));
+		result.insert(Concept(*(itRawResult)));
 	}
+
 }
 
-void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::vector<Concept>& result){
+void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::set<Concept>& result){
 	
 	vector<vector<string> > args;
-	vector<string> rawResult;
+	set<string> rawResult;
 	args.push_back(vector<string>(1,resource));
 	args.push_back(partial_statements);
 	
@@ -238,29 +242,29 @@ void Ontology::find(const std::string& resource, const std::vector<std::string>&
 		throw OntologyServerException("\"Find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = res.result;
+	rawResult = boost::get<set<string> >(res.result);
 	
-	vector<string>::iterator itRawResult;
+	set<string>::iterator itRawResult;
 	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
 	{
-		result.push_back(Concept(*(itRawResult)));
+		result.insert(Concept(*(itRawResult)));
 	}
 	
 	
 }
 
-void Ontology::find(const std::string& resource, const std::string& partial_statement, std::vector<Concept>& result){
+void Ontology::find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
 	
 	find(resource, vector<string>(1,partial_statement), result);
 	
 }
 
 
-int Ontology::guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::vector<std::string>& result){
+int Ontology::guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::set<std::string>& result){
 	throw OntologyException("Not yet implemented!");
 }
 
-int Ontology::query(const std::string& var_name, const std::string& query, std::vector<std::string>& result){
+int Ontology::query(const std::string& var_name, const std::string& query, std::set<std::string>& result){
 	vector<string> args;
 	 args.push_back(var_name);
 	 args.push_back(query);
@@ -273,10 +277,10 @@ int Ontology::query(const std::string& var_name, const std::string& query, std::
 			throw InvalidQueryException(query + "\nYour SPARQL query is invalid: " + res.error_msg);
 		throw OntologyServerException("Query was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
-	result = res.result;
+	result = boost::get<set<string> >(res.result);
 }
 
-void Ontology::getInfos(const string& resource, vector<std::string>& result){
+void Ontology::getInfos(const string& resource, set<string>& result){
 	ServerResponse res = _connector.execute("getInfos", vector<string>(1, resource));
 	if (res.status != ServerResponse::ok)
 	{
@@ -284,7 +288,7 @@ void Ontology::getInfos(const string& resource, vector<std::string>& result){
 			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
 		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + ".");	
 	}
-	result = res.result;
+	result = boost::get<set<string> >(res.result);
 	
 }
 

@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 
 	string oro_port;
 	string query;
-	vector<string> result;
+	map<string, string> result;
 	Ontology* onto;
 
 	//We catch ctrl+c to cleanly close the application
@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
 	onto->stats(result);
 
 	cout << "* oro-server found!" << endl;
-	cout << "* oro-server version: " << result[0] << endl;
-	cout << "* Hostname: " << result[1] << endl;
-	cout << "* Uptime: " << result[2] << endl;
+	cout << "* oro-server version: " << result["version"] << endl;
+	cout << "* Hostname: " << result["host"] << endl;
+/*	cout << "* Uptime: " << result[2] << endl;
 	cout << "* Nb of classes in the ontology: " << result[3] << endl;
 	cout << "* Nb of instances in the ontology: " << result[4] << endl;
 	cout << "* Nb of currently connected clients: " << result[5] << endl;
-
+*/
 }
 
 void sigproc(int sig)

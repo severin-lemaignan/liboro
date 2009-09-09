@@ -5,17 +5,20 @@
 #ifndef ORO_CONNECTOR_H_
 #define ORO_CONNECTOR_H_
 
+#include <set>
+#include <map>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <boost/variant.hpp>
 
 namespace oro {
 
-/**
- * TODO : Use templates for the result member.
- */
-struct  ServerResponse {
+typedef boost::variant<bool, std::string, std::set<std::string>, std::map<std::string, std::string> > server_return_types;
+
+struct ServerResponse {
+
 
 	enum Status {
 		ok,
@@ -34,14 +37,14 @@ struct  ServerResponse {
 	std::string error_msg;
 
 	/**
-	* a vector of string containing the answers from the server. The actual content depends on the query.
+	* A container for the answers from the server. The actual type and content depend on the query.
 	*/
-	std::vector<std::string> result;
-	
+	server_return_types result;
+		
 	/**
 	 * Default constructor
 	 */
-	ServerResponse():status(ServerResponse::indeterminate), exception_msg(""), error_msg(""), result(std::vector<std::string>()) {}
+	ServerResponse():status(ServerResponse::indeterminate), exception_msg(""), error_msg("") {}
 	
 };
 

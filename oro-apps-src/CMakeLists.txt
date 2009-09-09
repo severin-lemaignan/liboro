@@ -1,5 +1,7 @@
 
-include_directories (${LIBORO_SOURCE_DIR}/liboro-src)
+#The first one doesn't work, but should? looks better at least...
+#include_directories (${LIBORO_SOURCE_DIR}/liboro-src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../liboro-src)
 
 link_directories (${LINK_DIRECTORIES})
 
@@ -87,11 +89,11 @@ INSTALL (TARGETS oro-qos
 #	RUNTIME DESTINATION bin
 #)	
 
-#add_executable (oro-test test.cpp)
+add_executable (oro-test test.cpp)
 
-#target_link_libraries (oro-test oro ${LIBS}) 
+target_link_libraries (oro-test oro ${LIBS}) 
 
-#SET_TARGET_PROPERTIES(oro-test PROPERTIES
-#	INSTALL_RPATH_USE_LINK_PATH TRUE
-#	INSTALL_RPATH ${INSTALL_PREFIX}/lib
-#	BUILD_WITH_INSTALL_RPATH TRUE )
+SET_TARGET_PROPERTIES(oro-test PROPERTIES
+	INSTALL_RPATH_USE_LINK_PATH TRUE
+	INSTALL_RPATH ${INSTALL_PREFIX}/lib
+	BUILD_WITH_INSTALL_RPATH TRUE )

@@ -67,8 +67,10 @@ public:
 	
 	
 private:
-	void pourBottle(const yarp::os::Bottle&, std::vector<std::string>&);
+	//void pourBottle(const yarp::os::Bottle&, std::vector<std::string>&);
+	void pourBottle(const yarp::os::Bottle&, server_return_types&);
 	void pourBottle(const yarp::os::Bottle& bottle, std::vector<Concept>& result);
+	server_return_types makeCollec(const yarp::os::Bottle& bottle);
 	void read(ServerResponse& response);
 	void vectorToBottle(const std::vector<std::string>& data, yarp::os::Bottle& bottle);
 	int msleep(unsigned long milisec);

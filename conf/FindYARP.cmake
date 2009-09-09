@@ -57,7 +57,7 @@ else (YARP_LIBRARIES AND YARP_INCLUDE_DIRS)
   mark_as_advanced(YARP_OS_LIBRARY)
 
   if (YARP_OS_LIBRARY)
-    set(YARP_OS_FOUND TRUE CACHE INTERNAL "Wether the YARP_OS library has been found" FORCE)
+    set(YARP_OS_FOUND TRUE CACHE INTERNAL "Whether the YARP_OS library has been found" FORCE)
   endif (YARP_OS_LIBRARY)
 
   set(YARP_INCLUDE_DIRS
