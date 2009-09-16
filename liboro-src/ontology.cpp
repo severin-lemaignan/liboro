@@ -26,9 +26,8 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 	_buf_op_counter = 0;
 	
 	if (! checkOntologyServer()) {
-		cerr << "Cannot reach the ontology server! Check it is started. Exiting.";
+		cerr << "\nCannot reach the ontology server! Check it is started and that the middleware link is up.\n";
 		throw OntologyServerException("Cannot reach the ontology server. Abandon.");
-		exit(0);
 	}
 	
 	//TODO : destructor required if resources need to be released.
