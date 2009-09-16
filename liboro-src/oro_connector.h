@@ -15,7 +15,8 @@
 
 namespace oro {
 
-typedef boost::variant<bool, std::string, std::set<std::string>, std::map<std::string, std::string> > server_return_types;
+typedef boost::variant<bool, int, double, std::string, std::set<std::string>, std::map<std::string, std::string> > server_param_types;
+typedef boost::variant<bool, int, double, std::string, std::set<std::string>, std::map<std::string, std::string> > server_return_types;
 
 struct ServerResponse {
 
@@ -58,14 +59,9 @@ class IConnector {
 		/**
 	 	* This method is intended to perform a query execution with a flat list of parameters on the remote server, to wait for an answer and to return this answer.
 		 */
-		virtual ServerResponse execute(const std::string query, const std::vector<std::string>& args) {}
+		virtual ServerResponse execute(const std::string query, const std::vector<server_param_types>& args) {}
 		
-		/**
-		 * This method is intended to perform a query execution with a list of list of data as parameter on the remote server, to wait for an answer and to return this answer.
-		 * 
-		 * Examples of RPC call possibly relying on this prototype of \p execute include the \link Ontology::find(const std::string&, const std::vector<std::string>&, std::vector<Concept>&) find \endlink and \link Ontology::find(const std::string&, const std::vector<std::string>&, const std::vector<std::string>&, std::vector<Concept>&) filtredFind \endlink methods.
-		 */
-		virtual ServerResponse execute(const std::string query, const std::vector<std::vector<std::string> >& args) {}
+		virtual ServerResponse execute(const std::string query, const server_param_types& arg) {}
 		
 		/**
 		 * This method is intended to perform a query execution without parameters on the remote server, to wait for an answer and to return this answer.

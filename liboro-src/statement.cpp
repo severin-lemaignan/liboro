@@ -27,6 +27,12 @@ namespace oro {
 		return (stmt.to_string() == to_string());
 	}
 	
+	inline bool Statement::operator<(const Statement& stmt) const {
+	
+		//TODO: hyper lent. Ca peut s'ameillorer
+		return (stmt.to_string() < to_string());
+	}
+	
 	/**
 	 * Creates a new statement from its literal string representation.
 	*/

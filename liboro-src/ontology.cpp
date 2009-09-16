@@ -136,13 +136,13 @@ void Ontology::add(const Statement& statement){
 //TODO replace vectors by sets. It's stupid to use vectors.
 void Ontology::add(const vector<Statement>& statements){
 	
-	vector<string> stringified_stmts;
+	set<string> stringified_stmts;
 	vector<Statement>::const_iterator iterator = statements.begin();
 		
 	while( iterator != statements.end() ) {
 		
 		if (_bufferize) addToBuffer("add", *iterator);
-		else stringified_stmts.push_back(iterator->to_string());
+		else stringified_stmts.insert(iterator->to_string());
 		
 		//cout << iterator->to_string() << endl;
 		
@@ -163,12 +163,12 @@ void Ontology::remove(const Statement& statement){
 
 //TODO replace vectors by sets or lists. It's stupid to use vectors.
 void Ontology::remove(const std::vector<Statement>& statements){
-	vector<string> stringified_stmts;
+	set<string> stringified_stmts;
 	vector<Statement>::const_iterator iterator = statements.begin();
 	
 	while( iterator != statements.end() ) {
 		if (_bufferize) addToBuffer("remove", (Statement)*iterator);
-		stringified_stmts.push_back(((Statement)*iterator).to_string());
+		stringified_stmts.insert(((Statement)*iterator).to_string());
 		++iterator;
 	}
 
@@ -189,7 +189,10 @@ bool Ontology::checkConsistency(){
 }
 
 void Ontology::save(const string& path){
-	_connector.execute("save", vector<string>(1, path));
+	ServerResponse res = _connector.execute("save", path);	
+		
+	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while saving the ontology. Server message was " + res.error_msg);
+	
 }	
 
 void Ontology::stats(map<string, string>& result){
@@ -204,18 +207,19 @@ void Ontology::stats(map<string, string>& result){
 	}
 }
 
-void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::set<Concept>& result){
-	vector<vector<string> > args;
+void Ontology::find(const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result){
+	
 	set<string> rawResult;
-	args.push_back(vector<string>(1,resource));
+	vector<server_param_types> args;
+	args.push_back(resource);
 	args.push_back(partial_statements);
 	args.push_back(restrictions);
 	
-	ServerResponse res = _connector.execute("filtredFind", args);
+	ServerResponse res = _connector.execute("find", args);
 	
 	if (res.status != ServerResponse::ok)
 	{
-		throw OntologyServerException("\"filtredFind\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+		throw OntologyServerException("\"filtred find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
 	rawResult = boost::get<set<string> >(res.result);
@@ -228,13 +232,13 @@ void Ontology::find(const std::string& resource, const std::vector<std::string>&
 
 }
 
-void Ontology::find(const std::string& resource, const std::vector<std::string>& partial_statements, std::set<Concept>& result){
+void Ontology::find(const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result){
 	
-	vector<vector<string> > args;
 	set<string> rawResult;
-	args.push_back(vector<string>(1,resource));
+	vector<server_param_types> args;
+	args.push_back(resource);
 	args.push_back(partial_statements);
-	
+
 	ServerResponse res = _connector.execute("find", args);
 	
 	if (res.status != ServerResponse::ok)
@@ -255,7 +259,9 @@ void Ontology::find(const std::string& resource, const std::vector<std::string>&
 
 void Ontology::find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
 	
-	find(resource, vector<string>(1,partial_statement), result);
+	set<string> tmp;
+	tmp.insert(partial_statement);
+	find(resource, tmp, result);
 	
 }
 
@@ -264,8 +270,8 @@ int Ontology::guess(const std::string& resource, const double threshold, const s
 	throw OntologyException("Not yet implemented!");
 }
 
-int Ontology::query(const std::string& var_name, const std::string& query, std::set<std::string>& result){
-	vector<string> args;
+int Ontology::query(const string& var_name, const string& query, set<string>& result){
+	vector<server_param_types> args;
 	 args.push_back(var_name);
 	 args.push_back(query);
 	
@@ -275,50 +281,57 @@ int Ontology::query(const std::string& var_name, const std::string& query, std::
 	{
 		if (res.exception_msg.find(SERVER_QUERYPARSE_EXCEPTION) != string::npos)
 			throw InvalidQueryException(query + "\nYour SPARQL query is invalid: " + res.error_msg);
-		throw OntologyServerException("Query was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+		throw OntologyServerException("Query was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +").");	
 	}
-	result = boost::get<set<string> >(res.result);
+	
+	if (set<string>* result_p = boost::get<set<string> >(&res.result))
+		result = *result_p;
 }
 
 void Ontology::getInfos(const string& resource, set<string>& result){
-	ServerResponse res = _connector.execute("getInfos", vector<string>(1, resource));
+	ServerResponse res = _connector.execute("getInfos", resource);
 	if (res.status != ServerResponse::ok)
 	{
 		if (res.exception_msg.find(SERVER_NOTFOUND_EXCEPTION) != string::npos)
 			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
-		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + ".");	
+		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
 	}
 	result = boost::get<set<string> >(res.result);
 	
 }
 
 void Ontology::subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger){
-	vector<string> args;
+	
+	vector<server_param_types> args;
+		
 	string port(portToTrigger);
-	args.push_back(watchExpression);
-	switch (triggerType){
+	string triggerTypeStr;
+	
+	switch (triggerType){ //TODO: is it necessary? it's possible to convert it to a string through a special macro...
 		case ON_TRUE:
-			args.push_back("ON_TRUE");
+			triggerTypeStr = "ON_TRUE";
 			break;
 		case ON_TRUE_ONE_SHOT:
-			args.push_back("ON_TRUE_ONE_SHOT");
+			triggerTypeStr = "ON_TRUE_ONE_SHOT";
 			break;
 		case ON_FALSE:
-			args.push_back("ON_FALSE");
+			triggerTypeStr = "ON_FALSE";
 			break;
 		case ON_FALSE_ONE_SHOT:
-			args.push_back("ON_FALSE_ONE_SHOT");
+			triggerTypeStr = "ON_FALSE_ONE_SHOT";
 			break;
 		case ON_TOGGLE:
-			args.push_back("ON_TOGGLE");
+			triggerTypeStr = "ON_TOGGLE";
 			break;
 		default:
-			args.push_back("UNSUPPORTED_TRIGGER_TYPE");
+			triggerTypeStr = "UNSUPPORTED_TRIGGER_TYPE";
 			break;
 	}
 	
 	if (port.find("0/") != 0) port = "/" + port;
 	
+	args.push_back(watchExpression);
+	args.push_back(triggerTypeStr);
 	args.push_back(port);
 	
 	_connector.execute("subscribe", args);

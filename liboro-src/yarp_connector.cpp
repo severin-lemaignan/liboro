@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <algorithm>
 #include <time.h>
 
 #include "oro_exceptions.h"
@@ -49,6 +50,9 @@ namespace oro {
 	//Defines two constants needed to decode YARP status.
 	const char* OK = "ok";
 	const char* ERROR = "error";
+
+
+class ParametersSerializationHolder; //forward declaration
 	
 YarpConnector::YarpConnector(const string port_name, const string oro_in_port_name){
 
@@ -129,38 +133,36 @@ ServerResponse YarpConnector::execute(const string query, const Bottle& args){
 	return res;
 }
 
-ServerResponse YarpConnector::execute(const string query, const vector<vector<string> >& vect_args){
-	
-	Bottle args;
-	
-	vector<vector<string> >::const_iterator itArgs;
-	for(itArgs = vect_args.begin(); itArgs != vect_args.end(); ++itArgs)
-	{
-		//if ((*(itArgs)).size() == 1) args.addString((*(itArgs))[0].c_str());
-		//else {
-			vectorToBottle(*(itArgs), args.addList());
-		//}
+ServerResponse YarpConnector::execute(const string query, const vector<server_param_types>& vect_args){
 		
-	}
+	ParametersSerializationHolder paramsHolder;
+	
+	//serialization of arguments
+	std::for_each(
+		vect_args.begin(), 
+		vect_args.end(), 
+		boost::apply_visitor(paramsHolder)
+	);
 		
-	return execute(query, args);
+	return execute(query, paramsHolder.getBottle());
 }
 
-ServerResponse YarpConnector::execute(const string query, const vector<string>& vect_args){
+ServerResponse YarpConnector::execute(const string query, const server_param_types& arg){
 	
-	Bottle args;
+	ParametersSerializationHolder paramsHolder;
 	
-	vectorToBottle(vect_args, args);
-	
-	return execute(query, args);
+	//serialization of argument
+	boost::apply_visitor(paramsHolder, arg);
+		
+	return execute(query, paramsHolder.getBottle());
+
 }
+
 
 ServerResponse YarpConnector::execute(const string query){
 	
 	ServerResponse res;
-	
-	//TODO: Clean the mess in variable name
-	
+
 	// Send one "Bottle" object.  The port is responsible for creating
 	// and reusing/destroying that object, since it needs to be sure
 	// it exists until communication to all recipients (just one in
@@ -236,6 +238,7 @@ void YarpConnector::read(ServerResponse& res){
 
 			if(rawResult->get(1).isList()){
 				Value tmp(rawResult->get(1));
+				//cout << "Received bottle: " << tmp.asList()->toString() << endl;
 				pourBottle(*(tmp.asList()), res.result);
 			}
 			else
@@ -262,18 +265,57 @@ void YarpConnector::vectorToBottle(const vector<string>& data, Bottle& bottle)
 
 }
 
+void YarpConnector::setToBottle(const set<string>& data, Bottle& bottle)
+{
+	set<string>::const_iterator itData = data.begin();
+
+	for( ; itData != data.end() ; ++itData)
+		bottle.addString((*itData).c_str());
+
+}
+
+void YarpConnector::mapToBottle(const map<string, string>& data, Bottle& bottle)
+{
+	map<string, string>::const_iterator itData = data.begin();
+
+	for( ; itData != data.end() ; ++itData) {
+		Bottle& tmp = bottle.addList();
+		tmp.addString((*itData).first.c_str());
+		tmp.addString((*itData).second.c_str());
+	}
+
+}
+
+
 void YarpConnector::pourBottle(const Bottle& bottle, server_return_types& result)
 {
 	//result.clear();
-	//cout << bottle.size() << endl;
+	//cout << bottle.toString() << endl;
 
 	int size = bottle.size();
 	
-	if (size == 1) {
-		if (bottle.get(0).isString())
-			result = bottle.get(0).asString().c_str();
-		if (bottle.get(0).isList())
+	//Only empty bottles or bottles with one value are handled
+	if (size == 0) {
+		//do nothing
+	}
+	else if (size == 1) {
+		if (bottle.get(0).isString()) {
+			if (bottle.get(0).asString() == "true")
+				result = true;
+			else if (bottle.get(0).asString() == "false")
+				result = false;
+			else
+				result = bottle.get(0).asString().c_str();
+		}
+		else if (bottle.get(0).isInt())
+			result = bottle.get(0).asInt();
+		else if (bottle.get(0).isDouble())
+			result = bottle.get(0).asDouble();
+		else if (bottle.get(0).isList())
 			result = makeCollec(*(bottle.get(0).asList()));
+	}
+	else {
+		assert(false); //the server shouldn't answer more than one value...
 	}
 	
 }
@@ -281,11 +323,12 @@ void YarpConnector::pourBottle(const Bottle& bottle, server_return_types& result
 server_return_types YarpConnector::makeCollec(const Bottle& bottle) {
 
 	bool isValidMap = true;
-	bool isValidSet = false;
+	bool isValidSet = true;
 	
 	//First, inspect the bottle to determine the type.
 	for (int i = 0; i < bottle.size(); i++)
 	{
+		//cout << "Bottle[i]:" << bottle.get(i).toString().c_str() << endl;
 		if (!isValidMap || !bottle.get(i).isList() || bottle.get(i).asList()->size() != 2 || !bottle.get(i).asList()->get(0).isString() || !bottle.get(i).asList()->get(1).isString())
 			isValidMap = false;
 			
@@ -344,5 +387,3 @@ int YarpConnector::msleep(unsigned long milisec)
 }
 
 }
-
-

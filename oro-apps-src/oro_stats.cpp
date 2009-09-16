@@ -22,8 +22,6 @@ struct ltstr
 
 //Forward declarations
 void sigproc(int);
-void displayVector(const vector<string>& result);
-void displayTime(void);
 
 const string local_port = "oro_stats";
 
@@ -55,18 +53,20 @@ int main(int argc, char* argv[]) {
 	//Instanciate the ontology with the YARP connector.
 	YarpConnector connector(local_port, oro_port);
 	onto = Ontology::createWithConnector(connector);
-
-	cout << "* YARP Server found. Waiting for the ontology server to respond..." << endl;
 	
 	onto->stats(result);
-
-	cout << "* oro-server found!" << endl;
+	
+	map<string, string>::const_iterator itData = result.begin();
+	for( ; itData != result.end() ; ++itData) {
+		cout << "* " << (*itData).first << "->" << (*itData).second << endl;
+	}
+/*	
 	cout << "* oro-server version: " << result["version"] << endl;
 	cout << "* Hostname: " << result["host"] << endl;
-/*	cout << "* Uptime: " << result[2] << endl;
-	cout << "* Nb of classes in the ontology: " << result[3] << endl;
-	cout << "* Nb of instances in the ontology: " << result[4] << endl;
-	cout << "* Nb of currently connected clients: " << result[5] << endl;
+	cout << "* Uptime: " << result["uptime"] << endl;
+	cout << "* Nb of classes in the ontology: " << result["nb_classes"] << endl;
+	cout << "* Nb of instances in the ontology: " << result["nb_instances"] << endl;
+	cout << "* Nb of currently connected clients: " << result["nb_clients"] << endl;
 */
 }
 

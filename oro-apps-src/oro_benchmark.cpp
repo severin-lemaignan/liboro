@@ -40,7 +40,6 @@ struct ltstr
 //Forward declarations
 class eventHandler;
 void sigproc(int);
-void displayCollec(const vector<string>& result);
 void displayCollec(const set<string>& result);
 void displayTime(void);
 
@@ -89,21 +88,22 @@ int main(void) {
 
 	timetable["<BENCH1> simple assertions"] = clock();
 	
-	/*
+	
 	//  TEST 2 //
 	int nb_stmt = 100;
+/*
 	cout << " * <BENCH2> Insertion of " << nb_stmt << " statements" << endl;
 
 	for (int i = 0 ; i < nb_stmt ; i++)
 	{
 		Class testClass = Class("test");
-		Concept test = Concept::create<Concept>(testClass);
+		Concept test = Concept::create(testClass);
 	}
 
 	timetable["<BENCH2> insertion statements"] = clock();
-	*/
+*/	
 	
-	/*
+	
 	//  TEST 3 //
 	
 	cout << " * <BENCH3> Insertion of "<< nb_stmt << " statements with buffering" << endl;
@@ -112,12 +112,12 @@ int main(void) {
 	for (int i = 0 ; i < nb_stmt ; i++)
 	{
 		Class testClass = Class("test");
-		Concept test = Concept::create<Concept>(testClass);
+		Concept test = Concept::create(testClass);
 	}
 	onto->flush();
 
 	timetable["<BENCH3> insertion buffered statements"] = clock();
-	*/
+	
 	
 	//  TEST 4 //
 	set<string> result;
@@ -206,13 +206,13 @@ int main(void) {
 	
 	resultConcepts.clear();
 	
-	vector<string> partial_stmts;
-	vector<string> filters;
+	set<string> partial_stmts;
+	set<string> filters;
 	
-	partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
-	partial_stmts.push_back("?mysterious oro:weight ?value");
+	partial_stmts.insert("?mysterious rdf:type oro:Monkey");
+	partial_stmts.insert("?mysterious oro:weight ?value");
  
-	filters.push_back("?value >= 50");
+	filters.insert("?value >= 50");
  
 	onto->find("mysterious", partial_stmts, filters, resultConcepts);
 
@@ -221,6 +221,17 @@ int main(void) {
 
 	timetable[name] = clock();
 	
+	//  TEST 9 //
+	
+	name = "<BENCH9> Consistency check test";
+	
+	cout << " * " << name << endl;
+	
+	resultConcepts.clear();
+	
+	if (!onto->checkConsistency()) {cout<<"Error: the ontology should be found to be consistent."<<endl;}
+
+	timetable[name] = clock();
 	
 	///////////////////////////
 	///////////////////////////
@@ -280,22 +291,9 @@ void displayTime()
 
 }
 
-void displayCollec(const vector<string>& result)
-{
-
-	cout << "Results:" << endl;
-
-	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
-
-}
-
 void displayCollec(const set<string>& result)
 {
-
-	cout << "Results:" << endl;
-
 	copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n")); //ce n'est pas moi qui ait écrit ça
-
 }
 
 

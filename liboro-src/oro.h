@@ -329,7 +329,7 @@ class Ontology {
 		 * }
 		 * \endcode
  		*/
-		void find(const std::string& resource, const std::vector<std::string>& partial_statements, const std::vector<std::string>& restrictions, std::set<Concept>& result);
+		void find(const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result);
 
 		/**
 		 * Tries to identify a resource given a set of partially defined statements about this resource.
@@ -362,7 +362,7 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		void find(const std::string& resource, const std::vector<std::string>& partial_statements, std::set<Concept>& result);
+		void find(const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result);
 
 		void find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result);
 
@@ -494,7 +494,7 @@ class Ontology {
 		 * 	<li>the current amount of client connected to the server</li>
 		 * </ul>
 		 * 
-		 * \param stats a vector of strings containing the various statistics.
+		 * \param stats a map of strings containing the various statistics.
 		 */
 		void stats(std::map<std::string, std::string>& stats);
 		
@@ -661,11 +661,17 @@ class Concept {
 		
 		inline bool operator<(const Concept& concept) const {return _id < concept.id();}
 		
-						
+		
+		/** Creates a new concept with a label, defaulting its class to "owl:Thing"
+		 */
 		static Concept create(const std::string& label);
 		
+		/** Creates a new concept with a label and a class set to "type"
+		 */
 		static Concept create(const std::string& label, const Class& type);
 		
+		/** Creates a new concept with no label and a class set to "type".
+		 */
 		static Concept create(const Class& type);
 				
 		/**
@@ -995,6 +1001,7 @@ class Statement {
 		Statement(const Concept& subject, const Property& predicate, const std::string& object);
 		
 		inline bool operator==(const Statement& stmt) const;
+		inline bool operator<(const Statement& stmt) const;
 			
 		/**
 		 * Returns a computer-friendly string describing the concept.
