@@ -13,11 +13,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
-
-#ifdef assert
-#undef assert
-#endif
-
 #include "oro.h"
 #include "oro_library.h"
 #include "oro_connector.h"

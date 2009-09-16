@@ -10,18 +10,18 @@
 
 namespace oro
 {
-
 	
 /**
  * This class defines a dummy connector for the ontology server. It doesn't actually connect to any ontology. For debugging purposes. 
  */
 class DummyConnector : public IConnector {
 
-		public:
-			DummyConnector();
-			
-			ServerResponse execute(const std::string query, const std::vector<std::string>& args);
-			ServerResponse execute(const std::string query);
+	public:
+		DummyConnector();
+		
+		ServerResponse execute(const std::string query, const std::vector<server_param_types>& args);
+		ServerResponse execute(const std::string query, const server_param_types& arg);
+		ServerResponse execute(const std::string query);
 			
 	private:
 		std::vector<Statement> _stmt_storage;

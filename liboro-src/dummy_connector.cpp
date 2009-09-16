@@ -12,26 +12,36 @@ namespace oro
 
 	DummyConnector::DummyConnector() :_stmt_storage ( vector<Statement>() ) {}
 
-	ServerResponse DummyConnector::execute ( const std::string query, const std::vector<std::string>& args )
+	ServerResponse DummyConnector::execute ( const string query, const vector<server_param_types>& args )
 	{
 
-		std::cout<<"[request execution -> " << query << "(";
-		copy ( args.begin(), args.end(), ostream_iterator<string> ( cout, ", " ) );
-		std::cout << ")]" << std::endl;
+		cout<<"[request execution -> " << query << "]" << endl;
 
+/*
 		if ( query=="add" )
 		{
-			vector<string>::const_iterator it;
+			set<string>::const_iterator it;
 
-			it = args.begin();
-			while ( it != args.end() )
+			it = (boost::get<set<string> >(arg)).begin();
+			while ( it != (boost::get<set<string> >(arg)).end() )
 			{
 				_stmt_storage.push_back ( Statement( *it ) );
 				++it;
 			}
 
 		}
+*/
 
+		ServerResponse res;
+		res.status = ServerResponse::ok;
+
+		return res;
+	}
+	
+	ServerResponse DummyConnector::execute(const string query, const server_param_types& arg)
+	{
+
+		cout<<"[request execution -> " << query << "]" << endl;
 
 		ServerResponse res;
 		res.status = ServerResponse::ok;
@@ -39,7 +49,7 @@ namespace oro
 		return res;
 	}
 
-	ServerResponse DummyConnector::execute ( const std::string query )
+	ServerResponse DummyConnector::execute ( const string query )
 	{
 
 		ServerResponse res;
