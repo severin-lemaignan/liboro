@@ -80,21 +80,19 @@ void Ontology::flush(){
 	//cout << "End of bufferization" << endl;
 	_bufferize = false;
 	
-	vector<Statement> stmtToAdd;
-	stmtToAdd.reserve(_buffer["add"].size());
-	//copy(_buffer["add"].begin(), _buffer["add"].end(), stmtToAdd.begin());
+	set<Statement> stmtToAdd;
+		//copy(_buffer["add"].begin(), _buffer["add"].end(), stmtToAdd.begin());
 	
 	for(BufStatements::iterator i = _buffer["add"].begin() ; i != _buffer["add"].end() ; ++i) {
-		stmtToAdd.push_back(i->second);
+		stmtToAdd.insert(i->second);
 	}
 		
 	add(stmtToAdd);
 	
-	vector<Statement> stmtToRemove;
-	stmtToRemove.reserve(_buffer["remove"].size());
+	set<Statement> stmtToRemove;
 	//copy(_buffer["remove"].begin(), _buffer["remove"].end(), stmtToRemove.begin());
 	for(BufStatements::iterator i = _buffer["remove"].begin() ; i != _buffer["remove"].end() ; ++i) {
-		stmtToAdd.push_back(i->second);
+		stmtToAdd.insert(i->second);
 	}
 	
 	remove(stmtToRemove); //the order we call add and remove doesn't matter if the buffer is carefully filled through Ontology::addToBuffer. Else, if the same statement is first removed and then added, the flush operation will only retain the "remove"!
@@ -129,22 +127,20 @@ void Ontology::addToBuffer(const string action, const Statement& stmt) {
 }
 
 void Ontology::add(const Statement& statement){
-	add(vector<Statement>(1, statement));	
+	set<Statement> tmp;
+	tmp.insert(statement);
+	add(tmp);	
 }
 
-//TODO replace vectors by sets. It's stupid to use vectors.
-void Ontology::add(const vector<Statement>& statements){
+void Ontology::add(const set<Statement>& statements){
 	
 	set<string> stringified_stmts;
-	vector<Statement>::const_iterator iterator = statements.begin();
+	set<Statement>::const_iterator iterator = statements.begin();
 		
 	while( iterator != statements.end() ) {
 		
 		if (_bufferize) addToBuffer("add", *iterator);
 		else stringified_stmts.insert(iterator->to_string());
-		
-		//cout << iterator->to_string() << endl;
-		
 		++iterator;
 	}
 
@@ -157,13 +153,14 @@ void Ontology::add(const vector<Statement>& statements){
 
 
 void Ontology::remove(const Statement& statement){
-	remove(vector<Statement>(1, statement));
+	set<Statement> tmp;
+	tmp.insert(statement);
+	remove(tmp);
 }
 
-//TODO replace vectors by sets or lists. It's stupid to use vectors.
-void Ontology::remove(const std::vector<Statement>& statements){
+void Ontology::remove(const set<Statement>& statements){
 	set<string> stringified_stmts;
-	vector<Statement>::const_iterator iterator = statements.begin();
+	set<Statement>::const_iterator iterator = statements.begin();
 	
 	while( iterator != statements.end() ) {
 		if (_bufferize) addToBuffer("remove", (Statement)*iterator);

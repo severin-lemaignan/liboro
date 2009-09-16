@@ -275,13 +275,13 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		void add(const std::vector<Statement>& statements);
+		void add(const std::set<Statement>& statements);
 		
 		/**
 		 * Removes a set of statements from the ontology. Silently ignore statements that don't exist.\n
 		 * Like \p remove(String) but for sets of statements. Please note that no automatic buffering is done. If you're removing several statements, you're strongly advised to use Ontology::bufferize() and Ontology::flush() before and after the call to \p remove() .\n
 		*/
-		void remove(const std::vector<Statement>& statements);
+		void remove(const std::set<Statement>& statements);
 		
 		/**
 		 * Removes one statements from the ontology. Does nothing is the statement doesn't exist.
