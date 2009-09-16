@@ -21,18 +21,6 @@ namespace oro {
 		_originalStmt = subject.to_string() + " " + predicate.to_string() + " " + (isObjectLiteral?literal_object:object.to_string());
 	}
 		
-	inline bool Statement::operator==(const Statement& stmt) const {
-	
-		//TODO: hyper lent. Ca peut s'ameillorer
-		return (stmt.to_string() == to_string());
-	}
-	
-	inline bool Statement::operator<(const Statement& stmt) const {
-	
-		//TODO: hyper lent. Ca peut s'ameillorer
-		return (stmt.to_string() < to_string());
-	}
-	
 	/**
 	 * Creates a new statement from its literal string representation.
 	*/

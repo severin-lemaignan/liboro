@@ -1000,8 +1000,8 @@ class Statement {
 		Statement(const Concept& subject, const Property& predicate, const Concept& object);
 		Statement(const Concept& subject, const Property& predicate, const std::string& object);
 		
-		inline bool operator==(const Statement& stmt) const;
-		inline bool operator<(const Statement& stmt) const;
+		inline bool operator==(const Statement& stmt) const {return (stmt.to_string() == to_string());}
+		inline bool operator<(const Statement& stmt) const {return (stmt.to_string() < to_string());}
 			
 		/**
 		 * Returns a computer-friendly string describing the concept.
