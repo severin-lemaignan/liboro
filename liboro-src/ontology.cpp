@@ -87,7 +87,7 @@ void Ontology::flush(){
 		stmtToAdd.insert(i->second);
 	}
 		
-	add(stmtToAdd);
+	if (stmtToAdd.size() > 0) add(stmtToAdd);
 	
 	set<Statement> stmtToRemove;
 	//copy(_buffer["remove"].begin(), _buffer["remove"].end(), stmtToRemove.begin());
@@ -95,7 +95,7 @@ void Ontology::flush(){
 		stmtToAdd.insert(i->second);
 	}
 	
-	remove(stmtToRemove); //the order we call add and remove doesn't matter if the buffer is carefully filled through Ontology::addToBuffer. Else, if the same statement is first removed and then added, the flush operation will only retain the "remove"!
+	if (stmtToRemove.size() > 0) remove(stmtToRemove); //the order we call add and remove doesn't matter if the buffer is carefully filled through Ontology::addToBuffer. Else, if the same statement is first removed and then added, the flush operation will only retain the "remove"!
 	
 	_buffer["add"].clear();
 	_buffer["remove"].clear();
