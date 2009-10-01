@@ -64,7 +64,7 @@ int main(void) {
 
 	Concept myself = Concept("myself"); //create a new instance in the ontology which represents "myself" ie the robot/process where this code executes.
 	
-	cout << " * Connected to ontology server at /" << hostname << ":" << port << "/in" << endl;
+	cout << " * Connected to ontology server on " << hostname << ":" << port << endl;
 	cout << " * Now starting benchmarking." << endl;
 
 
@@ -86,7 +86,7 @@ int main(void) {
 	
 	//  TEST 2 //
 	int nb_stmt = 100;
-/*
+
 	cout << " * <BENCH2> Insertion of " << nb_stmt << " statements" << endl;
 
 	for (int i = 0 ; i < nb_stmt ; i++)
@@ -96,7 +96,7 @@ int main(void) {
 	}
 
 	timetable["<BENCH2> insertion statements"] = clock();
-*/	
+
 	
 	
 	//  TEST 3 //
@@ -265,8 +265,6 @@ public:
 
 };
 */
-
-
 
 void displayTime()
 {
