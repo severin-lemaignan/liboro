@@ -1,9 +1,38 @@
 /*
- * concept.cpp
+ * ©LAAS-CNRS (2008-2009)
  *
- *  Created on: 2 févr. 2009
- *      Author: slemaign
- */
+ * contributor(s) : Séverin Lemaignan <severin.lemaignan@laas.fr>
+ *
+ * This software is a computer program whose purpose is to interface
+ * with an ontology server in a robotics context.
+ *
+ * This software is governed by the CeCILL  license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
+ *
+*/
 
 #include <sstream>
 #include "oro.h"
@@ -14,9 +43,9 @@ using namespace std;
 
 namespace oro {
 
-/*****************************************************************************
-*                    	  Class Concept					     *
-/****************************************************************************/
+/*******************************************************************************
+*                       	  Class Concept					                   *
+*******************************************************************************/
 Concept::Concept():_id(Ontology::newId()), _label(""), _class(Classes::Thing) {}
 
 Concept::Concept(const std::string& id):_id(id), _label(""), _class(Classes::Thing) {}
@@ -44,7 +73,6 @@ Concept Concept::create(const Class& type){
 }
 
 void Concept::assertThat(const Property& predicate, const string& value){
-	//cout << "Asserting " << _label << "(id: " << _id << ")" << predicate << " " << value << endl;
 	Ontology::getInstance()->add(Statement(*this, predicate, value));
 }
 
@@ -73,7 +101,8 @@ boost::logic::tribool Concept::has(const Property& predicate, const std::string&
 	//if (!().empty())) result = true;
 	//else result = indeterminate;
 	
-	//TODO: if the predicate is functionnal and there is an assertion with this predicate for this subject, then the return value should be false.
+	//TODO: if the predicate is functionnal and there is an assertion with this
+	// predicate for this subject, then the return value should be false.
 	return result;
 }
 
@@ -111,9 +140,9 @@ void Concept::remove(const Property& predicate, const Concept& value){
 }
 
 const Concept Concept::nothing = Concept();
-/*****************************************************************************
-*                    	  Class Object					     *
-/****************************************************************************/
+/*******************************************************************************
+*                            	  Class Object					               *
+*******************************************************************************/
 
 Object Object::create() {
 	Object concept;
@@ -186,9 +215,9 @@ void Object::setAbsolutePosition(double x, double y, double z){
 	Ontology::getInstance()->flush();
 }
 		
-/*****************************************************************************
-*                    	  Class Agent					     *
-/****************************************************************************/
+/*******************************************************************************
+*                           	  Class Agent					               *
+*******************************************************************************/
 
 Agent Agent::create() {
 	Agent concept;
@@ -235,9 +264,9 @@ void Agent::currentlyPerforms(const Action& action){
 	assertThat(Properties::currentlyPerforms, action);
 }
 		
-/*****************************************************************************
-*                    	  Class Action					     *
-/****************************************************************************/
+/*******************************************************************************
+*                           	  Class Action					               *
+*******************************************************************************/
 		
 Action Action::create() {
 	Action concept;

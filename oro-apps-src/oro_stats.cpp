@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <iterator>
 #include <signal.h>
@@ -38,7 +39,7 @@ int main(int argc, char* argv[]) {
 	signal( SIGINT,sigproc);
 	
 	cout << "********* ORO - Quality of Service *********" << endl;
-	if (argc > 1 && (argv[2] == "-h")){
+	if (argc > 1 && strcmp(argv[2], "-h") == 0){
 		cout << "Syntax:\n> oro-stats [hostname of the oro server]" << endl << "By default, \"localhost\" is used."<<endl;
 		return(0);
 	}

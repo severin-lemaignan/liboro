@@ -1,7 +1,11 @@
 /** \file
- * This header defines a "library" of C++ properties and classes (or concepts) matching the ones defines in the openrobots.owl ontology.\n
- * It has been automatically generated from openrobots.owl by the "generate_oro_library_from_ontology.py" Python script.
- * If you need to regenerate this file (for your own ontology or after a modification of the ontology), just run <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>
+ * This header defines a "library" of C++ properties and classes (or concepts)
+ * matching the ones defines in the openrobots.owl ontology.\n
+ * It has been automatically generated from openrobots.owl by the 
+ * "generate_oro_library_from_ontology.py" Python script.
+ * If you need to regenerate this file (for your own ontology or after a 
+ * modification of the ontology), just run 
+ * <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>
  */
 #ifndef ORO_LIBRARY_H_
 #define ORO_LIBRARY_H_
@@ -10,7 +14,8 @@
 
 namespace oro {
 
-/** This class lists all the OWL properties defined in the openrobots.owl ontology.\n
+/** This class lists all the OWL properties defined in the openrobots.owl
+ * ontology.\n
  * It provides handy shortcuts when asserting new facts on concepts.
  * \see Concept::assert(const Property& predicate, const Concept& value)
  */
@@ -64,6 +69,8 @@ class Properties {
 		* Links a robot with its components
 		*/
 		static const Property hasComponent;
+
+		static const Property hasFeature;
 
 		static const Property hasFrameOfReference;
 
@@ -187,6 +194,9 @@ class Properties {
 		*/
 		static const Property has3dMesh;
 
+		/**
+		* Characteristic entity dimension, in centimeters
+		*/
 		static const Property hasCharacteristicDimension;
 
 		/**
@@ -242,6 +252,10 @@ class Classes {
 		* The most generic concept available.
 		*/
 		static const Class Thing;
+
+		static const Class UndertakeableAction;
+
+		static const Class UndertakeableTakeAction;
 
 		/**
 		* The collection of Events (q.v.) that are carried out by some "doer".

@@ -11,6 +11,7 @@ const Property Properties::enables = Property("enables");
 const Property Properties::hasCharacteristicLocation = Property("hasCharacteristicLocation");
 const Property Properties::hasColor = Property("hasColor");
 const Property Properties::hasComponent = Property("hasComponent");
+const Property Properties::hasFeature = Property("hasFeature");
 const Property Properties::hasFrameOfReference = Property("hasFrameOfReference");
 const Property Properties::holds = Property("holds");
 const Property Properties::holds_Underspecified = Property("holds_Underspecified");
@@ -47,6 +48,8 @@ const Property Properties::yCoord = Property("yCoord");
 const Property Properties::zCoord = Property("zCoord");
 
 const Class Classes::Thing = Class("owl:Thing");
+const Class Classes::UndertakeableAction = Class("UndertakeableAction");
+const Class Classes::UndertakeableTakeAction = Class("UndertakeableTakeAction");
 const Class Classes::Action = Class("Action");
 const Class Classes::Agent = Class("Agent");
 const Class Classes::Artifact = Class("Artifact");

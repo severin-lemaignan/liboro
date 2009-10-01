@@ -4,7 +4,7 @@
  * contributor(s) : Séverin Lemaignan <severin.lemaignan@laas.fr>
  *
  * This software is a computer program whose purpose is to interface
- * with an ontology in a robotics context.
+ * with an ontology server in a robotics context.
  *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,

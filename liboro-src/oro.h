@@ -4,7 +4,7 @@
  * contributor(s) : Séverin Lemaignan <severin.lemaignan@laas.fr>
  *
  * This software is a computer program whose purpose is to interface
- * with an ontology in a robotics context.
+ * with an ontology server in a robotics context.
  *
  * This software is governed by the CeCILL  license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
@@ -38,17 +38,23 @@
 #define ORO_H_
 
 /** \mainpage liboro: a C++ wrapper for the OpenRobots Ontology server
- * This library is a wrapper that enables programmers to easily interface their applications with the LAAS' OpenRobots Ontology server (\p oro-server ). It allows to easily declare, update, remove concepts, to check that the knowledge base is consistent, to look for specific concepts or execute complex queries on the ontology.
+ * This library is a wrapper that enables programmers to easily interface their
+ * applications with the LAAS' OpenRobots Ontology server (\p oro-server ). It 
+ * allows to easily declare, update, remove concepts, to check that the 
+ * knowledge base is consistent, to look for specific concepts or execute 
+ * complex queries on the ontology.
  * 
- * The current version (0.4.x) relies on YARP for remote procedure calls (RPC) with \p oro-server .
+ * The current version (0.6.x) relies on sockets for remote procedure calls 
+ * (RPC) with \p oro-server .
  * 
- * This is a simple example that assumes the ontology server is loaded with the OpenRobots ontology \p oro (\link ../../wiki/doku.php?id=openrobotsontology more details...\endlink):
+ * This is a simple example that assumes the ontology server is started on the
+ * local host with the OpenRobots ontology \p oro (\link ../../wiki/doku.php?id=openrobotsontology more details...\endlink):
  * \code
  * #include <iostream>
  * #include <iterator>
  * #include "oro.h"
  * #include "oro_library.h"
- * #include "yarp_connector.h"
+ * #include "socket_connector.h"
  *
  * using namespace std;
  * using namespace oro;
@@ -56,7 +62,9 @@
  * 		vector<Concept> result;
  * 		vector<string> partial_stmts;
  *
- * 		YarpConnector connector("myRobot", "oro"); //liboro currently relies on YARP for the RPCs with the server.
+ *              //liboro currently relies on sockets for the RPCs with the 
+ *              //server.
+ * 		SocketConnector connector("localhost", "6969");
  * 		Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
  * 
  *		//First, create some instances (ie, objects).
@@ -398,7 +406,7 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		int guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::set<std::string>& result);
+		void guess(const std::string& resource, const double threshold, const std::vector<std::string>& partial_statements, std::set<std::string>& result);
 
 		/**
 		 * Performs a SPARQL query on the OpenRobots ontology.\n
@@ -429,7 +437,7 @@ class Ontology {
 		 * }
 		 * \endcode
  		*/
-		int query(const std::string& var_name, const std::string& query, std::set<std::string>& result);
+		void query(const std::string& var_name, const std::string& query, std::set<std::string>& result);
 		
 		/**
 		 * Returns the set of asserted and inferred statements whose the given node is part of. It represents the "usages" of a resource.\n

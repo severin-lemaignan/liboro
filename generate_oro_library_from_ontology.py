@@ -67,9 +67,13 @@ def addClassesDeclarations(dom, printDeclaration, destFile):
 #################
 
 print >> f_h, "/** \\file"
-print >> f_h, " * This header defines a \"library\" of C++ properties and classes (or concepts) matching the ones defines in the " + ontology + " ontology.\\n"
-print >> f_h, " * It has been automatically generated from " + ontology + " by the \"generate_oro_library_from_ontology.py\" Python script."
-print >> f_h, " * If you need to regenerate this file (for your own ontology or after a modification of the ontology), just run <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>"
+print >> f_h, " * This header defines a \"library\" of C++ properties and classes (or concepts)"
+print >> f_h, " * matching the ones defines in the " + ontology + " ontology.\\n"
+print >> f_h, " * It has been automatically generated from " + ontology + " by the "
+print >> f_h, " * \"generate_oro_library_from_ontology.py\" Python script."
+print >> f_h, " * If you need to regenerate this file (for your own ontology or after a "
+print >> f_h, " * modification of the ontology), just run "
+print >> f_h, " * <tt>./generate_oro_library_from_ontology.py > src/oro_library.h</tt>"
 print >> f_h, " */"
 #print >> f_h, "// openrobots.owl version: " + os.system("../oro/git log -1 --pretty=format%ai")
 print >> f_h, "#ifndef ORO_LIBRARY_H_"
@@ -79,7 +83,8 @@ print >> f_h, "#include \"oro.h\""
 print >> f_h
 print >> f_h, "namespace oro {"
 print >> f_h
-print >> f_h, "/** This class lists all the OWL properties defined in the " + ontology + " ontology.\\n"
+print >> f_h, "/** This class lists all the OWL properties defined in the " + ontology
+print >> f_h, " * ontology.\\n"
 print >> f_h, " * It provides handy shortcuts when asserting new facts on concepts."
 print >> f_h, " * \see Concept::assert(const Property& predicate, const Concept& value)"
 print >> f_h, " */"
