@@ -6,7 +6,7 @@
 #include "oro.h"
 #include "oro_library.h"
 #include "oro_connector.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 #include "dummy_connector.h"
 
 using namespace std;
@@ -69,7 +69,7 @@ void plannerModule(vector<Concept>) {
 int main(void) {
 	
 	//Create a connector to the ontology server.
-	oro::YarpConnector connector("myDevice", "oro");
+	oro::SocketConnector connector("localhost", 6969);
 	//oro::DummyConnector connector();
 	
 	//Instanciate the ontology with this connector.

@@ -16,10 +16,10 @@
 #include "oro.h"
 #include "oro_library.h"
 #include "oro_connector.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 
 using namespace std;
-using namespace yarp::os;
+
 
 using namespace oro;
 using namespace boost;
@@ -42,11 +42,11 @@ void displayTime(void);
 //boost::mutex mut;
 
 bool waitingForEvent = true;
-const string oro_port = "oro";
-const string local_port = "oro_benchmark";
+const string hostname = "localhost";
+const string port = "6969";
 
 map<string, clock_t, ltstr> timetable;
-YarpConnector connector(local_port, oro_port);
+SocketConnector connector(hostname, port);
 
 int main(void) {
 
@@ -64,7 +64,7 @@ int main(void) {
 
 	Concept myself = Concept("myself"); //create a new instance in the ontology which represents "myself" ie the robot/process where this code executes.
 	
-	cout << " * Connected to ontology server at /" << oro_port << "/in" << endl;
+	cout << " * Connected to ontology server at /" << hostname << ":" << port << "/in" << endl;
 	cout << " * Now starting benchmarking." << endl;
 
 
@@ -140,7 +140,7 @@ int main(void) {
 	
 	timetable["<BENCH4> Simple getInfos query (inexistant resource)"] = clock();
 	
-	
+	/*
 	//  TEST 5 //
 	string event_port = local_port + "_events";
 	
@@ -234,7 +234,7 @@ int main(void) {
 	displayTime();
 
 }
-
+/*
 class eventHandler
 {
   string portName;
@@ -255,16 +255,16 @@ public:
     }
 
     {
-	   /* boost::mutex::scoped_lock lock(mut);
+	    boost::mutex::scoped_lock lock(mut);
 	    waitingForEvent = false;
 	    cond.notify_all();
-	    */
+	   
     }
 
   }
 
 };
-
+*/
 
 
 

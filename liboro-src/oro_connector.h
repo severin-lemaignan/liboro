@@ -59,14 +59,14 @@ class IConnector {
 		/**
 	 	* This method is intended to perform a query execution with a flat list of parameters on the remote server, to wait for an answer and to return this answer.
 		 */
-		virtual ServerResponse execute(const std::string query, const std::vector<server_param_types>& args) {}
+		virtual ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args) {}
 		
-		virtual ServerResponse execute(const std::string query, const server_param_types& arg) {}
+		virtual ServerResponse execute(const std::string& query, const server_param_types& arg) {}
 		
 		/**
 		 * This method is intended to perform a query execution without parameters on the remote server, to wait for an answer and to return this answer.
 		 */
-		virtual ServerResponse execute(const std::string query) {}
+		virtual ServerResponse execute(const std::string& query) {}
 	
 };
 

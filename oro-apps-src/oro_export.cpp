@@ -7,18 +7,18 @@
 #endif
 
 #include "oro.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 
 using namespace std;
-using namespace yarp::os;
+
 
 using namespace oro;
 
 //Forward declarations
 void sigproc(int);
 
-const string oro_port = "oro";
-const string local_port = "oro_export";
+const string hostname = "localhost";
+const string port = "6969";
 
 int main(int argc, char* argv[]) {
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 
 	
 	//Instanciate the ontology with the YARP connector.
-	YarpConnector connector(local_port, oro_port);
+	SocketConnector connector(hostname, port);
 	onto = Ontology::createWithConnector(connector);
 
 	cout << "Exporting the current ontology to " << path << "... ";

@@ -5,10 +5,10 @@
 #include <map>
 
 #include "oro.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 
 using namespace std;
-using namespace yarp::os;
+
 
 using namespace oro;
 
@@ -23,13 +23,13 @@ struct ltstr
 //Forward declarations
 void sigproc(int);
 
-const string local_port = "oro_stats";
+const string port = "6969";
 
 map<string, clock_t, ltstr> timetable;
 
 int main(int argc, char* argv[]) {
 
-	string oro_port;
+	string hostname;
 	string query;
 	map<string, string> result;
 	Ontology* onto;
@@ -39,19 +39,19 @@ int main(int argc, char* argv[]) {
 	
 	cout << "********* ORO - Quality of Service *********" << endl;
 	if (argc > 1 && (argv[2] == "-h")){
-		cout << "Syntax:\n> oro-stats [yarp port of the oro server]" << endl << "By default, the oro-server yarp port is \"oro\"."<<endl;
+		cout << "Syntax:\n> oro-stats [hostname of the oro server]" << endl << "By default, \"localhost\" is used."<<endl;
 		return(0);
 	}
 	cout << "Press ctrl+c to exit." << endl;
 	
 	
 	if (argc > 1)
-		oro_port = argv[1];
+		hostname = argv[1];
 	else
-		oro_port = "oro";
+		hostname = "localhost";
 	
 	//Instanciate the ontology with the YARP connector.
-	YarpConnector connector(local_port, oro_port);
+	SocketConnector connector(hostname, port);
 	onto = Ontology::createWithConnector(connector);
 	
 	onto->stats(result);
@@ -60,14 +60,6 @@ int main(int argc, char* argv[]) {
 	for( ; itData != result.end() ; ++itData) {
 		cout << "* " << (*itData).first << "->" << (*itData).second << endl;
 	}
-/*	
-	cout << "* oro-server version: " << result["version"] << endl;
-	cout << "* Hostname: " << result["host"] << endl;
-	cout << "* Uptime: " << result["uptime"] << endl;
-	cout << "* Nb of classes in the ontology: " << result["nb_classes"] << endl;
-	cout << "* Nb of instances in the ontology: " << result["nb_instances"] << endl;
-	cout << "* Nb of currently connected clients: " << result["nb_clients"] << endl;
-*/
 }
 
 void sigproc(int sig)

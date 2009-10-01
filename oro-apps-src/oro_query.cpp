@@ -11,10 +11,10 @@
 #endif
 
 #include "oro.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 
 using namespace std;
-using namespace yarp::os;
+
 
 using namespace oro;
 using namespace boost;
@@ -32,8 +32,8 @@ void sigproc(int);
 void displayCollec(const set<string>& result);
 void displayTime(void);
 
-const string oro_port = "oro";
-const string local_port = "oro_query";
+const string hostname = "localhost";
+const string port = "6969";
 
 map<string, clock_t, ltstr> timetable;
 
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 	string sparql_file(argv[2]);
 	
 	//Instanciate the ontology with the YARP connector.
-	YarpConnector connector(local_port, oro_port);
+	SocketConnector connector(hostname, port);
 	
 	try {
 		onto = Ontology::createWithConnector(connector);
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	cout << "Now opening " + sparql_file + " (variable: "+ variable + ") and executing the query on " + oro_port << endl;
+	cout << "Now opening " + sparql_file + " (variable: "+ variable + ") and executing the query on " + hostname << ":" << port << endl;
 
 	timetable["0- start"] = clock();
 			

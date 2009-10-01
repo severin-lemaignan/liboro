@@ -8,14 +8,14 @@
 #include "oro.h"
 #include "oro_library.h"
 #include "oro_connector.h"
-#include "yarp_connector.h"
+#include "socket_connector.h"
 
 #include <boost/test/unit_test.hpp>
 #define BOOST_TEST_MODULE LiboroTest
 
 
 using namespace std;
-using namespace yarp::os;
+
 
 using namespace oro;
 
