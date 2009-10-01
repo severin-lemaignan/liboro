@@ -89,7 +89,7 @@ INSTALL (TARGETS oro-qos
 #	RUNTIME DESTINATION bin
 #)	
 
-add_executable (oro-test test.cpp)
+add_executable (oro-test oro_test.cpp)
 
 target_link_libraries (oro-test oro ${LIBS}) 
 
