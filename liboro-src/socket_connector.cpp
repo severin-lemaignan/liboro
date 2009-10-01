@@ -104,6 +104,7 @@ SocketConnector::SocketConnector(const string hostname, const string port){
     }
 	
     if (connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr)) < 0) {
+		close(sockfd);
         throw ConnectorException("Error while connecting to \"" + hostname + "\". Wrong port ? Abandon.");
 	}
 
@@ -214,19 +215,19 @@ void SocketConnector::read(ServerResponse& res){
 			
 			int bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
 			
-			if (bytes_read < 0){
-				close(sockfd);
-				throw OntologyServerException("Error reading from the server! Connection closed by the server?");
-			 }
+			if (bytes_read < 0) throw OntologyServerException("Error reading from the server! Connection closed by the server?");
 			
 			string field = buffer;
 			
-			if (field == "#end#\n")
+			if (field == MSG_FINALIZER)
 				break;
 				
 			field = field.substr(0, field.length() - 1); //remove the trailing "\n"				
 			rawResult.push_back(field);
 		}
+		
+		free(buffer);
+		
 /*
 		while (rawResult == NULL && delay < ORO_MAX_DELAY){
 			msleep(50);
@@ -352,12 +353,10 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 	if ( !(msg[0] == '[' && msg[msg.length()-1] == ']'))
 			isValidSet = false;
 	
+	if (!isValidMap && !isValidSet) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+
 	string collection = msg.substr(1, msg.length() - 2); //remove the [] or {}
 		
-	assert(!(isValidMap && isValidSet));
-	
-	if (!isValidMap && !isValidSet) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
-	
 	if (isValidMap) {
 		map<string, string> result;
 		
