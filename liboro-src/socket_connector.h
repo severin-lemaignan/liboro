@@ -113,6 +113,10 @@ public:
 	static void serializeMap(const std::map<std::string, std::string>& data, std::string& msg);
 	
 private:
+
+	static std::string& protectValue(std::string& value);
+	static std::string& cleanValue(std::string& value);
+	
 	void deserialize(const std::string& msg, server_return_types& result);
 	server_return_types makeCollec(const std::string& msg);
 	void read(ServerResponse& response);

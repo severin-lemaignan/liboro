@@ -270,14 +270,65 @@ void SocketConnector::read(ServerResponse& res){
 	
 }
 
+/** Remove leading and trailing quotes and whitespace if needed. 
+ * 
+ * @param value
+ * @return
+ */
+string& SocketConnector::cleanValue(string& value) {
+	
+	//First, trim the string
+    size_t startpos = value.find_first_not_of(" \t");
+    size_t endpos = value.find_last_not_of(" \t");
+
+    if(( string::npos == startpos ) || ( string::npos == endpos))
+    {
+        value = "";
+    }
+    else
+        value = value.substr( startpos, endpos-startpos+1 );
+
+	//Then remove quotes
+	if ((value[0] == '"' && value[value.length()-1] == '"') || (value[0] == '\'' && value[value.length()-1] == '\''))
+		value = value.substr(1, value.length() - 1);
+	
+	return value;
+}
+
+/** Protect a string by escaping the quotes and surrounding the string with quotes.
+ * 
+ * @param value
+ * @return
+ */
+string& SocketConnector::protectValue(string& value) {
+	
+	//Escape double quotes
+	size_t start_pos = 0;
+	
+	while(true) {
+		size_t pos = value.find("\"", start_pos);
+		if( string::npos != pos ) {
+			start_pos = pos;
+			value.replace(pos, 1, "\\\"");
+		}
+		else break;
+	}	
+	
+	//Quote the whole string
+	value = "\"" + value + "\"";
+	return value;
+}
+		
 void SocketConnector::serializeVector(const vector<string>& data, string& msg)
 {
 	vector<string>::const_iterator itData = data.begin();
 
 	msg += "[";
 	
-	for( ; itData != data.end() ; ++itData)
-		msg += *itData + ",";
+	for( ; itData != data.end() ; ++itData) {
+		string tmp = *itData;
+		msg += protectValue(*itData) + ",";
+	}
 		
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
@@ -290,7 +341,8 @@ void SocketConnector::serializeSet(const set<string>& data, string& msg)
 	msg += "[";
 	
 	for( ; itData != data.end() ; ++itData)
-		msg += *itData + ",";
+		string tmp = *itData;
+		msg += protectValue(*itData) + ",";
 		
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
