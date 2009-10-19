@@ -327,7 +327,7 @@ void SocketConnector::serializeVector(const vector<string>& data, string& msg)
 	
 	for( ; itData != data.end() ; ++itData) {
 		string tmp = *itData;
-		msg += protectValue(*itData) + ",";
+		msg += protectValue(tmp) + ",";
 	}
 		
 	msg = msg.substr(0, msg.length() - 1) + "]";
@@ -340,9 +340,10 @@ void SocketConnector::serializeSet(const set<string>& data, string& msg)
 
 	msg += "[";
 	
-	for( ; itData != data.end() ; ++itData)
+	for( ; itData != data.end() ; ++itData) {
 		string tmp = *itData;
-		msg += protectValue(*itData) + ",";
+		msg += protectValue(tmp) + ",";
+	}
 		
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
