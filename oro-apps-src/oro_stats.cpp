@@ -24,13 +24,13 @@ struct ltstr
 //Forward declarations
 void sigproc(int);
 
-const string port = "6969";
+string hostname;
+string port;
 
 map<string, clock_t, ltstr> timetable;
 
 int main(int argc, char* argv[]) {
 
-	string hostname;
 	string query;
 	map<string, string> result;
 	Ontology* onto;
@@ -39,17 +39,17 @@ int main(int argc, char* argv[]) {
 	signal( SIGINT,sigproc);
 	
 	cout << "********* ORO - Quality of Service *********" << endl;
-	if (argc > 1 && strcmp(argv[2], "-h") == 0){
-		cout << "Syntax:\n> oro-stats [hostname of the oro server]" << endl << "By default, \"localhost\" is used."<<endl;
+	//if (argc > 1 && strcmp(argv[2], "-h") == 0){
+	if (argc != 3){
+		cout << "Returns some statistics on a oro-server" << endl << endl;
+		cout << "Syntax:\n> oro-stats hostname port" <<endl;
 		return(0);
 	}
 	cout << "Press ctrl+c to exit." << endl;
 	
+	hostname = argv[1];
+	port = argv[2];
 	
-	if (argc > 1)
-		hostname = argv[1];
-	else
-		hostname = "localhost";
 	
 	//Instanciate the ontology with the YARP connector.
 	SocketConnector connector(hostname, port);
