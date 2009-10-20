@@ -222,8 +222,8 @@ void SocketConnector::read(ServerResponse& res){
 			if (field == MSG_FINALIZER)
 				break;
 				
-			field = field.substr(0, field.length() - 1); //remove the trailing "\n"				
-			rawResult.push_back(field);
+			field = field.substr(0, field.length() - 1); //remove the trailing "\n"	
+			rawResult.push_back(cleanValue(field));
 		}
 		
 		free(buffer);
@@ -290,7 +290,7 @@ string& SocketConnector::cleanValue(string& value) {
 
 	//Then remove quotes
 	if ((value[0] == '"' && value[value.length()-1] == '"') || (value[0] == '\'' && value[value.length()-1] == '\''))
-		value = value.substr(1, value.length() - 1);
+		value = value.substr(1, value.length() - 2);
 	
 	return value;
 }
@@ -418,7 +418,10 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 		{
 		  size_t found = t.find(':');
 		  if (found == string::npos) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid map (missing semicolon)!");
-		  result[t.substr(0, found)] = t.substr(found + 1, string::npos);
+		  
+		  string key = t.substr(0, found);
+		  string value = t.substr(found + 1, string::npos);
+		  result[cleanValue(key)] = cleanValue(value);
 		}
 		
 		return result;
@@ -431,7 +434,7 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 		tokenizer<char_separator<char> > tokens(collection, sep);
 		BOOST_FOREACH(string t, tokens)
 		{  
-		  result.insert(t);
+		  result.insert(cleanValue(t));
 		}
 		
 		return result;

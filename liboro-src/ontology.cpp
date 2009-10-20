@@ -87,7 +87,8 @@ bool Ontology::checkOntologyServer(){
 	if (res.status != ServerResponse::ok) return false;
 	
 	try {
-		cout << " - oro-server v." << (boost::get<map<string, string> >(res.result))["version"];
+		string version = (boost::get<map<string, string> >(res.result))["version"];
+		cout << " - oro-server v." << version;
 	} catch (boost::bad_get e) {
 		cerr << "Internal error: oro-server answered malformed results at initialization!";
 		return false;
