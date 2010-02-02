@@ -92,8 +92,8 @@ namespace oro {
 		//if (tokens.size() != 3)
 		//	throw InvalidStatementException();
 		
-		//TODO Ugly... if the last token simply contains a semicolon, we assume it's a concept. Need to be improved!
-		if(tokens[2].find(":") != string::npos){
+		//TODO Ugly... if the last token simply contains a semicolon or the predicate is subClassOf, we assume it's a concept. Need to be improved!
+		if((tokens[2].find(":") != string::npos) || tokens[1] == "rdfs:subClassOf"){
 			tokens[2] = tokens[2].substr(tokens[2].find(":"));
 			object = Concept(tokens[2]);
 			isObjectLiteral = false;

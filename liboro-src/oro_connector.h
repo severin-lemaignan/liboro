@@ -94,13 +94,19 @@ struct ServerResponse {
 	* depend on the query.
 	*/
 	server_return_types result;
+	
+	/**
+	* Holds the raw (ie JSON-encoded) value returned by the server.
+	*/
+	std::string raw_result;
 		
 	/**
 	 * Default constructor
 	 */
 	ServerResponse():	status(ServerResponse::indeterminate), 
 						exception_msg(""), 
-						error_msg("") {}
+						error_msg(""),
+						raw_result("") {}
 	
 };
 

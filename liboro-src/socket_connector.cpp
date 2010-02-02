@@ -61,7 +61,7 @@ namespace oro {
 	const char* ERROR = "error";
 
 
-class ParametersSerializationHolder; //forward declaration
+class ParametersSerializationHolder; //forward declaration. Defined in socket_connector.h
 	
 SocketConnector::SocketConnector(const string hostname, const string port){
 	
@@ -260,6 +260,8 @@ void SocketConnector::read(ServerResponse& res){
 		if (rawResult[0] == OK){
 			res.status = ServerResponse::ok;
 
+			res.raw_result = rawResult[1];
+			
 			deserialize(rawResult[1], res.result);
 			
 			//cout << "Query to ontology server succeeded." << endl;
