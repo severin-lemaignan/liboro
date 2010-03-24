@@ -159,7 +159,7 @@ void Ontology::addToBuffer(const string action, const Statement& stmt) {
 void Ontology::add(const Statement& statement){
 	set<Statement> tmp;
 	tmp.insert(statement);
-	add(tmp);	
+	add(tmp);
 }
 
 void Ontology::add(const set<Statement>& statements){
@@ -180,7 +180,6 @@ void Ontology::add(const set<Statement>& statements){
 		if (res.status == ServerResponse::failed) throw OntologyServerException("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg);
 	}
 }
-
 
 void Ontology::remove(const Statement& statement){
 	set<Statement> tmp;
@@ -203,6 +202,62 @@ void Ontology::remove(const set<Statement>& statements){
 	
 		if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg);
 	}
+}
+
+void Ontology::addForAgent(const string& agent, const Statement& statement){
+	set<Statement> tmp;
+	tmp.insert(statement);
+	addForAgent(agent, tmp);
+}
+
+void Ontology::addForAgent(const string& agent, const set<Statement>& statements){
+
+	vector<server_param_types> parameters;
+	set<string> stringified_stmts;
+	set<Statement>::const_iterator iterator = statements.begin();
+		
+	while( iterator != statements.end() ) {
+		stringified_stmts.insert(iterator->to_string());
+		++iterator;
+	}
+	
+	parameters.push_back(agent);
+	parameters.push_back(stringified_stmts);
+
+	ServerResponse res = _connector.execute("addForAgent", parameters);
+
+	if (res.status == ServerResponse::failed)
+		throw OntologyServerException("Server threw a " + res.exception_msg + 
+		" while adding statements for agent " + agent + ". Server message was " +
+		res.error_msg);
+}
+
+void Ontology::removeForAgent(const string& agent, const Statement& statement){
+	set<Statement> tmp;
+	tmp.insert(statement);
+	removeForAgent(agent, tmp);
+}
+
+void Ontology::removeForAgent(const string& agent, const set<Statement>& statements){
+
+	vector<server_param_types> parameters;
+	set<string> stringified_stmts;
+	set<Statement>::const_iterator iterator = statements.begin();
+		
+	while( iterator != statements.end() ) {
+		stringified_stmts.insert(iterator->to_string());
+		++iterator;
+	}
+	
+	parameters.push_back(agent);
+	parameters.push_back(stringified_stmts);
+
+	ServerResponse res = _connector.execute("removeForAgent", parameters);
+
+	if (res.status == ServerResponse::failed)
+		throw OntologyServerException("Server threw a " + res.exception_msg + 
+		" while removing statements for agent " + agent + ". Server message was " +
+		res.error_msg);
 }
 
 bool Ontology::checkConsistency(){
@@ -289,6 +344,66 @@ void Ontology::find(const std::string& resource, const std::string& partial_stat
 	tmp.insert(partial_statement);
 	find(resource, tmp, result);
 	
+}
+
+//TODO: Some code factorization around would be welcome...
+void Ontology::findForAgent(const string& agent, const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result){
+	
+	set<string> rawResult;
+	vector<server_param_types> args;
+	args.push_back(agent);
+	args.push_back(resource);
+	args.push_back(partial_statements);
+	args.push_back(restrictions);
+	
+	ServerResponse res = _connector.execute("findForAgent", args);
+	
+	if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("\"filtred findForAgent\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	
+	rawResult = boost::get<set<string> >(res.result);
+	
+	set<string>::iterator itRawResult;
+	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
+	{
+		result.insert(Concept(*(itRawResult)));
+	}
+
+}
+
+void Ontology::findForAgent(const string& agent, const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result){
+	
+	set<string> rawResult;
+	vector<server_param_types> args;
+	args.push_back(agent);
+	args.push_back(resource);
+	args.push_back(partial_statements);
+
+	ServerResponse res = _connector.execute("findForAgent", args);
+	
+	if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("\"FindForAgent\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	
+	rawResult = boost::get<set<string> >(res.result);
+	
+	set<string>::iterator itRawResult;
+	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
+	{
+		result.insert(Concept(*(itRawResult)));
+	}
+	
+	
+}
+
+void Ontology::findForAgent(const string& agent, const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
+	
+	set<string> tmp;
+	tmp.insert(partial_statement);
+	findForAgent(agent, resource, tmp, result);	
 }
 
 

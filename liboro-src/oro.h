@@ -251,7 +251,7 @@ class Ontology {
 		 * \endcode
 		 */
 		void add(const Statement& statement);
-	
+
 		/**
 		 * Adds a set of statements to the ontology.
 		 * Like \p add(String) but for sets of statements. Please note that no automatic buffering is done. If you're adding several statements, you're strongly advised to use Ontology::bufferize() and Ontology::flush() (cf example below).\n
@@ -295,13 +295,43 @@ class Ontology {
 		 * Removes one statements from the ontology. Does nothing is the statement doesn't exist.
 		 */
 		void remove(const Statement& statement);
-	
+
+		/**
+		 * Adds a new statement to a specific agent ontology.\n
+		 * 
+		 * Note: this requires ORO server to be started with the Alterite module.
+		 */
+		void addForAgent(const std::string& agent, const Statement& statement);
+		
+		/**
+		 * Adds a set of statements to a specific agent ontology.\n
+		 * 
+		 * No buffering is currently supported for addForAgent.
+		 * 
+		 * Note: this requires ORO server to be started with the Alterite module.
+		 */
+		void addForAgent(const std::string& agent, const std::set<Statement>& statements);
+
+		/**
+		 * Removes one statements from a specific agent ontology. Does nothing 
+		 * is the statement doesn't exist.
+		 */
+		void removeForAgent(const std::string& agent, const Statement& statement);
+
+		/**
+		 * Removes a set of statements from a specific agent ontology. Silently 
+		 * ignore statements that don't exist.\n
+		 * 
+		 * No buffering is currently supported for removeForAgent.
+		*/
+		void removeForAgent(const std::string& agent, const std::set<Statement>& statements);
+
 		/**
 		 * Checks the ontology consistency.
 		 * 
 		 * \return \p true or \p false
 		 */
-		bool checkConsistency();		
+		bool checkConsistency();
 		
 		/**
 		 * Tries to identify a resource given a set of partially defined statements plus restrictions about this resource.
@@ -373,6 +403,24 @@ class Ontology {
 		void find(const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result);
 
 		void find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result);
+
+		/**
+		 * Like Ontology::find(const std::string&, const std::set<std::string>&, const std::set<std::string>&, std::set<Concept>&)
+		 * but look for statements in a specific agent model.
+		 */
+		void findForAgent(const std::string& agent, const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result);
+
+		/**
+		 * Like Ontology::find(const std::string&, const std::set<std::string>&, std::set<Concept>&)
+		 * but look for statements in a specific agent model.
+		 */
+		void findForAgent(const std::string& agent, const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result);
+
+		/**
+		 * Like Ontology::find(const std::string&, const std::string&, std::set<Concept>&)
+		 * but look for statements in a specific agent model.
+		 */
+		void findForAgent(const std::string& agent, const std::string& resource, const std::string& partial_statement, std::set<Concept>& result);
 
 
 		/**
