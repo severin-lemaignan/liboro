@@ -202,7 +202,7 @@ void SocketConnector::read(ServerResponse& res){
 		
 		vector<string> rawResult;
 		
-		unsigned int MAX_LINE_LENGTH = 255;
+		size_t MAX_LINE_LENGTH = 255;
 		
 		char *buffer;
 		
@@ -213,7 +213,7 @@ void SocketConnector::read(ServerResponse& res){
 		while (true) {
 				
 			
-			int bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
+			ssize_t bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
 			
 			if (bytes_read < 0) throw OntologyServerException("Error reading from the server! Connection closed by the server?");
 			
