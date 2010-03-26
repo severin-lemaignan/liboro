@@ -34,6 +34,8 @@
  *
 */
 
+#include <algorithm>
+
 #include "oro.h"
 #include "oro_exceptions.h"
 
@@ -305,11 +307,7 @@ void Ontology::find(const std::string& resource, const std::set<std::string>& pa
 	
 	rawResult = boost::get<set<string> >(res.result);
 	
-	set<string>::iterator itRawResult;
-	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
-	{
-		result.insert(Concept(*(itRawResult)));
-	}
+	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 
 }
 
@@ -329,13 +327,7 @@ void Ontology::find(const std::string& resource, const std::set<std::string>& pa
 	
 	rawResult = boost::get<set<string> >(res.result);
 	
-	set<string>::iterator itRawResult;
-	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
-	{
-		result.insert(Concept(*(itRawResult)));
-	}
-	
-	
+	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 }
 
 void Ontology::find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
@@ -365,12 +357,8 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 	
 	rawResult = boost::get<set<string> >(res.result);
 	
-	set<string>::iterator itRawResult;
-	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
-	{
-		result.insert(Concept(*(itRawResult)));
-	}
-
+	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
+	
 }
 
 void Ontology::findForAgent(const string& agent, const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result){
@@ -390,12 +378,7 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 	
 	rawResult = boost::get<set<string> >(res.result);
 	
-	set<string>::iterator itRawResult;
-	for(itRawResult = rawResult.begin(); itRawResult != rawResult.end(); itRawResult++)
-	{
-		result.insert(Concept(*(itRawResult)));
-	}
-	
+	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 	
 }
 
