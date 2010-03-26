@@ -38,8 +38,25 @@
 #define ORO_EVENT_H_
 
 #include <string>
+#include <set>
+#include <boost/variant.hpp>
 
 namespace oro {
+
+class Concept;
+
+/**
+ * A null-type, used to assert that an event didn't return any content.
+ */
+struct Null {};
+
+/**
+ * The list of all possible return types for an event.
+ * This could be extended in the future.
+ */
+typedef boost::variant<	Null,
+						std::set<Concept>
+						 > event_return_types;
 
 /** Constants that defines the type of event that is to be registered.
  *
@@ -81,12 +98,21 @@ enum EventType {FACT_CHECKING, NEW_CLASS_INSTANCE, NEW_INSTANCE};
 //When adding new trigger type, remember to update as well the implementation of Ontology::subscribe
 enum EventTriggeringType {ON_TRUE, ON_TRUE_ONE_SHOT, ON_FALSE, ON_FALSE_ONE_SHOT, ON_TOGGLE};
 
+/**
+ * This is an "event" object, that is generated and sent to the event subscriber
+ * when an event occurs.
+ */
 struct OroEvent {
 	
 	std::string eventId;
-	std::string result;
 	
-	OroEvent(std::string eventId, std::string result) : eventId(eventId), result(result) {};
+	/**
+	 * The content of the event.
+	 */
+	event_return_types content;
+	
+	OroEvent(std::string eventId, event_return_types content) : eventId(eventId), content(content) {};
+
 };
 
 /**
@@ -98,7 +124,7 @@ struct OroEvent {
  */
 class OroEventObserver {
 public:
-   virtual void operator()(const OroEvent& evt) const = 0;
+   virtual void operator()(const OroEvent& evt) = 0;
 };
 
 }

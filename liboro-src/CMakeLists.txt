@@ -1,6 +1,6 @@
 # Create a library called "oro"
 
-set(ORO_HEADERS oro.h oro_connector.h oro_exceptions.h socket_connector.h position.h oro_library.h dummy_connector.h)
+set(ORO_HEADERS oro.h oro_event.h oro_connector.h oro_exceptions.h socket_connector.h oro_library.h dummy_connector.h)
 
 ADD_LIBRARY (oro ontology.cpp concepts.cpp socket_connector.cpp class.cpp property.cpp statement.cpp dummy_connector.cpp oro_library.cpp) 
 
