@@ -179,9 +179,6 @@
 #include "oro_exceptions.h"
 #include "oro_connector.h"
 
-//TODO To be replaced with a proper lib
-#include "position.h"
-
 /**
  * The main \p liboro namespace.
  */
