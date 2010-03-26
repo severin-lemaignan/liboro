@@ -89,12 +89,18 @@ namespace oro {
 		buf = buf.substr(cutAt+1);
 		tokens.push_back(buf);
 		
+		//Problem: the third argument may contain spaces
+		
 		//if (tokens.size() != 3)
 		//	throw InvalidStatementException();
 		
-		//TODO Ugly... if the last token simply contains a semicolon or the predicate is subClassOf, we assume it's a concept. Need to be improved!
-		if((tokens[2].find(":") != string::npos) || tokens[1] == "rdfs:subClassOf"){
+		//TODO Ugly... if the last token contains a semicolon or the predicate is subClassOf, we assume it's a concept. Need to be improved!
+		if(tokens[2].find(":") != string::npos){
 			tokens[2] = tokens[2].substr(tokens[2].find(":"));
+			object = Concept(tokens[2]);
+			isObjectLiteral = false;
+		}
+		else if (tokens[1] == "rdfs:subClassOf") {
 			object = Concept(tokens[2]);
 			isObjectLiteral = false;
 		}
