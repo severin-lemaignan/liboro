@@ -20,3 +20,7 @@ html/
 xml/
 *.tag
 *.tar.gz
+CMakeFiles/
+CMakeCache.txt
+Makefile
+*.cmake
