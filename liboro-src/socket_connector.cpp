@@ -323,6 +323,8 @@ string& SocketConnector::protectValue(string& value) {
 		
 void SocketConnector::serializeVector(const vector<string>& data, string& msg)
 {
+	if (data.size() == 0) {msg += "[]"; return;}
+	
 	vector<string>::const_iterator itData = data.begin();
 
 	msg += "[";
@@ -338,8 +340,10 @@ void SocketConnector::serializeVector(const vector<string>& data, string& msg)
 
 void SocketConnector::serializeSet(const set<string>& data, string& msg)
 {
+	if (data.size() == 0) {msg += "[]"; return;}
+		
 	set<string>::const_iterator itData = data.begin();
-
+	
 	msg += "[";
 	
 	for( ; itData != data.end() ; ++itData) {
@@ -353,6 +357,8 @@ void SocketConnector::serializeSet(const set<string>& data, string& msg)
 
 void SocketConnector::serializeMap(const map<string, string>& data, string& msg)
 {
+	if (data.size() == 0) {msg += "{}"; return;}
+	
 	map<string, string>::const_iterator itData = data.begin();
 
 	msg += "{";
