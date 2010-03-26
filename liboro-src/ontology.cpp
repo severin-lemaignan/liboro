@@ -424,41 +424,54 @@ void Ontology::getInfos(const string& resource, set<string>& result){
 	
 }
 
-void Ontology::subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger){
+void Ontology::registerEvent(	OroEventObserver& callback, 
+								EventType eventType, 
+								EventTriggeringType triggerType, 
+								const std::set<std::string>& pattern, 
+								const std::string& variable_to_bind){
 	
 	vector<server_param_types> args;
 		
-	string port(portToTrigger);
+	string eventTypeStr;
 	string triggerTypeStr;
 	
-	switch (triggerType){ //TODO: is it necessary? it's possible to convert it to a string through a special macro...
-		case ON_TRUE:
-			triggerTypeStr = "ON_TRUE";
+	switch (eventType){ //Painful, but no obvious way to workaround that...
+		case FACT_CHECKING:
+			eventTypeStr = NAME_OF(FACT_CHECKING);
 			break;
-		case ON_TRUE_ONE_SHOT:
-			triggerTypeStr = "ON_TRUE_ONE_SHOT";
+		case NEW_INSTANCE:
+			eventTypeStr = NAME_OF(NEW_INSTANCE);
 			break;
-		case ON_FALSE:
-			triggerTypeStr = "ON_FALSE";
-			break;
-		case ON_FALSE_ONE_SHOT:
-			triggerTypeStr = "ON_FALSE_ONE_SHOT";
-			break;
-		case ON_TOGGLE:
-			triggerTypeStr = "ON_TOGGLE";
-			break;
-		default:
-			triggerTypeStr = "UNSUPPORTED_TRIGGER_TYPE";
+		case NEW_CLASS_INSTANCE:
+			eventTypeStr = NAME_OF(NEW_CLASS_INSTANCE);
 			break;
 	}
 	
-	if (port.find("0/") != 0) port = "/" + port;
+	switch (triggerType){ //Painful, but no obvious way to workaround that...
+		case ON_TRUE:
+			triggerTypeStr = NAME_OF(ON_TRUE);
+			break;
+		case ON_TRUE_ONE_SHOT:
+			triggerTypeStr = NAME_OF(ON_TRUE_ONE_SHOT);
+			break;
+		case ON_FALSE:
+			triggerTypeStr = NAME_OF(ON_FALSE);
+			break;
+		case ON_FALSE_ONE_SHOT:
+			triggerTypeStr = NAME_OF(ON_FALSE_ONE_SHOT);
+			break;
+		case ON_TOGGLE:
+			triggerTypeStr = NAME_OF(ON_TOGGLE);
+			break;
+	}
 	
-	args.push_back(watchExpression);
+	args.push_back(eventTypeStr);
 	args.push_back(triggerTypeStr);
-	args.push_back(port);
+	if (variable_to_bind != "")
+		args.push_back(variable_to_bind);
+	args.push_back(pattern);
 	
-	_connector.execute("subscribe", args);
+	_connector.execute("registerEvent", args);
 }
 		
 string Ontology::newId(int length)

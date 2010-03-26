@@ -177,6 +177,7 @@
 #include <boost/logic/tribool.hpp>
 
 #include "oro_exceptions.h"
+#include "oro_event.h"
 #include "oro_connector.h"
 
 /**
@@ -193,21 +194,6 @@ class Statement;
 class Ontology {
 
 	public:
-		
-		/** Constants that defines the way an event occuring in the ontology is triggered.\n
-		* 
-		* <ul>
-		*  <li>\p ON_TRUE : the event is triggered each time the corresponding watch expression <em>becomes</em> true.</li>
-		*  <li>\p ON_TRUE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> true. The watcher is then deleted.</li>
-		*  <li>\p ON_FALSE : the event is triggered each time the corresponding watch expression <em>becomes</em> false.</li>
-		*  <li>\p ON_FALSE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> false. The watcher is then deleted.</li>
-		*  <li>\p ON_TOGGLE : the event is triggered each time the corresponding watch expression <em>becomes</em> true or false.</li>
-		* </ul>
-		* 
-	 	* \see subscribe(const std::string&, EventTriggeringType, const std::string&)
-		*/
-		//When adding new trigger type, remember to update as well the implementation of Ontology::subscribe
-		enum EventTriggeringType {ON_TRUE, ON_TRUE_ONE_SHOT, ON_FALSE, ON_FALSE_ONE_SHOT, ON_TOGGLE};
 		
 		/**
 	 	* This static getter for the ontology must be called once to initialize the ontology server.
@@ -502,30 +488,25 @@ class Ontology {
 				
 		/** Subscribe to a specified event in the ontology.\n
 		 * 
-		 * Working code snippet:\n
-		 *
-		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 		vector<string> result;
-		 * 
-		 *		YarpConnector connector("myDevice", "oro");
-		 *		oro = Ontology::createWithConnector(connector);
-		 * 
-		 * 		oro->subscribe("?object rdf:type Bottle", ON_TRUE_ONE_SHOT, "myDevice_events");
-		 * 		return 0;
-		 * }
-		 * \endcode
-		 * 
-		 * \param watchExpression a partial statement used as a pattern by the ontology server to trigger the event.
-		 * \param triggerType the way the event is triggered. Cf \link EventTriggeringType the EventTriggeringType enum documentation \endlink for the list of available types.
-		 * \param portToTrigger a string defining a port the ontology server should trigger when the expression to watch becomes true. What "port" means depends on the underlying implementation (YARP, Genom, ROS...).
+		 * \param callback An object that implements operator()(const OroEvent&)
+		 * that is called when an event occurs.
+		 * \param type the type of event that is triggered. Cf \link EventType 
+		 * the EventType enum documentation \endlink for the list of available 
+		 * types.
+		 * \param triggerType the way the event is triggered. Cf \link 
+		 * EventTriggeringType the EventTriggeringType enum documentation 
+		 * \endlink for the list of available types.
+		 * \param pattern a set of partial statements used as a pattern by the 
+		 * ontology server to trigger the event.
+		 * \param variable_to_bind (optional) for the NEW_INSTANCE event type, 
+		 * define the variable from the partial statements to bind in the event 
+		 * (ie, when an NEW_INSTANCE event is triggered, what object is returned).
 		*/
-		void subscribe(const std::string& watchExpression, EventTriggeringType triggerType, const std::string& portToTrigger);
+		void registerEvent(	OroEventObserver& callback, 
+							EventType type, 
+							EventTriggeringType triggerType, 
+							const std::set<std::string>& pattern, 
+							const std::string& variable_to_bind = "");
 		
 		/**
 		* Saves the in-memory ontology model to a RDF/XML file.
