@@ -56,9 +56,10 @@ using namespace boost;
 
 namespace oro {
 
-	//Defines two constants needed to decode msg status.
+	//Defines three constants needed to decode msg status.
 	const char* OK = "ok";
 	const char* ERROR = "error";
+	const char* EVENT = "event";
 
 
 class ParametersSerializationHolder; //forward declaration. Defined in socket_connector.h
@@ -109,6 +110,8 @@ SocketConnector::SocketConnector(const string hostname, const string port){
 	}
 
 	isConnected = true;
+	
+	_evtCallback = NULL;
 }
 
 SocketConnector::~SocketConnector(){
@@ -184,6 +187,13 @@ ServerResponse SocketConnector::execute(const string& query){
 	read(res);
 	
 	return res;
+}
+
+void SocketConnector::setEventCallback(
+				void (*evtCallback)(const std::string& event_id, 
+									const server_return_types& raw_event_content)
+				) {
+	_evtCallback = evtCallback;
 }
 
 void SocketConnector::executeDry(const string query){
@@ -267,8 +277,22 @@ void SocketConnector::read(ServerResponse& res){
 			//cout << "Query to ontology server succeeded." << endl;
 			return;
 		}
+		
+		if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
+			
+			if (_evtCallback != NULL) {
+				cout << "Got an event!" << endl;
+				server_return_types raw_event_content;
+				deserialize(rawResult[2], raw_event_content);
+				_evtCallback(rawResult[1], raw_event_content);
+			}
+			
+			//Fetch the next message, hoping it's the right one.
+			read(res);
+		}
+		
 
-		throw OntologyServerException("Internal error! The server answer should start with \"ok\" or \"error\"");
+		throw OntologyServerException("Internal error! The server answer should start with \"ok\", \"event\" or \"error\"");
 	
 }
 

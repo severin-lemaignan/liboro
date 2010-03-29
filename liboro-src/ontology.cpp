@@ -99,6 +99,35 @@ bool Ontology::checkOntologyServer(){
 	return true;
 }
 
+void Ontology::evtCallback(const std::string& event_id, const server_return_types& raw_event_content){
+	
+	set<Concept> event_content;
+	
+	try {
+		set<string> raw_content = boost::get<set<string> >(raw_event_content);
+		
+		copy(	raw_content.begin(), 
+					raw_content.end(), 
+					inserter(event_content, event_content.begin()));
+
+	} catch (boost::bad_get e) {
+		cerr << "A set of string is expected in the event content! I discard this event"
+		<< endl;
+	}
+	
+	//Create a new event object
+	OroEvent e(event_id, event_content);
+	
+	//Call the liboro event subscriber callback;
+	EventObserver& eo = _eventObservers[event_id];
+	(*eo.first)(e);
+	
+	//If the event is a "one shot", remove it from the event list
+	if (eo.second)
+		_eventObservers.erase(event_id);
+
+}
+
 void Ontology::bufferize(){
 	_bufferize = true;
 	_buf_op_counter++;
@@ -431,7 +460,11 @@ void Ontology::registerEvent(	OroEventObserver& callback,
 								const std::string& variable_to_bind){
 	
 	vector<server_param_types> args;
-		
+	
+	bool oneShot = false;
+	
+	string event_id;
+	
 	string eventTypeStr;
 	string triggerTypeStr;
 	
@@ -453,12 +486,14 @@ void Ontology::registerEvent(	OroEventObserver& callback,
 			break;
 		case ON_TRUE_ONE_SHOT:
 			triggerTypeStr = NAME_OF(ON_TRUE_ONE_SHOT);
+			oneShot = true;
 			break;
 		case ON_FALSE:
 			triggerTypeStr = NAME_OF(ON_FALSE);
 			break;
 		case ON_FALSE_ONE_SHOT:
 			triggerTypeStr = NAME_OF(ON_FALSE_ONE_SHOT);
+			oneShot = true;
 			break;
 		case ON_TOGGLE:
 			triggerTypeStr = NAME_OF(ON_TOGGLE);
@@ -471,7 +506,21 @@ void Ontology::registerEvent(	OroEventObserver& callback,
 		args.push_back(variable_to_bind);
 	args.push_back(pattern);
 	
-	_connector.execute("registerEvent", args);
+	
+	ServerResponse res = _connector.execute("registerEvent", args);
+	if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("Couldn't register event: server threw a " + res.exception_msg + " (" + res.error_msg +").");
+	}
+	event_id = boost::get<string >(res.result);
+	
+	//Store the newly registered event in the list of event observers
+	EventObserver e(&callback, oneShot);
+	_eventObservers[event_id] = e;
+	
+	cout << "New event registered with id " << event_id << endl;
+	
+
 }
 		
 string Ontology::newId(int length)

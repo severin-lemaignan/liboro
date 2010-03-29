@@ -99,10 +99,16 @@ public:
 
 	virtual ~SocketConnector();
 	
+	/* IConnector interface implementation */
 	ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
 	ServerResponse execute(const std::string& query, const server_param_types& arg);
 	ServerResponse execute(const std::string& query);
 	
+	void setEventCallback(
+				void (*evtCallback)(const std::string& event_id, 
+									const server_return_types& raw_event_content)
+				);
+				
 	/** Executes a query but, unlike execute(), don't wait for an answer.
 	 * 
 	 */
@@ -123,12 +129,15 @@ private:
 	int msleep(unsigned long milisec);
 
 	bool isConnected;
-	
+
 	// Socket related fields
 	int sockfd;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-		
+	struct sockaddr_in serv_addr;
+	struct hostent *server;
+	
+	// The event callback
+	void (*_evtCallback)(const std::string& event_id, 
+						const server_return_types& raw_event_content);
 };
 
 /**

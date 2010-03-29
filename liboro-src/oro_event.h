@@ -56,7 +56,7 @@ struct Null {};
  */
 typedef boost::variant<	Null,
 						std::set<Concept>
-						 > event_return_types;
+						 > event_content_types;
 
 /** Constants that defines the type of event that is to be registered.
  *
@@ -109,9 +109,9 @@ struct OroEvent {
 	/**
 	 * The content of the event.
 	 */
-	event_return_types content;
+	event_content_types content;
 	
-	OroEvent(std::string eventId, event_return_types content) : eventId(eventId), content(content) {};
+	OroEvent(const std::string& eventId, const event_content_types& content) : eventId(eventId), content(content) {};
 
 };
 

@@ -136,7 +136,16 @@ class IConnector {
 		 * this answer.
 		 */
 		virtual ServerResponse execute(const std::string& query) = 0;
-	
+		
+		/**
+		 * Sets the callback the connector will call when it receive an event 
+		 * from the server. If the connector doesn't handle event, the implementation
+		 * of this method may be omitted.
+		 */
+		virtual void setEventCallback(
+				void (*evtCallback)(const std::string& event_id, 
+									const server_return_types& raw_event_content)
+				) {};
 };
 
 }
