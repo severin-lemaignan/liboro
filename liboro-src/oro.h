@@ -607,7 +607,7 @@ class Ontology {
 		//The boolan in the EventObserver typedef indicates if the event is "one
 		//shot" (true) or permanent (false).
 		typedef std::pair<OroEventObserver*, bool> EventObserver;
-		static std::map<std::string, EventObserver> _eventObservers;
+		std::map<std::string, EventObserver> _eventObservers;
 		
 		/** This callback is called by the connector when it receive an event.
 		 * It converts a raw "server_return_type" in "event_content_type", create
@@ -650,6 +650,17 @@ class Class {
 			stream<<c.name();
 			return stream;
 		}
+		
+		/** Registers an event that is triggered when a new instance of this 
+		 * class appears in the ontology.
+		 * 
+		 * \param callback a callback functor that is invoked when the event is 
+		 * triggered
+		 * \param repeatable if set to PERMANENT_EVENT, this event is monitored
+		 * indefinitely. If set to ONE_SHOT_EVENT, this event is triggered only 
+		 * once.
+		 */
+		void onNewInstance(OroEventObserver& callback, bool repeatable = PERMANENT_EVENT) const;
 		
 	protected:
 		std::string _name;

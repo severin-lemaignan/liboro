@@ -35,10 +35,25 @@
 */
 
 #include "oro.h"
+#include "oro_event.h"
 
 using namespace std;
 
 namespace oro {
-	Class::Class(const std::string& name): _name(name){}
-	Class::~Class(){}	
+	
+Class::Class(const std::string& name): _name(name){}
+Class::~Class(){}
+
+void Class::onNewInstance(OroEventObserver& callback, bool repeatable) const {
+	set<string> pattern;
+	pattern.insert(_name);
+	
+	Ontology::getInstance()->registerEvent(
+					callback,
+					NEW_CLASS_INSTANCE,
+					repeatable ? ON_TRUE : ON_TRUE_ONE_SHOT,
+					pattern,
+					"");
+}
+
 }

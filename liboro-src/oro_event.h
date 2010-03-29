@@ -41,6 +41,9 @@
 #include <set>
 #include <boost/variant.hpp>
 
+#define PERMANENT_EVENT true
+#define ONE_SHOT_EVENT false
+
 namespace oro {
 
 class Concept;
