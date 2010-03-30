@@ -113,18 +113,25 @@ void Ontology::evtCallback(const std::string& event_id, const server_return_type
 	} catch (boost::bad_get e) {
 		cerr << "A set of string is expected in the event content! I discard this event"
 		<< endl;
+		return;
 	}
 	
 	//Create a new event object
 	OroEvent e(event_id, event_content);
 	
 	//Call the liboro event subscriber callback;
-	EventObserver& eo = _eventObservers[event_id];
-	(*eo.first)(e);
+	std::map<std::string, EventObserver>::iterator it;
+	it = _eventObservers.find(event_id);
 	
-	//If the event is a "one shot", remove it from the event list
-	if (eo.second)
-		_eventObservers.erase(event_id);
+	if (it != _eventObservers.end()) {
+		EventObserver& eo = _eventObservers[event_id];
+		(*eo.first)(e);
+	
+		//If the event is a "one shot", remove it from the event list
+		if (eo.second)
+			_eventObservers.erase(event_id);
+	}
+	else cerr << "[EE] Got a callback on an event I don't know!" << endl;
 
 }
 
@@ -514,11 +521,19 @@ void Ontology::registerEvent(	OroEventObserver& callback,
 	}
 	event_id = boost::get<string >(res.result);
 	
-	//Store the newly registered event in the list of event observers
-	EventObserver e(&callback, oneShot);
-	_eventObservers[event_id] = e;
 	
-	cout << "New event registered with id " << event_id << endl;
+	//Store the newly registered event in the list of event observers
+	std::map<std::string, EventObserver>::iterator it;
+	it = _eventObservers.find(event_id);
+	
+	if (it != _eventObservers.end())
+		cerr << "[EE] Server returned an event id that I already know!" << endl;
+	else {
+		EventObserver e(&callback, oneShot);
+		_eventObservers[event_id] = e;
+
+		cout << "New event registered with id " << event_id << endl;
+	}
 	
 
 }
