@@ -173,48 +173,7 @@ Object Object::create(const Class& type){
 
 	return concept;
 }
-		
-boost::logic::tribool Object::hasAbsolutePosition(){
-	throw OntologyException("Not yet implemented!");
-}
 
-Concept Object::hasPosition(){
-	throw OntologyException("Not yet implemented!");
-}
-
-void Object::setColor(int hue){
-	std::ostringstream o;
-	
-	o << hue;
-	
-	Ontology::getInstance()->bufferize();
-	Concept color = Concept::create(Classes::Color);
-	color.assertThat(Properties::hue, o.str());
-	assertThat(Properties::hasColor, color);
-	Ontology::getInstance()->flush();
-}
-
-void Object::setAbsolutePosition(double x, double y, double z){
-	
-	std::ostringstream o;
-	
-	Ontology::getInstance()->bufferize();
-	
-	Concept point = Concept::create(Classes::Point);
-	o << x;
-	point.assertThat(Properties::xCoord, o.str());
-	o.str("");
-	o << y;
-	point.assertThat(Properties::yCoord, o.str());
-	o.str("");
-	o << z;
-	point.assertThat(Properties::zCoord, o.str());
-	
-	assertThat(Properties::isAt, point);
-	
-	Ontology::getInstance()->flush();
-}
-		
 /*******************************************************************************
 *                           	  Class Agent					               *
 *******************************************************************************/

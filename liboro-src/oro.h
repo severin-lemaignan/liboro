@@ -939,20 +939,6 @@ class Object : public Concept {
 		static Object create(const std::string& label, const Class& type);
 		
 		static Object create(const Class& type);
-		
-		boost::logic::tribool hasAbsolutePosition();
-		
-		/**
-		 * Returns a concept which represent the location of the current object, as far as it can be inferred from the ontology.\n
-		 * If no position has been asserted or can be inferred, \p Concept::nothing is returned.
-		 * 
-		 * \see Concept::nothing
-		 */
-		Concept hasPosition();
-		
-		void setColor(int hue);
-		
-		void setAbsolutePosition(double x, double y, double z);
 };
 
 //Forward declaration
