@@ -44,7 +44,7 @@ using namespace std;
 namespace oro {
 
 /*******************************************************************************
-*                       	  Class Concept					                   *
+*                       	  Class Concept                                *
 *******************************************************************************/
 Concept::Concept():_id(Ontology::newId()), _label(""), _class(Classes::Thing) {}
 
