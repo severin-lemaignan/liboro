@@ -126,8 +126,10 @@ struct OroEvent {
  * of the event.
  */
 class OroEventObserver {
+
 public:
-   virtual void operator()(const OroEvent& evt) = 0;
+	virtual void operator()(const OroEvent& evt) = 0;
+
 };
 
 }

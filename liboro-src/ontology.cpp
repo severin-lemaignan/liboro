@@ -37,6 +37,7 @@
 #include <algorithm>
 
 #include "oro.h"
+#include "oro_event.h"
 #include "oro_exceptions.h"
 
 using namespace std;
@@ -44,6 +45,8 @@ using namespace std;
 namespace oro {
 
 Ontology* Ontology::_instance = NULL;
+
+map<string, Ontology::EventObserver> Ontology::_eventObservers;
 
 // Protected constructor
 Ontology::Ontology(IConnector& connector) : _connector(connector) {
@@ -60,6 +63,8 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 		cerr << "\nCannot reach the ontology server! Check it is started and that the middleware link is up.\n";
 		throw OntologyServerException("Cannot reach the ontology server. Abandon.");
 	}
+	
+	_connector.setEventCallback(Ontology::evtCallback);
 	
 	//TODO : destructor required if resources need to be released.
 }

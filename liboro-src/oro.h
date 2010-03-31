@@ -579,6 +579,12 @@ class Ontology {
 		  */
 		void flush();
 
+		/** This callback is called by the connector when it receive an event.
+		 * It converts a raw "server_return_type" in "event_content_type", create
+		 * a new OroEvent object, and dispatch it to its subscriber (ie an 
+		 * OroEventObserver).
+		 */
+		static void evtCallback(const std::string& event_id, const server_return_types& raw_event_content);
 
 	protected:
 		IConnector& _connector;
@@ -607,14 +613,7 @@ class Ontology {
 		//The boolan in the EventObserver typedef indicates if the event is "one
 		//shot" (true) or permanent (false).
 		typedef std::pair<OroEventObserver*, bool> EventObserver;
-		std::map<std::string, EventObserver> _eventObservers;
-		
-		/** This callback is called by the connector when it receive an event.
-		 * It converts a raw "server_return_type" in "event_content_type", create
-		 * a new OroEvent object, and dispatch it to its subscriber (ie an 
-		 * OroEventObserver).
-		 */
-		void evtCallback(const std::string& event_id, const server_return_types& raw_event_content);
+		static std::map<std::string, EventObserver> _eventObservers;
 	
 };
 

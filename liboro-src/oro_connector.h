@@ -139,8 +139,8 @@ class IConnector {
 		
 		/**
 		 * Sets the callback the connector will call when it receive an event 
-		 * from the server. If the connector doesn't handle event, the implementation
-		 * of this method may be omitted.
+		 * from the server. If the connector doesn't handle events, the 
+		 * implementation of this method may be omitted.
 		 */
 		virtual void setEventCallback(
 				void (*evtCallback)(const std::string& event_id, 

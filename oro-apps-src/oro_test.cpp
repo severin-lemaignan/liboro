@@ -63,15 +63,14 @@
 	SocketConnector connector("localhost", "6969");
 	Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
 
-	oro->bufferize();
+        //oro->bufferize();
 		//First, create some instances (ie, objects).
 		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
 		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
 
 		Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
 		Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
-		unknown_object.setColor(212); //the Object class offers some high-level setters like setColor. See the class documentation for the list.
-		//if no setter is available for a given property, then direct assertion can be made.
+                //if no setter is available for a given property, then direct assertion can be made.
 		//the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
 		unknown_object.assertThat(Properties::isOnTopOf, table);
 
@@ -96,6 +95,10 @@
 	Classes::Human.onNewInstance(ec);
 	Agent superman = Agent::create("Superman", Classes::Human);
 	
+	cout << "Sleeping for 1 sec..." << endl;
+	sleep(1);
+	
+	oro->checkConsistency();
 
 	return 0;
  }
