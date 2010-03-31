@@ -221,7 +221,6 @@ void SocketConnector::read(ServerResponse& res){
 		FILE *socket_stream_in = fdopen(sockfd, "r");
 		
 		while (true) {
-				
 			
 			ssize_t bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
 			
@@ -289,6 +288,8 @@ void SocketConnector::read(ServerResponse& res){
 			
 			//Fetch the next message, hoping it's the right one.
 			read(res);
+			
+			return;
 		}
 		
 
@@ -327,14 +328,14 @@ string& SocketConnector::cleanValue(string& value) {
  * @return
  */
 string& SocketConnector::protectValue(string& value) {
-	
+
 	//Escape double quotes
 	size_t start_pos = 0;
 	
 	while(true) {
 		size_t pos = value.find("\"", start_pos);
 		if( string::npos != pos ) {
-			start_pos = pos;
+			start_pos = pos + 2;
 			value.replace(pos, 1, "\\\"");
 		}
 		else break;
@@ -374,7 +375,7 @@ void SocketConnector::serializeSet(const set<string>& data, string& msg)
 		string tmp = *itData;
 		msg += protectValue(tmp) + ",";
 	}
-		
+
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
 }
@@ -388,7 +389,7 @@ void SocketConnector::serializeMap(const map<string, string>& data, string& msg)
 	msg += "{";
 	
 	for( ; itData != data.end() ; ++itData)
-		msg += (*itData).first + ":" + (*itData).second + ",";
+		msg += protectValue((*itData).first) + ":" + protectValue((*itData).second) + ",";
 		
 	msg = msg.substr(0, msg.length() - 1) + "}";
 }
