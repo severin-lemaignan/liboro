@@ -120,7 +120,7 @@ public:
 	
 private:
 
-	static std::string& protectValue(std::string& value);
+	static std::string protectValue(const std::string& value);
 	static std::string& cleanValue(std::string& value);
 	
 	void deserialize(const std::string& msg, server_return_types& result);

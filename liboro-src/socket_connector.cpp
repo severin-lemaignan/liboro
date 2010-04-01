@@ -327,23 +327,25 @@ string& SocketConnector::cleanValue(string& value) {
  * @param value
  * @return
  */
-string& SocketConnector::protectValue(string& value) {
+string SocketConnector::protectValue(const string& value) {
 
 	//Escape double quotes
 	size_t start_pos = 0;
 	
+	string res(value);
+	
 	while(true) {
-		size_t pos = value.find("\"", start_pos);
+		size_t pos = res.find("\"", start_pos);
 		if( string::npos != pos ) {
 			start_pos = pos + 2;
-			value.replace(pos, 1, "\\\"");
+			res.replace(pos, 1, "\\\"");
 		}
 		else break;
 	}	
 	
 	//Quote the whole string
-	value = "\"" + value + "\"";
-	return value;
+	res = "\"" + res + "\"";
+	return res;
 }
 		
 void SocketConnector::serializeVector(const vector<string>& data, string& msg)
@@ -354,11 +356,9 @@ void SocketConnector::serializeVector(const vector<string>& data, string& msg)
 
 	msg += "[";
 	
-	for( ; itData != data.end() ; ++itData) {
-		string tmp = *itData;
-		msg += protectValue(tmp) + ",";
-	}
-		
+	for( ; itData != data.end() ; ++itData)
+		msg += protectValue(*itData) + ",";
+	
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
 }
@@ -371,10 +371,8 @@ void SocketConnector::serializeSet(const set<string>& data, string& msg)
 	
 	msg += "[";
 	
-	for( ; itData != data.end() ; ++itData) {
-		string tmp = *itData;
-		msg += protectValue(tmp) + ",";
-	}
+	for( ; itData != data.end() ; ++itData)
+		msg += protectValue(*itData) + ",";
 
 	msg = msg.substr(0, msg.length() - 1) + "]";
 
