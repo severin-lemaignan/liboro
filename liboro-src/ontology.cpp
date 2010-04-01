@@ -129,7 +129,7 @@ void Ontology::evtCallback(const std::string& event_id, const server_return_type
 	it = _eventObservers.find(event_id);
 	
 	if (it != _eventObservers.end()) {
-		EventObserver& eo = _eventObservers[event_id];
+		EventObserver& eo = it->second;
 		(*eo.first)(e);
 	
 		//If the event is a "one shot", remove it from the event list
