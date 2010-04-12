@@ -531,9 +531,9 @@ class Ontology {
 		 * 	<li>the current amount of client connected to the server</li>
 		 * </ul>
 		 * 
-		 * \param stats a map of strings containing the various statistics.
+		 * \return a map of strings containing the various statistics.
 		 */
-		void stats(std::map<std::string, std::string>& stats);
+		std::map<std::string, std::string> stats();
 		
 		/**
 		* Generate a new random id which can be used to name new objects. Attention! no check for collision!

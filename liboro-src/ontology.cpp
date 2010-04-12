@@ -319,7 +319,9 @@ void Ontology::save(const string& path){
 	
 }	
 
-void Ontology::stats(map<string, string>& result){
+map<string, string> Ontology::stats(){
+	map<string, string> result;
+	
 	ServerResponse res = _connector.execute("stats");
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server " + res.exception_msg + " while fetching stats. Server message was " + res.error_msg).c_str());
@@ -329,6 +331,8 @@ void Ontology::stats(map<string, string>& result){
 	} catch (boost::bad_get e) {
 		throw OntologyServerException("INTERNAL ERROR! Server returned wrong type of data while fetching stats. Please contact the maintener (openrobots@laas.fr)");
 	}
+	
+	return result;
 }
 
 void Ontology::find(const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result){

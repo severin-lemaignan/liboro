@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 	//We catch ctrl+c to cleanly close the application
 	signal( SIGINT,sigproc);
 	
-	cout << "********* ORO - Quality of Service *********" << endl;
+	cout << "********* ORO - Statistics *********" << endl;
 	//if (argc > 1 && strcmp(argv[2], "-h") == 0){
 	if (argc != 3){
 		cout << "Returns some statistics on a oro-server" << endl << endl;
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	SocketConnector connector(hostname, port);
 	onto = Ontology::createWithConnector(connector);
 	
-	onto->stats(result);
+	result = onto->stats();
 	
 	map<string, string>::const_iterator itData = result.begin();
 	for( ; itData != result.end() ; ++itData) {
