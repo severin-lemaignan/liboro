@@ -65,7 +65,7 @@ typedef boost::variant<	Null,
  *
  * <ul>
  * <li>FACT_CHECKING 
- * The watch pattern must be a {@linkplain laas.openrobots.ontology.PartialStatement partial statement}.
+ * The pattern to watch must be a {@linkplain laas.openrobots.ontology.PartialStatement partial statement}.
  * If, when evaluated, it returns true (ie, at least one asserted or inferred 
  * statement match the pattern), the event is fired.
  * </li> 
@@ -77,8 +77,8 @@ typedef boost::variant<	Null,
  * The server return the list of instance bound to the variable.
  * </li>
  * <li>NEW_CLASS_INSTANCE
- * The event is triggered when a new instance of the class returned by the 
- * watch pattern is added.
+ * The event is triggered when a new instance of a given class appear in the 
+ * ontology server.
  * </li>
  * 
  * </ul>
@@ -89,17 +89,28 @@ enum EventType {FACT_CHECKING, NEW_CLASS_INSTANCE, NEW_INSTANCE};
 /** Constants that defines the way an event occuring in the ontology is triggered.\n
 * 
 * <ul>
-*  <li>\p ON_TRUE : the event is triggered each time the corresponding watch expression <em>becomes</em> true.</li>
-*  <li>\p ON_TRUE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> true. The watcher is then deleted.</li>
-*  <li>\p ON_FALSE : the event is triggered each time the corresponding watch expression <em>becomes</em> false.</li>
-*  <li>\p ON_FALSE_ONE_SHOT : the event is triggered the first time the corresponding watch expression <em>becomes</em> false. The watcher is then deleted.</li>
-*  <li>\p ON_TOGGLE : the event is triggered each time the corresponding watch expression <em>becomes</em> true or false.</li>
+*  <li>\p ON_TRUE : the event is triggered each time the corresponding watch 
+* expression <em>becomes</em> true.</li>
+*  <li>\p ON_TRUE_ONE_SHOT : the event is triggered the first time the 
+* corresponding watch expression <em>becomes</em> true. The watcher is then 
+* deleted.</li>
+*  <li>\p ON_FALSE : the event is triggered each time the corresponding watch 
+* expression <em>becomes</em> false.</li>
+*  <li>\p ON_FALSE_ONE_SHOT : the event is triggered the first time the 
+* corresponding watch expression <em>becomes</em> false. The watcher is then 
+* deleted.</li>
+*  <li>\p ON_TOGGLE : the event is triggered each time the corresponding watch 
+* expression <em>becomes</em> true or false.</li>
 * </ul>
 * 
 * \see subscribe(const std::string&, EventTriggeringType, const std::string&)
 */
 //When adding new trigger type, remember to update as well the implementation of Ontology::subscribe
-enum EventTriggeringType {ON_TRUE, ON_TRUE_ONE_SHOT, ON_FALSE, ON_FALSE_ONE_SHOT, ON_TOGGLE};
+enum EventTriggeringType {	ON_TRUE, 
+							ON_TRUE_ONE_SHOT, 
+							ON_FALSE, 
+							ON_FALSE_ONE_SHOT, 
+							ON_TOGGLE};
 
 /**
  * This is an "event" object, that is generated and sent to the event subscriber
@@ -114,7 +125,9 @@ struct OroEvent {
 	 */
 	event_content_types content;
 	
-	OroEvent(const std::string& eventId, const event_content_types& content) : eventId(eventId), content(content) {};
+	OroEvent(const std::string& eventId, const event_content_types& content) : 
+				eventId(eventId), 
+				content(content) {};
 
 };
 

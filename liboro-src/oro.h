@@ -501,8 +501,11 @@ class Ontology {
 		 * \param variable_to_bind (optional) for the NEW_INSTANCE event type, 
 		 * define the variable from the partial statements to bind in the event 
 		 * (ie, when an NEW_INSTANCE event is triggered, what object is returned).
+		 * \return An ID that uniquely identify this event. When this event is
+		 * triggered on the server, the notification mechanism refers to the event
+		 * by this ID.
 		*/
-		void registerEvent(	OroEventObserver& callback, 
+		std::string registerEvent(	OroEventObserver& callback, 
 							EventType type, 
 							EventTriggeringType triggerType, 
 							const std::set<std::string>& pattern, 

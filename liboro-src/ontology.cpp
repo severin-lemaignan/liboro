@@ -465,7 +465,7 @@ void Ontology::getInfos(const string& resource, set<string>& result){
 	
 }
 
-void Ontology::registerEvent(	OroEventObserver& callback, 
+string Ontology::registerEvent(	OroEventObserver& callback, 
 								EventType eventType, 
 								EventTriggeringType triggerType, 
 								const std::set<std::string>& pattern, 
@@ -538,6 +538,8 @@ void Ontology::registerEvent(	OroEventObserver& callback,
 		_eventObservers[event_id] = e;
 
 		cout << "New event registered with id " << event_id << endl;
+	
+	return event_id;
 	}
 	
 
