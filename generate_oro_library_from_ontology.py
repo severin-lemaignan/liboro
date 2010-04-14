@@ -4,11 +4,15 @@
 from xml.dom import minidom
 import os, sys
 
-ontology = "openrobots.owl"
+ontology = "commonsense.oro.owl"
 path = "../oro/"
 output_path = "liboro-src/"
 
-dom = minidom.parse(path + ontology)
+try:
+	dom = minidom.parse(path + ontology)
+except IOError:
+	print ontology + " doesn't exist! Check the path inside the script"
+	sys.exit()
 
 f_h = open(output_path + "oro_library.h", "w")
 f_cpp = open(output_path + "oro_library.cpp", "w")
