@@ -52,49 +52,76 @@
  * \code
  * #include <iostream>
  * #include <iterator>
- * #include "oro.h"
- * #include "oro_library.h"
- * #include "socket_connector.h"
+ * #include <set>
+ *
+ * #include "liboro/oro.h"
+ * #include "liboro/oro_library.h"
+ * #include "liboro/socket_connector.h"
  *
  * using namespace std;
  * using namespace oro;
  * int main(void) {
- * 		vector<Concept> result;
- * 		vector<string> partial_stmts;
+ *	set<Concept> result;
+ *	set<string> partial_stmts;
  *
- *              //liboro currently relies on sockets for the RPCs with the 
- *              //server.
- * 		SocketConnector connector("localhost", "6969");
- * 		Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
- * 
- *		//First, create some instances (ie, objects).
-  * 		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
- * 		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
- *		
- * 		Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
- * 		Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
- * 		unknown_object.setColor(212); //the Object class offers some high-level setters like setColor. See the class documentation for the list.
- * 
- *		//if no setter is available for a given property, then direct assertion can be made.
- *		//the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
- * 		unknown_object.assert(Properties::isOnTopOf, table);
- * 
- * 		Agent myself("myself"); //"myself" is a special, unique instance representing the robot itself. This instance is built from the already existing identifier "myself". Hence the constructor of the Agent class can be directly called.
- * 
- * 		myself.sees(unknown_object);
- * 		myself.sees(human);
- * 
- *		//Then, try to find back the unknown object...
- * 		partial_stmts.push_back("?mysterious oro:isAt ?table");
- * 		partial_stmts.push_back("?table rdf:type oro:Table");
- * 		partial_stmts.push_back("oro:myself oro:sees ?mysterious");
+ *	//liboro currently relies on sockets for the RPCs with the server.
+ *	SocketConnector connector("localhost", "6969");
+ *	//actually connect the application to the ontology server. 
+ *	//The "oro" object is here built as a singleton.
+ *	Ontology *oro = Ontology::createWithConnector(connector);
  *
- * 		oro->find("mysterious", partial_stmts, result);
- * 
- *		//display the results on std_out
- * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
- * 
- * 		return 0;
+ *	//First, create some instances (ie, objects).
+ *	
+ *	//a new instance of Agent has been created. It is named "Nice Robot" and its
+ *	// type (or "class") is set to be a Robot (which is a subconcept of Agent).
+ *	Agent robot1 = Agent::create("Nice Robot", Classes::Robot);
+ *	//another agent...
+ *	Agent human = Agent::create("Young PhD", Classes::Human);
+ *
+ *	//Let's try a first, simple query
+ *	partial_stmts.insert("?mysterious rdf:type Agent");
+ *	oro->find("mysterious", partial_stmts, result);
+ *
+ *	//display the results on std_out. It should display two ID (that are the
+ *	//internal unique identifiers for "Nice Robot" and "Young PhD") + "myself"
+ *	//which is always defined and refers to the robot itself.
+ *	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+ *
+ *	partial_stmts.clear();
+ *	result.clear();
+ *
+ *	//here, an object is created. No name (or "label") has been set up, but the 
+ *	//class is refined: it's not only an object, but more precisely a table.
+ *	Object table = Object::create(Classes::Table);
+ *	//here, an unknown object has been identified, without any more infos.
+ *	Object unknown_object = Object::create();
+ *
+ *	//if no setter is available for a given property, then direct assertion can 
+ *	//be made. The list of existing properties and classes come from the oro 
+ *	//ontology itself (from which oro_library.h/cpp is automatically generated)
+ *	unknown_object.assertThat(Properties::isOnTopOf, table);
+ *
+ *	//We can as well access the ontology at a lower level
+ *	oro->add(Statement("oro:isOnTopOf rdfs:subClassOf oro:isAt"));
+ *
+ *	//"myself" is a special, unique instance representing the robot itself. 
+ *	//This instance is built from the already existing identifier "myself". 
+ *	//Hence the constructor of the Agent class can be directly called.
+ *	Agent myself("myself");
+ *
+ *	myself.sees(unknown_object);
+ *	myself.sees(human);
+ *
+ *	//Then, try to find back the unknown object...
+ *	partial_stmts.insert("?mysterious oro:isAt ?table");
+ *	partial_stmts.insert("?table rdf:type oro:Table");
+ *	partial_stmts.insert("oro:myself oro:sees ?mysterious");
+ *
+ *	oro->find("mysterious", partial_stmts, result);
+ *
+ *	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+ *
+ *	return 0;
  * }
  * \endcode
  * 
@@ -102,38 +129,39 @@
  * \code
  * #include <iostream>
  * #include <iterator>
- * #include "oro.h"
- * #include "yarp_connector.h"
+ * #include <set>
+ * #include "liboro/oro.h"
+ * #include "liboro/socket_connector.h"
  *
  * using namespace std;
  * using namespace oro;
  * int main(void) {
- * 		vector<Concept> result;
- * 		vector<Statement> assertions;
- * 		vector<string> partial_stmts;
+ * 		set<Concept> result;
+ * 		set<Statement> assertions;
+ * 		set<string> partial_stmts;
  *
- * 		YarpConnector connector("myRobot", "oro");
+ * 		SocketConnector connector("localhost", "6969");
  * 		Ontology *oro = Ontology::createWithConnector(connector);
  * 
  *		//First, add assertions to the ontology (namespaces are not mandatory when it's the default namespace, as configured in the server config file).
- * 		assertions.push_back(Statement::create("robot1 rdf:type Robot"));
- * 		assertions.push_back(Statement::create("robot1 rdfs:label \"Nice Robot\""));
- * 		assertions.push_back(Statement::create("human rdf:type Human"));
- * 		assertions.push_back(Statement::create("human rdfs:label \"Young PhD\""));
- * 		assertions.push_back(Statement::create("table rdf:type Table"));
- * 		assertions.push_back(Statement::create("object rdf:type Object"));
- * 		assertions.push_back(Statement::create("object hasColor color"));
- * 		assertions.push_back(Statement::create("color hue 212"));
- * 		assertions.push_back(Statement::create("object isOnTopOf table"));
- * 		assertions.push_back(Statement::create("myself sees object"));
- * 		assertions.push_back(Statement::create("myself sees human"));
+ * 		assertions.insert(Statement("robot1 rdf:type Robot"));
+ * 		assertions.insert(Statement("robot1 rdfs:label \"Nice Robot\""));
+ * 		assertions.insert(Statement("human rdf:type Human"));
+ * 		assertions.insert(Statement("human rdfs:label \"Young PhD\""));
+ * 		assertions.insert(Statement("table rdf:type Table"));
+ * 		assertions.insert(Statement("object rdf:type Object"));
+ * 		assertions.insert(Statement("object hasColor color"));
+ * 		assertions.insert(Statement("color hue 212"));
+ * 		assertions.insert(Statement("object isOnTopOf table"));
+ * 		assertions.insert(Statement("myself sees object"));
+ * 		assertions.insert(Statement("myself sees human"));
  * 
  * 		oro->add(assertions);
  * 
  *		//Then, try to find back the unknown object...
- * 		partial_stmts.push_back("?mysterious oro:isAt ?table");
- * 		partial_stmts.push_back("?table rdf:type oro:Table");
- * 		partial_stmts.push_back("oro:myself oro:sees ?mysterious");
+ * 		partial_stmts.insert("?mysterious oro:isAt ?table");
+ * 		partial_stmts.insert("?table rdf:type oro:Table");
+ * 		partial_stmts.insert("oro:myself oro:sees ?mysterious");
  *
  * 		oro->find("mysterious", partial_stmts, result);
  * 
@@ -215,19 +243,20 @@ class Ontology {
 		 *
 		* Example:
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
 		 *
-		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		SocketConnector connector("localhost", "6969");
 		 * 		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		oro->add(Statement::create("gorilla rdf:type Monkey"));
-		 * 		oro->add(Statement::create("gorilla age 12^^xsd:int"));
-		 * 		oro->add(Statement::create("gorilla weight 75.2"));
+		 * 		oro->add(Statement("gorilla rdf:type Monkey"));
+		 * 		oro->add(Statement("gorilla age 12^^xsd:int"));
+		 * 		oro->add(Statement("gorilla weight 75.2"));
 		 *
 		 * 		return 0;
 		 * }
@@ -242,21 +271,20 @@ class Ontology {
 		* Example:
 		 *
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
 		 *
-		 * 		vector<Statement> stmts;
-		 *
-		 * 		YarpConnector connector("myDevice", "oro");
+		 * 		SocketConnector connector("localhost", "6969");
 		 * 		oro = Ontology::createWithConnector(connector);
 		 *
-		 * 		stmts.push_back(Statement::create("gorilla rdf:type Monkey"));
-		 * 		stmts.push_back(Statement::create("gorilla age 12^^xsd:int"));
-		 * 		stmts.push_back(Statement::create("gorilla weight 75.2"));
+		 * 		stmts.insert(Statement("gorilla rdf:type Monkey"));
+		 * 		stmts.insert(Statement("gorilla age 12^^xsd:int"));
+		 * 		stmts.insert(Statement("gorilla weight 75.2"));
 		 *
 		 * 		oro->bufferize();
 		 * 		oro->add(stmts);
@@ -323,31 +351,32 @@ class Ontology {
 		 * Code snippet:
 		 *
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 		vector<Concept> result;
-		 * 		vector<string> partial_stmts;
-		 * 		vector<string> filters;
-		 *
-		 * 		YarpConnector connector("myDevice", "oro");
-		 * 		oro = Ontology::createWithConnector(connector);
-		 *
-		 * 		partial_stmts.push_back("?mysterious rdf:type oro:Monkey");
-		 * 		partial_stmts.push_back("?mysterious oro:weight ?value");
-		 *
-		 * 		filters.push_back("?value >= 50");
-		 *
-		 * 		oro->find("mysterious", partial_stmts, filters, result);
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 * 
-		 *		//display the results on std_out
-		 * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 *  using namespace std;
+		 *  using namespace oro;
+		 *  int main(void) {
+		 * 			set<Concept> result;
+		 * 			set<string> partial_stmts;
+		 * 			set<string> filters;
 		 * 
-		 * 		return 0;
-		 * }
+		 * 			SocketConnector connector("localhost", "6969");
+		 * 			Ontology* oro = Ontology::createWithConnector(connector);
+		 * 
+		 * 			partial_stmts.insert("?mysterious rdf:type Monkey");
+		 * 			partial_stmts.insert("?mysterious weight ?value");
+		 * 
+		 * 			filters.insert("?value >= 50");
+		 * 
+		 * 			oro->find("mysterious", partial_stmts, filters, result);
+		 * 
+		 * 			//display the results on std_out
+		 * 			copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 * 
+		 * 			return 0;
+		 *  }
 		 * \endcode
  		*/
 		void find(const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result);
@@ -359,27 +388,28 @@ class Ontology {
  		 * Working code snippet:
 		 *
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 		vector<Concept> result;
-		 * 		vector<string> partial_stmts;
-		 *
-		 * 		YarpConnector connector("myDevice", "oro");
-		 * 		oro = Ontology::createWithConnector(connector);
-		 *
-		 * 		partial_stmts.push_back("?mysterious oro:eats oro:banana_tree");
-		 * 		partial_stmts.push_back("?mysterious oro:isFemale true^^xsd:boolean");
-		 *
-		 * 		oro->find("mysterious", partial_stmts, result);
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 * 
-		 *		//display the results on std_out
-		 * 		copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 *  using namespace std;
+		 *  using namespace oro;
+		 *  int main(void) {
+		 * 			set<Concept> result;
+		 * 			set<string> partial_stmts;
 		 * 
-		 * 		return 0;
+		 * 			SocketConnector connector("localhost", "6969");
+		 * 			Ontology* oro = Ontology::createWithConnector(connector);
+		 *
+		 * 			partial_stmts.insert("?mysterious oro:eats oro:banana_tree");
+		 * 			partial_stmts.insert("?mysterious oro:isFemale true^^xsd:boolean");
+		 *
+		 * 			oro->find("mysterious", partial_stmts, result);
+		 * 
+		 *			//display the results on std_out
+		 * 			copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+		 * 
+		 * 			return 0;
 		 * }
 		 * \endcode
 		 */
@@ -413,27 +443,28 @@ class Ontology {
 		 * Working code snippet:\n
 		 *
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 		vector<string> result;
-		 * 		vector<string> partial_stmts;
-		 *
-		 * 		YarpConnector connector("myDevice", "oro");
-		 * 		oro = Ontology::createWithConnector(connector);
-		 *
-		 * 		partial_stmts.push_back("?mysterious age \"40\"^^xsd:int");
-		 * 		partial_stmts.push_back("?mysterious weight \"60\"^^xsd:double");
-		 *
-		 * 		oro->guess("mysterious", 0.8, partial_stmts, result);
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 * 
-		 *		//display the results on std_out
-		 * 		copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n"));
+		 *  using namespace std;
+		 *  using namespace oro;
+		 *  int main(void) {
+		 * 			set<Concept> result;
+		 * 			set<string> partial_stmts;
 		 * 
-		 * 		return 0;
+		 * 			SocketConnector connector("localhost", "6969");
+		 * 			Ontology* oro = Ontology::createWithConnector(connector);
+		 *
+		 * 			partial_stmts.insert("?mysterious age \"40\"^^xsd:int");
+		 * 			partial_stmts.insert("?mysterious weight \"60\"^^xsd:double");
+		 *
+		 * 			oro->guess("mysterious", 0.8, partial_stmts, result);
+		 * 
+		 *			//display the results on std_out
+		 * 			copy(result.begin(), result.end(), ostream_iterator<string>(cout, "\n"));
+		 * 
+		 * 			return 0;
 		 * }
 		 * \endcode
 		 */
@@ -448,15 +479,16 @@ class Ontology {
  		 * Working code snippet:\n
 		 *
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 		vector<string> result;
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 * 
-		 *		YarpConnector connector("myDevice", "oro");
+		 *  using namespace std;
+		 *  using namespace oro;
+		 *  int main(void) {
+		 * 		set<string> result;
+		 * 
+		 *		SocketConnector connector("localhost", "6969");
 		 *		oro = Ontology::createWithConnector(connector);
 		 * 
 		 * 		oro->query("instances", "SELECT ?instances \n WHERE { \n ?instances rdf:type owl:Thing}\n, result);
@@ -548,17 +580,15 @@ class Ontology {
 		 * Using bufferization can dramatically improve the performance since the call to the server are concatained. For instance:
 		 * 
 		 * \code
-		 * #include "oro.h"
-		 * #include "oro_library.h"
-		 * #include "oro_connector.h"
-		 * #include "yarp_connector.h"
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
 		 *
 		 * 		//Create a connector to the ontology server.
-		 *		YarpConnector connector("myDevice", "oro");
+		 *		SocketConnector connector("localhost", "6969");
 		 *	
 		 *		//Instanciate the ontology with this connector.
 		 *		oro = Ontology::createWithConnector(connector);
@@ -814,8 +844,8 @@ class Concept {
 		 * 
 		 * For instance,
 		 * \code
-		 * #include "oro.h"
-		 * #include "yarp_connector.h"
+		 * #include "liboro/oro.h"
+		 * #include "liboro/yarp_connector.h"
 		 *
 		 * using namespace std;
 		 * using namespace oro;
