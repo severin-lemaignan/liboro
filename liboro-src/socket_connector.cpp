@@ -45,8 +45,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
-
-
+#include <boost/thread/locks.hpp>
 
 #include "oro_exceptions.h"
 #include "socket_connector.h"
@@ -65,7 +64,7 @@ namespace oro {
 class ParametersSerializationHolder; //forward declaration. Defined in socket_connector.h
 	
 SocketConnector::SocketConnector(const string hostname, const string port){
-	
+
 	isConnected = false;
 	
 	struct sockaddr_in serv_addr;
@@ -112,10 +111,18 @@ SocketConnector::SocketConnector(const string hostname, const string port){
 	isConnected = true;
 	
 	_evtCallback = NULL;
+
+        _goOn = true;
+
+        thread _eventListnerThrd(bind(&SocketConnector::run, this));
 }
 
 SocketConnector::~SocketConnector(){
-	cout << "Closing socket connection...";
+        cout << "Stopping the event listener...";
+        _goOn = false;
+        _eventListnerThrd.join();
+
+        cout << "done.\nClosing socket connection...";
 	
 	if (isConnected) {
 		executeDry("close");
@@ -126,67 +133,38 @@ SocketConnector::~SocketConnector(){
 	cout << "done." << endl;
 }
 
-ServerResponse SocketConnector::execute(const string& query, const server_param_types& arg){
-	
-	ServerResponse res;
-	
-	ParametersSerializationHolder paramsHolder;
-	
-	//serialization of argument
-	boost::apply_visitor(paramsHolder, arg);
-	
-	
-	string completeQuery = query + MSG_SEPARATOR + paramsHolder.getArgs() + MSG_FINALIZER;
-	
-	//cout << "Query: " << completeQuery << endl;
-	
-	// Now send it on its way
-	write(sockfd,completeQuery.c_str(),completeQuery.length());
-	
-	read(res);
-	
-	return res;
-}
-
 ServerResponse SocketConnector::execute(const string& query, const vector<server_param_types>& vect_args){
 		
-	ServerResponse res;
-	
-	ParametersSerializationHolder paramsHolder;
-	
-	//serialization of arguments
-	std::for_each(
-		vect_args.begin(), 
-		vect_args.end(), 
-		boost::apply_visitor(paramsHolder)
-	);
-	
-	string completeQuery = query + MSG_SEPARATOR + paramsHolder.getArgs() + MSG_FINALIZER;
-	
-	// Now send it on its way
-	write(sockfd,completeQuery.c_str(),completeQuery.length());
-	
-	read(res);
-	
-	return res;
+    {
+        lock_guard<mutex> lock(inbound_lock);
+
+        inbound_requests.push(query_type(query, vect_args));
+    }
+
+    while (true) {
+        {
+            lock_guard<mutex> lock(outbound_lock);
+
+            if (!outbound_results.empty()) {
+                ServerResponse res = outbound_results.front();
+                outbound_results.pop();
+                //cout << "[II] Poping a result for query " << query << endl;
+                return res;
+            }
+        }
+
+        msleep(50);
+    }
+}
+
+ServerResponse SocketConnector::execute(const string& query, const server_param_types& arg){
+        vector<server_param_types> p(1, arg);
+        return execute(query, p);
 }
 
 ServerResponse SocketConnector::execute(const string& query){
-	
-	ServerResponse res;
-	
-	
-	string completeQuery = query + MSG_SEPARATOR + MSG_FINALIZER;
-	
-	//cout << endl << "Send query: " << completeQuery << endl;
-	
-	// Now send it on its way
-	write(sockfd,completeQuery.c_str(),completeQuery.length());
-
-	
-	read(res);
-	
-	return res;
+        vector<server_param_types> p;
+        return execute(query, p);
 }
 
 void SocketConnector::setEventCallback(
@@ -206,7 +184,7 @@ void SocketConnector::executeDry(const string query){
 }
 
 
-void SocketConnector::read(ServerResponse& res){
+void SocketConnector::read(ServerResponse& res, bool only_events){
 	
 		//cout << "Waiting for answer...";
 		
@@ -227,10 +205,11 @@ void SocketConnector::read(ServerResponse& res){
 			if (bytes_read < 0) throw OntologyServerException("Error reading from the server! Connection closed by the server?");
 			
 			string field = buffer;
-			
+
+                        //cout << "[II RAW] " << field;
 			if (field == MSG_FINALIZER)
 				break;
-				
+
 			field = field.substr(0, field.length() - 1); //remove the trailing "\n"	
 			rawResult.push_back(cleanValue(field));
 		}
@@ -258,23 +237,36 @@ void SocketConnector::read(ServerResponse& res){
 		if (rawResult.size() < 2 || rawResult.size() > 3) throw OntologyServerException("Internal error! Wrong number of result element returned by the server.");
 		
 		if (rawResult[0] == ERROR){
-			//throw OntologyServerException(rawResult->get(1).asString());
-			res.status = ServerResponse::failed;
-			res.exception_msg = rawResult[1];
-			res.error_msg = rawResult[2];
-			//cout << "ERROR Query to ontology server failed." << endl;
-			return;
+
+                    if (only_events) { //we were waiting for events but got another message!!
+                        cout << "Got an ERROR message from the server that was unexpected!" << endl;
+                        read(res, true);
+                    }
+
+                    //throw OntologyServerException(rawResult->get(1).asString());
+                    res.status = ServerResponse::failed;
+                    res.exception_msg = rawResult[1];
+                    res.error_msg = rawResult[2];
+                    //cout << "ERROR Query to ontology server failed." << endl;
+                    return;
 		}
 
-		if (rawResult[0] == OK){
-			res.status = ServerResponse::ok;
+                if (rawResult[0] == OK){
 
-			res.raw_result = rawResult[1];
-			
-			deserialize(rawResult[1], res.result);
-			
-			//cout << "Query to ontology server succeeded." << endl;
-			return;
+                    if (only_events) { //we were waiting for events but got another message!!
+                        cout << "Got an OK message from the server that was unexpected!" << endl;
+                        read(res, true);
+                    }
+
+                    res.status = ServerResponse::ok;
+
+                    res.raw_result = rawResult[1];
+                    //cout << "[II] Raw result: " << rawResult[1] << endl;
+
+                    deserialize(rawResult[1], res.result);
+
+                    //cout << "Query to ontology server succeeded." << endl;
+                    return;
 		}
 		
 		if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
@@ -286,8 +278,11 @@ void SocketConnector::read(ServerResponse& res){
 				_evtCallback(rawResult[1], raw_event_content);
 			}
 			
-			//Fetch the next message, hoping it's the right one.
-			read(res);
+
+                        if (!only_events) {
+                            //Fetch the next message, hoping it's the right one.
+                            read(res, only_events);
+                        }
 			
 			return;
 		}
@@ -295,6 +290,80 @@ void SocketConnector::read(ServerResponse& res){
 
 		throw OntologyServerException("Internal error! The server answer should start with \"ok\", \"event\" or \"error\"");
 	
+}
+
+void SocketConnector::run(){
+
+    ServerResponse res;
+
+    bool gotAQuery = false;
+    query_type q;
+    ParametersSerializationHolder paramsHolder;
+
+    while (_goOn) {
+        {
+            lock_guard<mutex> lock(inbound_lock);
+
+            if (!inbound_requests.empty()) {
+                gotAQuery = true;
+
+                q = inbound_requests.front();
+                inbound_requests.pop();
+            }
+        }
+
+        if (gotAQuery) {
+
+            gotAQuery = false;
+            //cout << "[II] Query: " << q.first << endl;
+
+            string completeQuery = q.first + MSG_SEPARATOR ;
+
+            if (!q.second.empty()) {
+                //serialization of arguments
+                std::for_each(
+                        q.second.begin(),
+                        q.second.end(),
+                        boost::apply_visitor(paramsHolder)
+                );
+
+                 completeQuery +=  paramsHolder.getArgs();
+                 paramsHolder.reset();
+            }
+
+            completeQuery += MSG_FINALIZER;
+
+            // Now send it on its way
+            write(sockfd,completeQuery.c_str(),completeQuery.length());
+
+            read(res, false); //will block until an answer is read.
+
+            {
+                lock_guard<mutex> lock(outbound_lock);
+
+                outbound_results.push(res);
+
+                //cout << "[II] Outbound queue length: " << outbound_results.size() << endl;
+            }
+
+        }
+        else {
+
+            tv.tv_sec = 1; //'select' timeout: 1 sec
+            tv.tv_usec = 0;
+
+            FD_ZERO(&sockets_to_read);
+            FD_SET(sockfd, &sockets_to_read);
+
+            int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
+
+            if (retval == -1)
+                throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
+            else if (retval) {
+                read(res, true); //got something to read from the server!
+            }
+        }
+    }
 }
 
 /** Remove leading and trailing quotes and whitespace if needed. 
@@ -403,8 +472,10 @@ void SocketConnector::deserialize(const string& msg, server_return_types& result
 			 (msg[0] == '[' && msg[msg.length()-1] == ']') || 
 			 (msg[0] == '{' && msg[msg.length()-1] == '}')
 			)
-		
+        {
 		result = makeCollec(msg);
+                //cout << "[II] Collec!" << endl;
+        }
 	else {
 		try {
 			result = lexical_cast<int>(msg);
@@ -417,6 +488,7 @@ void SocketConnector::deserialize(const string& msg, server_return_types& result
 		} catch (const bad_lexical_cast &e) {}
 		
 		result = msg;
+                //cout << "[II] Str!" << msg << endl;
 	
 	}
 	

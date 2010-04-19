@@ -44,6 +44,7 @@
 #define ORO_CONNECTOR_H_
 
 #include <set>
+#include <utility>
 #include <map>
 #include <vector>
 #include <string>
@@ -54,20 +55,22 @@
 namespace oro {
 
 typedef boost::variant<	bool, 
-						int, 
-						double, 
-						std::string, 
-						std::set<std::string>, 
-						std::map<std::string, std::string>
-						 > server_param_types;
+                        int,
+                        double,
+                        std::string,
+                        std::set<std::string>,
+                        std::map<std::string, std::string>
+                         > server_param_types;
 
 typedef boost::variant< bool, 
-						int, 
-						double, 
-						std::string, 
-						std::set<std::string>, 
-						std::map<std::string, std::string>
-						 > server_return_types;
+                        int,
+                        double,
+                        std::string,
+                        std::set<std::string>,
+                        std::map<std::string, std::string>
+                         > server_return_types;
+
+typedef std::pair<std::string, std::vector<server_param_types> > query_type;
 
 struct ServerResponse {
 

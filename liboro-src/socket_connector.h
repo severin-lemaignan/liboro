@@ -47,13 +47,18 @@
 //ontology server.
 #define ORO_MAX_DELAY 1500
 
+#include <boost/thread.hpp>
+
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <netdb.h> 
 
 #include <stdlib.h>
 #include <time.h>
+
+#include <queue>
 
 #include "oro_connector.h"
 #include "oro.h"
@@ -64,7 +69,6 @@
 
 namespace oro
 {
-
 
 /** A class responsible for communication with the ontology server via sockets.
 *
@@ -125,7 +129,7 @@ private:
 	
 	void deserialize(const std::string& msg, server_return_types& result);
 	server_return_types makeCollec(const std::string& msg);
-	void read(ServerResponse& response);
+        void read(ServerResponse& response, bool only_events);
 	int msleep(unsigned long milisec);
 
 	bool isConnected;
@@ -134,6 +138,19 @@ private:
 	int sockfd;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
+        fd_set sockets_to_read;
+        struct timeval tv; //timeout for the select
+
+        // main() of the 'select' thread.
+        void run();
+        volatile bool _goOn;
+        boost::thread _eventListnerThrd;
+
+        std::queue<query_type> inbound_requests;
+        boost::mutex    inbound_lock;
+
+        std::queue<ServerResponse> outbound_results;
+        boost::mutex    outbound_lock;
 	
 	// The event callback
 	void (*_evtCallback)(const std::string& event_id, 
@@ -194,6 +211,8 @@ public:
     }
 	
 	std::string& getArgs() {return args;}
+
+        void reset() {args = "";}
 	
 
 };

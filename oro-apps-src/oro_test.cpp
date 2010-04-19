@@ -63,7 +63,7 @@
 	SocketConnector connector("localhost", "6969");
 	Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
 
-        //oro->bufferize();
+        oro->bufferize();
 		//First, create some instances (ie, objects).
 		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
 		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
@@ -98,7 +98,7 @@
 	cout << "Sleeping for 1 sec..." << endl;
 	sleep(1);
 	
-	oro->checkConsistency();
+	//oro->checkConsistency();
 
 	return 0;
  }

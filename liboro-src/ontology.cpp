@@ -41,6 +41,7 @@
 #include "oro_exceptions.h"
 
 using namespace std;
+using namespace boost;
 
 namespace oro {
 
@@ -94,9 +95,9 @@ bool Ontology::checkOntologyServer(){
 	if (res.status != ServerResponse::ok) return false;
 	
 	try {
-		string version = (boost::get<map<string, string> >(res.result))["version"];
+                string version = (get<map<string, string> >(res.result))["version"];
 		cout << " - oro-server v." << version;
-	} catch (boost::bad_get e) {
+        } catch (bad_get e) {
 		cerr << "Internal error: oro-server answered malformed results at initialization!";
 		return false;
 	}
@@ -109,13 +110,13 @@ void Ontology::evtCallback(const std::string& event_id, const server_return_type
 	set<Concept> event_content;
 	
 	try {
-		set<string> raw_content = boost::get<set<string> >(raw_event_content);
+                set<string> raw_content = get<set<string> >(raw_event_content);
 		
 		copy(	raw_content.begin(), 
 					raw_content.end(), 
 					inserter(event_content, event_content.begin()));
 
-	} catch (boost::bad_get e) {
+        } catch (bad_get e) {
 		cerr << "A set of string is expected in the event content! I discard this event"
 		<< endl;
 		return;
@@ -308,7 +309,7 @@ bool Ontology::checkConsistency(){
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
 	
-	if(boost::get<bool>(res.result) == true) return true;
+        if(get<bool>(res.result) == true) return true;
 	return false;
 }
 
@@ -327,8 +328,8 @@ map<string, string> Ontology::stats(){
 	if (res.status == ServerResponse::failed) throw OntologyServerException(("Server " + res.exception_msg + " while fetching stats. Server message was " + res.error_msg).c_str());
 	
 	try {
-		result = boost::get<map<string, string> >(res.result);
-	} catch (boost::bad_get e) {
+                result = get<map<string, string> >(res.result);
+        } catch (bad_get e) {
 		throw OntologyServerException("INTERNAL ERROR! Server returned wrong type of data while fetching stats. Please contact the maintener (openrobots@laas.fr)");
 	}
 	
@@ -350,7 +351,7 @@ void Ontology::find(const std::string& resource, const std::set<std::string>& pa
 		throw OntologyServerException("\"filtred find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = boost::get<set<string> >(res.result);
+        rawResult = get<set<string> >(res.result);
 	
 	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 
@@ -370,9 +371,14 @@ void Ontology::find(const std::string& resource, const std::set<std::string>& pa
 		throw OntologyServerException("\"Find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = boost::get<set<string> >(res.result);
+        try {
+            rawResult = get<set<string> >(res.result);
+            copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
+        } catch (bad_get e) {
+            //nothing was returned. That's fine.
+        }
 	
-	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
+
 }
 
 void Ontology::find(const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
@@ -400,7 +406,7 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 		throw OntologyServerException("\"filtred findForAgent\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = boost::get<set<string> >(res.result);
+        rawResult = get<set<string> >(res.result);
 	
 	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 	
@@ -421,7 +427,7 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 		throw OntologyServerException("\"FindForAgent\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
 	}
 	
-	rawResult = boost::get<set<string> >(res.result);
+        rawResult = get<set<string> >(res.result);
 	
 	copy(rawResult.begin(), rawResult.end(), inserter(result, result.begin()));
 	
@@ -453,7 +459,7 @@ void Ontology::query(const string& var_name, const string& query, set<string>& r
 		throw OntologyServerException("Query was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +").");	
 	}
 	
-	if (set<string>* result_p = boost::get<set<string> >(&res.result))
+        if (set<string>* result_p = get<set<string> >(&res.result))
 		result = *result_p;
 }
 
@@ -465,7 +471,7 @@ void Ontology::getInfos(const string& resource, set<string>& result){
 			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
 		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
 	}
-	result = boost::get<set<string> >(res.result);
+        result = get<set<string> >(res.result);
 	
 }
 
@@ -528,7 +534,11 @@ string Ontology::registerEvent(	OroEventObserver& callback,
 	{
 		throw OntologyServerException("Couldn't register event: server threw a " + res.exception_msg + " (" + res.error_msg +").");
 	}
-	event_id = boost::get<string >(res.result);
+        try {
+            event_id = get<string>(res.result);
+        } catch (bad_get e) {
+            cerr << "[EE] Serious error while registering an event! Please report it to openrobots@laas.fr. " << e.what() << endl;
+        }
 	
 	
 	//Store the newly registered event in the list of event observers
