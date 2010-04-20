@@ -551,6 +551,11 @@ class Ontology {
 		void save(const std::string& path);
 		
 		/**
+		* Asks the server to reload the initial ontologies, discarding all modifications to all models.
+		*/
+		void reload();
+
+		/**
 		 * Returns several statistics on the ontology server.
 		 * 
 		 * In this order,

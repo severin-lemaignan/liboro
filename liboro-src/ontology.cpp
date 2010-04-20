@@ -72,7 +72,8 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 
 //Singleton creation
 Ontology* Ontology::createWithConnector(IConnector& connector){
-	if (_instance == NULL)
+
+    if (_instance == NULL)
 		_instance = new Ontology(connector);
 	
 	cout << " - ontology initialized." << endl;
@@ -318,7 +319,14 @@ void Ontology::save(const string& path){
 		
 	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while saving the ontology. Server message was " + res.error_msg);
 	
-}	
+}
+
+void Ontology::reload(){
+	ServerResponse res = _connector.execute("reload");	
+		
+	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while reloading the ontology. Server message was " + res.error_msg);
+	
+}
 
 map<string, string> Ontology::stats(){
 	map<string, string> result;
