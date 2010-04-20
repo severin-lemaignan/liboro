@@ -16,13 +16,11 @@ SET(CMAKE_MODULE_PATH ${LIBORO_MODULE_PATH})
 #INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
 #LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )
 
-find_package(Boost 1.37 REQUIRED COMPONENTS unit_test_framework filesystem system thread serialization)
+find_package(Boost 1.37 REQUIRED COMPONENTS thread)
 set(BOOST_FOUND ${Boost_FOUND})
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "boost libraries "${Boost_LIBRARIES})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
-
-SET(LIBS ${LIBS} ${YARP_LIBRARIES} ${Boost_LIBRARIES})
 
 SET(BUILD_SHARED_LIBS true)
 

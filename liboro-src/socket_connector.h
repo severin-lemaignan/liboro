@@ -47,8 +47,6 @@
 //ontology server.
 #define ORO_MAX_DELAY 1500
 
-#include <boost/thread.hpp>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -59,6 +57,8 @@
 #include <time.h>
 
 #include <queue>
+
+#include <boost/thread.hpp>
 
 #include "oro_connector.h"
 #include "oro.h"
