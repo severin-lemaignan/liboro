@@ -203,9 +203,11 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			ssize_t bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
 			
 			if (bytes_read < 0) throw OntologyServerException("Error reading from the server! Connection closed by the server?");
+                        if (bytes_read == 0) throw OntologyServerException("Error reading from the server! Empty string");
 			
 			string field = buffer;
 
+                        //cout << "[II RAW] bytes read: " << bytes_read << endl;
                         //cout << "[II RAW] " << field;
 			if (field == MSG_FINALIZER)
 				break;
@@ -272,7 +274,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 		if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
 			
 			if (_evtCallback != NULL) {
-				cout << "Got an event!" << endl;
+                            cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
 				server_return_types raw_event_content;
 				deserialize(rawResult[2], raw_event_content);
 				_evtCallback(rawResult[1], raw_event_content);
