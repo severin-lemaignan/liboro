@@ -48,7 +48,7 @@
  class EventCallback : public OroEventObserver {
 
 	void operator()(const OroEvent& evt) {
-		cout << "Event triggered!" << endl << "New humans: " << endl;
+                cout << "Event triggered!" << endl << "Event content: " << endl;
 		
 		set<Concept> evt_content = boost::get<set<Concept> >(evt.content);
 		
@@ -97,6 +97,19 @@
 	
 	cout << "Sleeping for 1 sec..." << endl;
 	sleep(1);
+
+
+        set<string> event_pattern;
+        Property flyingProp = Property("isFlying");
+
+        event_pattern.insert( superman.id() + " isFlying true");
+        oro->registerEvent(ec, FACT_CHECKING, ON_TRUE_ONE_SHOT, event_pattern, "");
+
+        superman.assertThat(flyingProp, "true");
+
+        cout << "Sleeping for 1 sec..." << endl;
+        sleep(1);
+
 	
 	//oro->checkConsistency();
 

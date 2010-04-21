@@ -118,9 +118,21 @@ void Ontology::evtCallback(const std::string& event_id, const server_return_type
 					inserter(event_content, event_content.begin()));
 
         } catch (bad_get e) {
-		cerr << "A set of string is expected in the event content! I discard this event"
-		<< endl;
-		return;
+
+                try {
+
+                    string raw_content = get<string>(raw_event_content);
+                    if (raw_content != "") {
+                        cerr << "A set of string or an empty string is expected in the event content! I discard this event"
+                        << endl;
+                        return;
+                    }
+
+                } catch (bad_get e) {
+                    cerr << "A set of string or an empty string is expected in the event content! I discard this event"
+                    << endl;
+                    return;
+                }
 	}
 	
 	//Create a new event object
