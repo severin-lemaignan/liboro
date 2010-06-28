@@ -354,11 +354,54 @@ void Ontology::removeForAgent(const string& agent, const set<Statement>& stateme
 		res.error_msg);
 }
 
+void Ontology::updateForAgent(const string& agent, const Statement& statement){
+	set<Statement> tmp;
+	tmp.insert(statement);
+	updateForAgent(agent, tmp);
+}
+
+void Ontology::updateForAgent(const string& agent, const set<Statement>& statements){
+
+	vector<server_param_types> parameters;
+	set<string> stringified_stmts;
+	set<Statement>::const_iterator iterator = statements.begin();
+		
+	while( iterator != statements.end() ) {
+		stringified_stmts.insert(iterator->to_string());
+		++iterator;
+	}
+	
+	parameters.push_back(agent);
+	parameters.push_back(stringified_stmts);
+
+	ServerResponse res = _connector.execute("updateForAgent", parameters);
+
+	if (res.status == ServerResponse::failed)
+		throw OntologyServerException("Server threw a " + res.exception_msg + 
+		" while updating statements for agent " + agent + ". Server message was " +
+		res.error_msg);
+}
+
 void Ontology::clear(const string& partial_statement){
 	ServerResponse res = _connector.execute("clear", partial_statement);
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while clearing statements from the ontology. Server message was " + res.error_msg);
 	
+}
+
+void Ontology::clearForAgent(const string& agent, const string& partial_statement){
+
+	vector<server_param_types> parameters;
+	
+	parameters.push_back(agent);
+	parameters.push_back(partial_statement);
+
+	ServerResponse res = _connector.execute("clearForAgent", parameters);
+
+	if (res.status == ServerResponse::failed)
+		throw OntologyServerException("Server threw a " + res.exception_msg + 
+		" while clearing statements in " + agent + "'s model. Server message was " +
+		res.error_msg);
 }
 
 bool Ontology::checkConsistency(){

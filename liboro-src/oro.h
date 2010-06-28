@@ -353,7 +353,7 @@ class Ontology {
 		void addForAgent(const std::string& agent, const std::set<Statement>& statements);
 
 		/**
-		 * Removes one statements from a specific agent ontology. Does nothing 
+		 * Removes one statement from a specific agent ontology. Does nothing 
 		 * is the statement doesn't exist.
 		 */
 		void removeForAgent(const std::string& agent, const Statement& statement);
@@ -365,7 +365,31 @@ class Ontology {
 		 * No buffering is currently supported for removeForAgent.
 		*/
 		void removeForAgent(const std::string& agent, const std::set<Statement>& statements);
-		 
+
+		/**
+		 * Updates one statement in a specific agent ontology.\n
+		 * 
+		 * ATTENTION: this method works only on functional properties (ie, 
+		 * properties that are subclasses of \p owl:FunctionalProperty .\n
+		 * 
+		 * For non-functional properties (or if the subject or predicate does not
+		 * exist), this method behaves like \p addForAgent(String, Set).
+		 */
+		void updateForAgent(const std::string& agent, const Statement& statement);
+
+		/**
+		 * Updates a set of statements in a specific agent ontology.\n
+		 * 
+		 * ATTENTION: this method works only on functional properties (ie, 
+		 * properties that are subclasses of \p owl:FunctionalProperty .\n
+		 * 
+		 * For non-functional properties (or if the subject or predicate does not
+		 * exist), this method behaves like \p addForAgent(String, Set).\n
+		 * 
+		 * No buffering is currently supported for updateForAgent.
+		*/
+		void updateForAgent(const std::string& agent, const std::set<Statement>& statements);
+
 		 /**
 		 * Clears statements in the ontology that matches the given pattern.\n
 		 *
@@ -399,7 +423,12 @@ class Ontology {
 		 * \endcode
 		 */
 		void clear(const std::string& partial_statement);
-		 
+
+		/**
+		 * Like Ontology::clear(const std::string&) but in a specific agent model.\n
+		 */
+		void clearForAgent(const std::string& agent, const std::string& partial_statement);
+
 		/**
 		 * Checks the ontology consistency.
 		 * 
