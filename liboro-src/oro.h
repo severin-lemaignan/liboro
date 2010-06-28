@@ -297,15 +297,44 @@ class Ontology {
 		void add(const std::set<Statement>& statements);
 		
 		/**
-		 * Removes a set of statements from the ontology. Silently ignore statements that don't exist.\n
-		 * Like \p remove(String) but for sets of statements. Please note that no automatic buffering is done. If you're removing several statements, you're strongly advised to use Ontology::bufferize() and Ontology::flush() before and after the call to \p remove() .\n
+		 * Removes a set of statements from the ontology. Silently ignore 
+		 * statements that don't exist.\n
+		 * Like \p remove(String) but for sets of statements. Please note that 
+		 * no automatic buffering is done. If you're removing several statements, 
+		 * you're strongly advised to use Ontology::bufferize() and 
+		 * Ontology::flush() before and after the call to \p remove(Set) .\n
 		*/
 		void remove(const std::set<Statement>& statements);
 		
 		/**
-		 * Removes one statements from the ontology. Does nothing is the statement doesn't exist.
+		 * Removes one statement from the ontology. Does nothing is the 
+		 * statement doesn't exist.
 		 */
 		void remove(const Statement& statement);
+		
+		/**
+		 * Updates a set of statement from the ontology. Behaves like 
+		 * \p add(Set) if the statement doesn't exist. \n
+		 * Like \p update(String) but for sets of statements. Please note that 
+		 * no automatic buffering is done. If you're updating several statements, 
+		 * you're strongly advised to use Ontology::bufferize() and 
+		 * Ontology::flush() before and after the call to \p update(Set) .\n
+		*/
+		void update(const std::set<Statement>& statements);
+		
+		/**
+		 * Updates one statement from the ontology.\n
+		 *
+		 * This method is equivalent to a \p remove(String) followed by an 
+		 * \p add(Set) .\n
+		 * 
+		 * ATTENTION: this method works only on functional properties (ie, 
+		 * properties that are subclasses of \p owl:FunctionalProperty .\n
+		 * 
+		 * For non-functional properties (or if the subject or predicate does not
+		 * exist), this method behaves like \p add(Set).
+		 */
+		void update(const Statement& statement);
 
 		/**
 		 * Adds a new statement to a specific agent ontology.\n

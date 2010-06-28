@@ -189,6 +189,17 @@ void Ontology::flush(){
 	if (stmtToRemove.size() > 0) remove(stmtToRemove); //the order we call add and remove doesn't matter if the buffer is carefully filled through Ontology::addToBuffer. Else, if the same statement is first removed and then added, the flush operation will only retain the "remove"!
 	
 	_buffer["remove"].clear();
+
+	/**** UPDATE ****/
+	set<Statement> stmtToUpdate;
+	//copy(_buffer["update"].begin(), _buffer["update"].end(), stmtToUpdate.begin());
+	for(BufStatements::iterator i = _buffer["update"].begin() ; i != _buffer["update"].end() ; ++i) {
+		stmtToUpdate.insert(i->second);
+	}
+	
+	if (stmtToUpdate.size() > 0) update(stmtToUpdate);
+	
+	_buffer["update"].clear();
 }
 
 void Ontology::addToBuffer(const string action, const Statement& stmt) {
@@ -261,6 +272,29 @@ void Ontology::remove(const set<Statement>& statements){
 		ServerResponse res = _connector.execute("remove", stringified_stmts);
 	
 		if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg);
+	}
+}
+
+void Ontology::update(const Statement& statement){
+	set<Statement> tmp;
+	tmp.insert(statement);
+	update(tmp);
+}
+
+void Ontology::update(const set<Statement>& statements){
+	set<string> stringified_stmts;
+	set<Statement>::const_iterator iterator = statements.begin();
+	
+	while( iterator != statements.end() ) {
+		if (_bufferize) addToBuffer("update", (Statement)*iterator);
+		stringified_stmts.insert(((Statement)*iterator).to_string());
+		++iterator;
+	}
+
+	if (!_bufferize) {
+		ServerResponse res = _connector.execute("update", stringified_stmts);
+	
+		if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while updating statements. Server message was " + res.error_msg);
 	}
 }
 
