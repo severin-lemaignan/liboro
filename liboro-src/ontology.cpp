@@ -354,6 +354,13 @@ void Ontology::removeForAgent(const string& agent, const set<Statement>& stateme
 		res.error_msg);
 }
 
+void Ontology::clear(const string& partial_statement){
+	ServerResponse res = _connector.execute("clear", partial_statement);
+	
+	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while clearing statements from the ontology. Server message was " + res.error_msg);
+	
+}
+
 bool Ontology::checkConsistency(){
 	ServerResponse res = _connector.execute("checkConsistency");
 	
@@ -364,7 +371,7 @@ bool Ontology::checkConsistency(){
 }
 
 void Ontology::save(const string& path){
-	ServerResponse res = _connector.execute("save", path);	
+	ServerResponse res = _connector.execute("save", path);
 		
 	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while saving the ontology. Server message was " + res.error_msg);
 	
@@ -372,7 +379,7 @@ void Ontology::save(const string& path){
 
 void Ontology::reload(){
 	ServerResponse res = _connector.execute("reload");	
-		
+	
 	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while reloading the ontology. Server message was " + res.error_msg);
 	
 }

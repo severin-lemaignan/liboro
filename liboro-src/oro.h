@@ -365,7 +365,41 @@ class Ontology {
 		 * No buffering is currently supported for removeForAgent.
 		*/
 		void removeForAgent(const std::string& agent, const std::set<Statement>& statements);
-
+		 
+		 /**
+		 * Clears statements in the ontology that matches the given pattern.\n
+		 *
+		 * Example:
+		 *
+		 * \code
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
+		 *
+		 * using namespace std;
+		 * using namespace oro;
+		 * int main(void) {
+		 *
+		 * 		SocketConnector connector("localhost", "6969");
+		 * 		oro = Ontology::createWithConnector(connector);
+		 *
+		 * 		stmts.insert(Statement("gorilla rdf:type Monkey"));
+		 * 		stmts.insert(Statement("gorilla age 12^^xsd:int"));
+		 * 		stmts.insert(Statement("gorilla weight 75.2"));
+		 *
+		 * 		oro->bufferize();
+		 * 		oro->add(stmts);
+		 * 		oro->flush();
+		 *
+		 * 		oro->clear("?x age ?y"); //this would clear all statements with the 'age' predicate in the ontology.
+		 * 		oro->clear("gorilla ?x ?y"); //this would clear all statements concerning the gorilla.
+		 *
+		 * 		return 0;
+		 * }
+		 * \endcode
+		 */
+		void clear(const std::string& partial_statement);
+		 
 		/**
 		 * Checks the ontology consistency.
 		 * 
