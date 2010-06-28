@@ -167,24 +167,27 @@ void Ontology::flush(){
 	//cout << "End of bufferization" << endl;
 	_bufferize = false;
 	
+	
+	/**** ADD ****/
 	set<Statement> stmtToAdd;
 		//copy(_buffer["add"].begin(), _buffer["add"].end(), stmtToAdd.begin());
 	
 	for(BufStatements::iterator i = _buffer["add"].begin() ; i != _buffer["add"].end() ; ++i) {
 		stmtToAdd.insert(i->second);
 	}
-		
-	if (stmtToAdd.size() > 0) add(stmtToAdd);
 	
+	if (stmtToAdd.size() > 0) add(stmtToAdd);
+	_buffer["add"].clear();
+
+	/**** REMOVE ****/
 	set<Statement> stmtToRemove;
 	//copy(_buffer["remove"].begin(), _buffer["remove"].end(), stmtToRemove.begin());
 	for(BufStatements::iterator i = _buffer["remove"].begin() ; i != _buffer["remove"].end() ; ++i) {
-		stmtToAdd.insert(i->second);
+		stmtToRemove.insert(i->second);
 	}
 	
 	if (stmtToRemove.size() > 0) remove(stmtToRemove); //the order we call add and remove doesn't matter if the buffer is carefully filled through Ontology::addToBuffer. Else, if the same statement is first removed and then added, the flush operation will only retain the "remove"!
 	
-	_buffer["add"].clear();
 	_buffer["remove"].clear();
 }
 
