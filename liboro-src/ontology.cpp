@@ -590,7 +590,7 @@ void Ontology::getResourceDetails(const string& resource, string& result){
 			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
 		else throw OntologyServerException("Couldn't retrieve details on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
 	}
-        result = get<string >(res.result);
+        result = res.raw_result;
 	
 }
 
