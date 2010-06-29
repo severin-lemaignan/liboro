@@ -609,7 +609,9 @@ class Ontology {
 		 * @throw OntologyServerException thrown an error occured on the server during the query processing.
 		 */
 		void getInfos(const std::string& resource, std::set<std::string>& result);
-				
+		
+		void getResourceDetails(const std::string& resource, std::string& result);
+		
 		/** Subscribe to a specified event in the ontology.\n
 		 * 
 		 * \param callback An object that implements operator()(const OroEvent&)

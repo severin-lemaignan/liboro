@@ -582,6 +582,18 @@ void Ontology::getInfos(const string& resource, set<string>& result){
 	
 }
 
+void Ontology::getResourceDetails(const string& resource, string& result){
+	ServerResponse res = _connector.execute("getResourceDetails", resource);
+	if (res.status != ServerResponse::ok)
+	{
+		if (res.exception_msg.find(SERVER_NOTFOUND_EXCEPTION) != string::npos)
+			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
+		else throw OntologyServerException("Couldn't retrieve details on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
+	}
+        result = get<string >(res.result);
+	
+}
+
 string Ontology::registerEvent(	OroEventObserver& callback, 
 								EventType eventType, 
 								EventTriggeringType triggerType, 
