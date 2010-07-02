@@ -351,8 +351,8 @@ void SocketConnector::run(){
         }
         else {
 
-            tv.tv_sec = 1; //'select' timeout: 1 sec
-            tv.tv_usec = 0;
+            tv.tv_sec = 0; //'select' timeout: 1 sec
+            tv.tv_usec = 20;
 
             FD_ZERO(&sockets_to_read);
             FD_SET(sockfd, &sockets_to_read);
