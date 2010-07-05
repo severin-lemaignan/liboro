@@ -1,7 +1,7 @@
-/** \fil        e
+/** \file
  * This header defines a "library" of C++ properties and classes (or concepts)
- * matching the ones defines in the openrobots.owl ontology.\n
- * It has been automatically generated from openrobots.owl by the 
+ * matching the ones defines in the commonsense.oro.owl ontology.\n
+ * It has been automatically generated from commonsense.oro.owl by the 
  * "generate_oro_library_from_ontology.py" Python script.
  * If you need to regenerate this file (for your own ontology or after a 
  * modification of the ontology), just run 
@@ -14,7 +14,7 @@
 
 namespace oro {
 
-/** This class lists all the OWL properties defined in the openrobots.owl
+/** This class lists all the OWL properties defined in the commonsense.oro.owl
  * ontology.\n
  * It provides handy shortcuts when asserting new facts on concepts.
  * \see Concept::assert(const Property& predicate, const Concept& value)
@@ -26,9 +26,31 @@ class Properties {
 
 		static const Property actionInvolves;
 
-		static const Property belongsTo;
+		/**
+		* Theme (or Patient) of an action: Entity undergoing the effect of some
+		* action
+		* 
+		* Example: >Mary< fell over.
+		*/
+		static const Property actsOnObject;
+
+		static const Property after;
+
+		static const Property after_Underspecified;
+
+		/**
+		* An "agent relative property" is always relative to the point of view
+		* of the agent "myself"
+		*/
+		static const Property agentRelativeProperty;
+
+		static const Property behind;
 
 		static const Property bringsToStaticSituation;
+
+		static const Property canBePerformedBy;
+
+		static const Property canPerform;
 
 		/**
 		* Links an agent to an action it can starts now. When required, this
@@ -43,20 +65,11 @@ class Properties {
 		*/
 		static const Property currentlyPerforms;
 
-		/**
-		* (desires AGT PROP) means that the Agent_PartiallyTangible AGT desires
-		* that the world be as the proposition PROP (represented by a
-		* CycLSentence_Assertible) describes it to be. desires is implied by
-		* goals, but is weaker: PROP might be some desirable state of affairs
-		* that the agent is not actively working, or planning, to make/keep
-		* true; e.g., world peace.
-		*/
 		static const Property desires;
 
-		/**
-		* Link a robot component to the action it enables.
-		*/
-		static const Property enables;
+		static const Property duration;
+
+		static const Property endingPoint;
 
 		static const Property hasCharacteristicLocation;
 
@@ -65,18 +78,26 @@ class Properties {
 		*/
 		static const Property hasColor;
 
-		/**
-		* Links a robot with its components
-		*/
-		static const Property hasComponent;
-
 		static const Property hasFeature;
 
-		static const Property hasFrameOfReference;
+		/**
+		* Goal: Entity towards which something moves.
+		* 
+		* Example: John went >home<
+		*/
+		static const Property hasGoal;
+
+		static const Property hasRelativePosition;
+
+		static const Property hasShape;
+
+		static const Property hasThematicRoleRelationWith;
 
 		static const Property holds;
 
 		static const Property holds_Underspecified;
+
+		static const Property inFrontOf;
 
 		static const Property involves;
 
@@ -91,35 +112,23 @@ class Properties {
 
 		static const Property isAt;
 
+		static const Property isFarFrom;
+
 		static const Property isIn;
+
+		/**
+		* Relates an agent to some object: a "near" object is closer than 1m
+		* from the agent.
+		*/
+		static const Property isNearOf;
 
 		static const Property isNextTo;
 
-		static const Property isOnTopOf;
+		static const Property isOn;
 
-		/**
-		* (knowsAbout AGENT THING) means that the IntelligentAgent AGENT knows
-		* something about THING. This predicate represents more than simple
-		* awareness, but exactly what is known -- the content of AGENT's
-		* knowledge about THING -- is not specified. For example, (knowsAbout
-		* MichaelJordan Basketball_TheGame).
-		* 
-		* Note: many commonsense rules can conclude (knowsAbout AGENT THING) --
-		* e.g., those having to do with AGENT's occupation, college degrees,
-		* city of residence,... in fact, almost any assertion about AGENT can
-		* lead to presumptions that he/she probably knowsAbout something.
-		* knowsAbout in turn can serve (weakly) in arguments about whether or
-		* not AGENT knows (q.v.) specific common assertions involving THING,
-		* and in arguments about whether or not AGENT knowsValue (q.v.) of some
-		* particular predicate applied to THING, etc. See also expertRegarding.
-		*/
-		static const Property knowsAbout;
+		static const Property isUnder;
 
-		/**
-		* This is a specialization of knowsAbout predicate with the range
-		* constrained to artifacts, which is meaningful for robotics.
-		*/
-		static const Property knowsAboutArtifact;
+		static const Property leftOf;
 
 		static const Property mainColorOfObject;
 
@@ -141,10 +150,27 @@ class Properties {
 		static const Property objectOfAction;
 
 		/**
+		* Instigator of some action.
+		* 
+		* Example: >John< killed Harry.
+		*/
+		static const Property performedBy;
+
+		/**
 		* binds an action to a state of the world (a Situation) which is
 		* desired as a result (at short or long term) of this action.
 		*/
 		static const Property purposeOfAction;
+
+		/**
+		* Link an action to the object or agent that is a recipient of the
+		* action result.
+		* Not to be confused with actionOnObject that denote that the object is
+		* the main concern of the action.
+		* 
+		* Example: John got >Mary< a present.
+		*/
+		static const Property receivedBy;
 
 		/**
 		* When relevant for the considered action, this property specify the
@@ -162,10 +188,23 @@ class Properties {
 		*/
 		static const Property recipientOfAction;
 
-		/**
-		* Links an agent to an object visible for him.
-		*/
+		static const Property rightOf;
+
 		static const Property sees;
+
+		static const Property startingPoint;
+
+		/**
+		* A ComplexTemporalPredicate (q.v.) that relates any pair of temporal
+		* things such that the first starts after the second ends.
+		* (startsAfterEndingOf AFTER BEFORE) means that the time point (see
+		* TimePoint) at which AFTER first starts to exist or occur is
+		* temporally later than (see after) the time point at which BEFORE
+		* finally ceases to exist or occur. Thus it is equivalent to the form
+		* (after (StartFn AFTER) (EndFn BEFORE)). That is, the startingPoint of
+		* AFTER is later than the endingPoint of BEFORE.
+		*/
+		static const Property startsAfterEndingOf;
 
 		/**
 		* Binds a static situation (a state of the world) to the agents
@@ -173,26 +212,18 @@ class Properties {
 		*/
 		static const Property staticSituationInvolves;
 
-		static const Property None;
+		static const Property taskOfPlan;
+
+		static const Property temporallyRelated;
 
 // Datatype properties
 
 		/**
-		* True if you can calculate a "grasp" from the 3D geometry.
+		* Indicates if an object can be manipulated (knows a grasping point for
+		* the object) by the agent myself. Thus, if the object can be
+		* manipulated, it is movable as well.
 		*/
 		static const Property canBeManipulated;
-
-		/**
-		* "has3dCoordinate" is an abstract dataproperty and only specific sub
-		* properties (xCoord, yCoord, zCoord) must be instanciated.
-		*/
-		static const Property has3dCoordinate;
-
-		/**
-		* Bind an artifact to its 3D representation. The format of the 3D mesh
-		* is not specified yet.
-		*/
-		static const Property has3dMesh;
 
 		/**
 		* Characteristic entity dimension, in centimeters
@@ -206,18 +237,15 @@ class Properties {
 		static const Property hasCharacteristicWeight;
 
 		/**
-		* the hue value of a color, as defined in the HSV color model.
-		* Value are comprised between 0 and 360.
-		* The value can be computed from RGB color representation as explained
-		* in http://en.wikipedia.org/wiki/HSL_color_space
+		* IsDesired is equivalent to (desires MYSELF PROP). 
+		* (desire AGT PROP) means that the Agent_PartiallyTangible AGT desires
+		* that the world be as the proposition PROP (represented by a
+		* CycLSentence_Assertible) describes it to be. desires is implied by
+		* goals, but is weaker: PROP might be some desirable state of affairs
+		* that the agent is not actively working, or planning, to make/keep
+		* true; e.g., world peace.
 		*/
-		static const Property hue;
-
-		/**
-		* Sets if an action is an atomic action, ie is a built-in primitive
-		* action of a planner.
-		*/
-		static const Property isAtomicAction;
+		static const Property isDesired;
 
 		/**
 		* True if one of the object primary function is to hold other objects.
@@ -226,23 +254,30 @@ class Properties {
 		*/
 		static const Property isHolder;
 
+		/**
+		* States if a given artifact is movable by someone (not specifying who).
+		*/
 		static const Property isMovable;
 
+		static const Property isMoving;
+
 		/**
-		* True if the object is currently reachable by the robot.
+		* True if the object is currently reachable by agent myself.
+		* Thus an object can not be said to be generally reachable or not.
 		*/
 		static const Property isReachable;
 
 		static const Property isTraversable;
 
-		static const Property xCoord;
+		/**
+		* Indicates if an enduring thing-localized is visible for the agent
+		* (myself).
+		*/
+		static const Property isVisible;
 
-		static const Property yCoord;
-
-		static const Property zCoord;
 };
 
-/** This class lists all the OWL concepts defined in the openrobots.owl ontology.\n
+/** This class lists all the OWL concepts defined in the commonsense.oro.owl ontology.\n
  * It provides handy shortcuts when asserting the class of a concept.
  * \see Concept::isA(const Class& type) const
  */
@@ -253,29 +288,34 @@ class Classes {
 		*/
 		static const Class Thing;
 
-		static const Class UndertakeableAction;
-
-		static const Class UndertakeableTakeAction;
-
 		/**
-		* The collection of Events (q.v.) that are carried out by some "doer".
-		* Instances of Action include any event in which one or more agents
-		* effect some change in the (tangible or intangible) state of the
-		* world, typically by an expenditure of effort or energy. Note that it
-		* is not required that any tangible object be moved, changed, produced,
-		* or destroyed for an action to occur; the effects of an action might
-		* be intangible. In the context of the OpenRobotOntology, doers of an
-		* action are as a matter of fact instances to Agent_PartiallyTangible
-		* (q.v.), even if they may not be in a broader context (e.g. a falling
-		* rock that dents a car's roof). Depending upon the context, doers of
-		* actions might be animate or inanimate, conscious or nonconscious. For
-		* actions that are intentional, see PurposefulAction and performedBy.
+		* An action implies several thematic roles (or semantic roles):
 		* 
-		* The object of an action is asserted through the properties
-		* objectOfAction and recipientOfAction.
+		* We use this list of roles (Aarts 1997: 88), which are mapped to
+		* specific predicates :
+		* Agent: The ‘doer’ or instigator of the action denoted by the
+		* predicate.
+		* Patient: The ‘undergoer’ of the action or event denoted by the
+		* predicate.
+		* Theme: The entity that is moved by the action or event denoted by the
+		* predicate.
+		* Experiencer: The living entity that experiences the action or event
+		* denoted by the predicate.
+		* Goal: The location or entity in the direction of which something
+		* moves.
+		* Benefactive: The entity that benefits from the action or event
+		* denoted by the predicate.
+		* Source: The location or entity from which something moves
+		* Instrument: The medium by which the action or event denoted by the
+		* predicate is carried out.
+		* Locative: The specification of the place where the action or event
+		* denoted by the predicate in situated.
 		*/
 		static const Class Action;
 
+		/**
+		* Groups both humans and robots
+		*/
 		static const Class Agent;
 
 		/**
@@ -299,36 +339,25 @@ class Classes {
 		*/
 		static const Class Artifact;
 
-		static const Class Blue;
-
 		static const Class Book;
 
 		static const Class Bottle;
 
 		static const Class Ceilling;
 
+		static const Class Chair;
+
 		static const Class Color;
 
 		/**
-		* A component is an autonomous entity which provide a behaviour (which
-		* can be described as a set of actions). This behaviour is stable over
-		* the time (its nature won't change). It can be composed of sub
-		* components.
+		* The collection of tangible objects whose primary function is to
+		* contain something.
 		*/
-		static const Class Component;
+		static const Class Container;
 
-		static const Class Discussion;
+		static const Class ContinuousTimeInterval;
 
-		/**
-		* Doorway is a specialization of Portal, CavityWithWalls, and
-		* Artifact_NonAgentive. Each instance of Doorway is a portal in some
-		* instance of HumanOccupationConstruct (q.v.), suitable for people (and
-		* perhaps vehicles) to enter and exit. Each instance of Doorway
-		* includes the frame, not merely the empty space within the doorway.
-		* Instances of Doorway include doorways to houses, office buildings,
-		* elevators, automobiles, airplanes, and garages.
-		*/
-		static const Class Doorway;
+		static const Class Cup;
 
 		/**
 		* A specialization of both SpatialThing_Localized and SomethingExisting
@@ -354,85 +383,22 @@ class Classes {
 
 		static const Class Floor;
 
-		/**
-		* Each instance of FrameOfReference is a mathematical (and hence
-		* intangible) representation of the context in which certain data are
-		* to be interpreted. Such contexts are typically physical, but may be
-		* purely mathematical. For example, a CartesianCoordinateSystem can be
-		* used to represent the positions of things on the surface of the Eath,
-		* but can also be used to represent an abstract geometric space.
-		*/
-		static const Class FrameOfReference;
-
 		static const Class Furniture;
 
 		/**
-		* Represents the action of an agent giving something to some other
-		* agent. The "something" must be specified by the "objectOfAction"
-		* property, while the "some other agent" must be specified by the
-		* "recipientOfAction" property.
+		* Artifact used to play with
 		*/
-		static const Class Give;
+		static const Class GameArtifact;
 
-		static const Class Green;
-
-		/**
-		* Represents the action for an agent to help another agent. The agent
-		* which recieves help may be specified with the "recipientOfAction"
-		* property.
-		*/
-		static const Class Help;
-
-		/**
-		* Represents the action of an agent holding an object specified by the
-		* objectOfAction property.
-		* The immediate consequence of this action is a StaticSituation where
-		* an object is holded by the agent. Cf the object property
-		* "holds-underspecified".
-		* The part of the agent which holds the object may be specified wtih
-		* the "recipientOfAction" property.
-		*/
-		static const Class Hold;
-
-		/**
-		* Each instance of HolderGripperComponent is function which control an
-		* object that can apply pressure to another object and thereby grip it
-		* in such a way that its motion is restricted. For instance, a human
-		* hand.
-		*/
-		static const Class HolderGripperComponent;
+		static const Class Glass;
 
 		static const Class Human;
-
-		static const Class LocalisationAwareRobot;
-
-		static const Class LocalisationComponent;
 
 		/**
 		* Location is use in its very broad meaning of "a spatial-localized
 		* thing". Hence an object is a location, an agent is a location, etc.
 		*/
 		static const Class Location;
-
-		/**
-		* Represents the action of an agent looking at the thing specified by
-		* the ObjectOfAction property.
-		*/
-		static const Class LookAt;
-
-		static const Class MotionComponent;
-
-		static const Class MotionPlanner;
-
-		/**
-		* Represents an action consisting in a move to a place or an object as
-		* specified by the objectOfAction property.
-		* If no destination is specified, this concept represent the general
-		* fact of moving.
-		*/
-		static const Class Move;
-
-		static const Class MovingRobot;
 
 		static const Class Object;
 
@@ -441,8 +407,6 @@ class Classes {
 		static const Class Obstacle;
 
 		static const Class Opening;
-
-		static const Class Orange;
 
 		/**
 		* A subcollection of EnduringThing_Localized and TemporalThing. Each
@@ -468,24 +432,16 @@ class Classes {
 		*/
 		static const Class Place;
 
-		/**
-		* A specialization of both Point and SpaceRegion_Empirical (qq.v.).
-		* Each instance of Point_Empirical is a zero-dimensional object that
-		* belongs to, and thus has a fixed location in, the embedding space of
-		* the empirical universe (see #$TheSpatialUniverse-Empirical).
-		* 
-		* Examples include the location of the center of mass of the Milky Way
-		* galaxy at the beginning of the 20th Century. Note that empirical
-		* space points are embedded in time; if time is not a significant
-		* parameter (i.e. if in an atemporal or temporally agnostic context)
-		* consider using Point instead.
-		*/
-		static const Class Point;
+		static const Class Plan;
+
+		static const Class Plan_ExpectedSituationType;
 
 		/**
-		* A robot able to go alone to a given location
+		* For ease of use, we use here "Point" as "Point-Empirical" in the Open
+		* Cyc ontology. The OpenCyc URI refers to the correct one
+		* ("Point-Empirical")
 		*/
-		static const Class PositionableRobot;
+		static const Class Point;
 
 		/**
 		* A specialization of both Action and AtLeastPartiallyMentalEvent. Each
@@ -494,55 +450,11 @@ class Classes {
 		*/
 		static const Class PurposefulAction;
 
-		/**
-		* Represents the action of an agent pushing an object specified by the
-		* objectOfAction property.
-		* The place where the object is pushed (its destination) may be
-		* specified by the "recipientOfAction" property.
-		*/
-		static const Class Push;
-
-		/**
-		* Represtens the action of an agent putting (or placing) something
-		* somewhere.
-		* The "something" is specified by the "objectOfAction" property while
-		* the "somewhere" is specified by the "recipientOfAction" property.
-		*/
-		static const Class Put;
-
-		static const Class RaisonningComponent;
-
-		static const Class Red;
-
-		/**
-		* A special kind of "Talk" action which represents the "request"
-		* communication act. The content of the request is specified by the
-		* "objectOfAction" property.
-		*/
-		static const Class Request;
-
 		static const Class Robot;
 
-		/**
-		* Represents the action of an agent who sees something which must be
-		* specified by the objectOfAction property.
-		*/
-		static const Class See;
-
-		static const Class SensingComponent;
+		static const Class Shape;
 
 		static const Class Shelf;
-
-		static const Class Shelter;
-
-		/**
-		* Represents the action of an agent showing something to some other
-		* agent.
-		* The "something" must be specified by the "objectOfAction" property,
-		* while the "some other agent" may be specified by the
-		* "recipientOfAction" property.
-		*/
-		static const Class Show;
 
 		/**
 		* Each instance of Situation is a state or event consisting of one or
@@ -622,40 +534,38 @@ class Classes {
 
 		static const Class Table;
 
-		/**
-		* The action of taking (or grabbing or grasping) something specified by
-		* the objectOfAction property.
-		*/
-		static const Class Take;
+		static const Class Tableware;
 
 		/**
-		* Represents the action for an agent of talking (or dialoging) with
-		* another agent which must be specified with the "recipientOfAction"
-		* property.
-		* The object of discussion may be specified with the "objectOfAction"
-		* property.
+		* An action considered in the specific context of robotics.
 		*/
-		static const Class Talk;
+		static const Class Task;
+
+		static const Class TemporalThing;
+
+		static const Class TemporallyExtendedThing;
+
+		static const Class TimeInterval;
+
+		static const Class TimePoint;
 
 		/**
-		* Represents the action of an agent which enters in contact with the
-		* object specified by the ObjectOfAction property.
+		* A cube, traditionnaly made of wood, meant for children to play with.
 		*/
-		static const Class Touch;
+		static const Class ToyCube;
 
 		static const Class Trashbin;
 
-		static const Class Violet;
+		/**
+		* A magnetic video support
+		*/
+		static const Class VideoTape;
 
 		static const Class VisualMark;
-
-		static const Class Walk;
 
 		static const Class Wall;
 
 		static const Class Window;
-
-		static const Class Yellow;
 
 		static const Class Zone;
 
@@ -674,8 +584,6 @@ class Classes {
 		* of chairs,etc.)
 		*/
 		static const Class ZoneOfInterest;
-
-		static const Class None;
 };
 
 

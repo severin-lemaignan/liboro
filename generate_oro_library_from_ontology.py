@@ -57,7 +57,7 @@ def addClassesDeclarations(dom, printDeclaration, destFile):
     if printDeclaration:
 	    for c in names:
 		print >> destFile
-		if c[1] != None: print >> destFile,"\t\t/**\n\t\t* %s\n\t\t*/" % c[1]
+		if c[1] != None: print >> destFile,"\t\t/**\n\t\t* %s\n\t\t*/" % c[1].encode('utf-8')
 		print >> destFile,"\t\tstatic const Class %s;" % c[0]
 	    print >> destFile,"};"
 	    print >> destFile
