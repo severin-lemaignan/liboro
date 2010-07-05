@@ -332,8 +332,11 @@ void SocketConnector::run(){
         }
         else {
 
-            tv.tv_sec = 0; //'select' timeout: 1 sec
-            tv.tv_usec = 20;
+            //TODO: replace this 'timeout' approach by a blocking select 
+	    //that would be unblocked when a write is needed (signaled by a write
+	    //on a pipe, for instance)
+            tv.tv_sec = 0;
+            tv.tv_usec = 10000; //10ms
 
             FD_ZERO(&sockets_to_read);
             FD_SET(sockfd, &sockets_to_read);
