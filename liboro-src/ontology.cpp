@@ -363,8 +363,8 @@ void Ontology::updateForAgent(const string& agent, const set<Statement>& stateme
 		res.error_msg);
 }
 
-void Ontology::clear(const string& partial_statement){
-	ServerResponse res = _connector.execute("clear", partial_statement);
+void Ontology::clear(const set<string>& partial_statements){
+	ServerResponse res = _connector.execute("clear", partial_statements);
 	
 	if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while clearing statements from the ontology. Server message was " + res.error_msg);
 	

@@ -232,6 +232,8 @@ class Ontology {
 		 * using namespace oro;
 		 * int main(void) {
 		 *
+		 * 		set<Statement> stmts;
+		 * 
 		 * 		SocketConnector connector("localhost", "6969");
 		 * 		oro = Ontology::createWithConnector(connector);
 		 *
@@ -260,6 +262,8 @@ class Ontology {
 		 * using namespace oro;
 		 * int main(void) {
 		 *
+		 * 		set<Statement> stmts;
+		 * 
 		 * 		SocketConnector connector("localhost", "6969");
 		 * 		oro = Ontology::createWithConnector(connector);
 		 *
@@ -372,8 +376,15 @@ class Ontology {
 		void updateForAgent(const std::string& agent, const std::set<Statement>& statements);
 
 		 /**
-		 * Clears statements in the ontology that matches the given pattern.\n
-		 *
+		 * Removes all statements matching any partial statements in a set.
+		 * 
+		 * Attention, the implicit relation between each of the partial statements
+		 * in the set is a OR: the ontology is matched against each of the provided
+		 * partial statements, and for each of them, all matching statements are 
+		 * removed.
+		 * 
+		 * If need, the "AND" behaviour can be added. Please drop a mail to openrobots@laas.fr
+		 * 
 		 * Example:
 		 *
 		 * \code
@@ -384,7 +395,10 @@ class Ontology {
 		 * using namespace std;
 		 * using namespace oro;
 		 * int main(void) {
-		 *
+		 * 
+		 * 		set<Statement> stmts;
+		 *		set<string> clear_pattern;
+		 * 
 		 * 		SocketConnector connector("localhost", "6969");
 		 * 		oro = Ontology::createWithConnector(connector);
 		 *
@@ -396,14 +410,16 @@ class Ontology {
 		 * 		oro->add(stmts);
 		 * 		oro->flush();
 		 *
-		 * 		oro->clear("?x age ?y"); //this would clear all statements with the 'age' predicate in the ontology.
-		 * 		oro->clear("gorilla ?x ?y"); //this would clear all statements concerning the gorilla.
+		 * 		clear_pattern.insert("?x age ?y"); //this would clear all statements with the 'age' predicate in the ontology.
+		 * 		clear_pattern.insert("gorilla ?x ?y"); //this would clear all statements concerning the gorilla.
+		 * 
+		 * 		oro->clear(clear_pattern);
 		 *
 		 * 		return 0;
 		 * }
 		 * \endcode
 		 */
-		void clear(const std::string& partial_statement);
+		void clear(const std::set<std::string>& partial_statements);
 
 		/**
 		 * Like Ontology::clear(const std::string&) but in a specific agent model.\n
