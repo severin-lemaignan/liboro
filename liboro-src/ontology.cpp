@@ -370,7 +370,7 @@ void Ontology::clear(const set<string>& partial_statements){
 	
 }
 
-void Ontology::clearForAgent(const string& agent, const string& partial_statement){
+void Ontology::clearForAgent(const string& agent, const set<string>& partial_statement){
 
 	vector<server_param_types> parameters;
 	

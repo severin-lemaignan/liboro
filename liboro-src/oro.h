@@ -320,7 +320,53 @@ class Ontology {
 		 * exist), this method behaves like \p add(Set).
 		 */
 		void update(const Statement& statement);
-
+		
+		 /**
+		 * Removes all statements matching any partial statements in a set.
+		 * 
+		 * Attention, the implicit relation between each of the partial statements
+		 * in the set is a OR: the ontology is matched against each of the provided
+		 * partial statements, and for each of them, all matching statements are 
+		 * removed.
+		 * 
+		 * If need, the "AND" behaviour can be added. Please drop a mail to openrobots@laas.fr
+		 * 
+		 * Example:
+		 *
+		 * \code
+		 * #include <set>
+		 * #include "liboro/oro.h"
+		 * #include "liboro/socket_connector.h"
+		 *
+		 * using namespace std;
+		 * using namespace oro;
+		 * int main(void) {
+		 * 
+		 * 		set<Statement> stmts;
+		 *		set<string> clear_pattern;
+		 * 
+		 * 		SocketConnector connector("localhost", "6969");
+		 * 		oro = Ontology::createWithConnector(connector);
+		 *
+		 * 		stmts.insert(Statement("gorilla rdf:type Monkey"));
+		 * 		stmts.insert(Statement("gorilla age 12^^xsd:int"));
+		 * 		stmts.insert(Statement("gorilla weight 75.2"));
+		 *
+		 * 		oro->bufferize();
+		 * 		oro->add(stmts);
+		 * 		oro->flush();
+		 *
+		 * 		clear_pattern.insert("?x age ?y"); //this would clear all statements with the 'age' predicate in the ontology.
+		 * 		clear_pattern.insert("gorilla ?x ?y"); //this would clear all statements concerning the gorilla.
+		 * 
+		 * 		oro->clear(clear_pattern);
+		 *
+		 * 		return 0;
+		 * }
+		 * \endcode
+		 */
+		void clear(const std::set<std::string>& partial_statements);
+		
 		/**
 		 * Adds a new statement to a specific agent ontology.\n
 		 * 
@@ -375,56 +421,10 @@ class Ontology {
 		*/
 		void updateForAgent(const std::string& agent, const std::set<Statement>& statements);
 
-		 /**
-		 * Removes all statements matching any partial statements in a set.
-		 * 
-		 * Attention, the implicit relation between each of the partial statements
-		 * in the set is a OR: the ontology is matched against each of the provided
-		 * partial statements, and for each of them, all matching statements are 
-		 * removed.
-		 * 
-		 * If need, the "AND" behaviour can be added. Please drop a mail to openrobots@laas.fr
-		 * 
-		 * Example:
-		 *
-		 * \code
-		 * #include <set>
-		 * #include "liboro/oro.h"
-		 * #include "liboro/socket_connector.h"
-		 *
-		 * using namespace std;
-		 * using namespace oro;
-		 * int main(void) {
-		 * 
-		 * 		set<Statement> stmts;
-		 *		set<string> clear_pattern;
-		 * 
-		 * 		SocketConnector connector("localhost", "6969");
-		 * 		oro = Ontology::createWithConnector(connector);
-		 *
-		 * 		stmts.insert(Statement("gorilla rdf:type Monkey"));
-		 * 		stmts.insert(Statement("gorilla age 12^^xsd:int"));
-		 * 		stmts.insert(Statement("gorilla weight 75.2"));
-		 *
-		 * 		oro->bufferize();
-		 * 		oro->add(stmts);
-		 * 		oro->flush();
-		 *
-		 * 		clear_pattern.insert("?x age ?y"); //this would clear all statements with the 'age' predicate in the ontology.
-		 * 		clear_pattern.insert("gorilla ?x ?y"); //this would clear all statements concerning the gorilla.
-		 * 
-		 * 		oro->clear(clear_pattern);
-		 *
-		 * 		return 0;
-		 * }
-		 * \endcode
-		 */
-		void clear(const std::set<std::string>& partial_statements);
-
 		/**
 		 * Like Ontology::clear(const std::string&) but in a specific agent model.\n
 		 */
-		void clearForAgent(const std::string& agent, const std::string& partial_statement);
+		void clearForAgent(const std::string& agent, const std::set<std::string>& partial_statement);
 
 		/**
 		 * Checks the ontology consistency.
