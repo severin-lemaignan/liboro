@@ -563,6 +563,23 @@ void Ontology::getInfos(const string& resource, set<string>& result){
 	
 }
 
+void Ontology::getInfosForAgent(const string& agent, const string& resource, set<string>& result){
+	
+	vector<server_param_types> args;
+	args.push_back(agent);
+	args.push_back(resource);
+		
+	ServerResponse res = _connector.execute("getInfosForAgent", args);
+	if (res.status != ServerResponse::ok)
+	{
+		if (res.exception_msg.find(SERVER_NOTFOUND_EXCEPTION) != string::npos)
+			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
+		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
+	}
+        result = get<set<string> >(res.result);
+	
+}
+
 void Ontology::getResourceDetails(const string& resource, string& result){
 	ServerResponse res = _connector.execute("getResourceDetails", resource);
 	if (res.status != ServerResponse::ok)

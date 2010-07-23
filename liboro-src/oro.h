@@ -601,11 +601,17 @@ class Ontology {
 		 * This example would print all the types (classes) of the instance ns:individual1.
 		 * 
 		 * @param resource the lexical form of an existing resource.
-		 * @param result a vector of string related to the resource.
+		 * @param result a vector of statements related to the resource.
 		 * @throw ResourceNotFoundOntologyException thrown if the resource doesn't exist in the ontology.
 		 * @throw OntologyServerException thrown an error occured on the server during the query processing.
 		 */
 		void getInfos(const std::string& resource, std::set<std::string>& result);
+		
+		/**
+		 * Like Ontology::getInfos(const std::string&, std::set<Statement>&);
+		 * but look for statements in a specific agent model.
+		 */
+		void getInfosForAgent(const std::string& agent, const std::string& resource, std::set<std::string>& result);
 		
 		void getResourceDetails(const std::string& resource, std::string& result);
 		
