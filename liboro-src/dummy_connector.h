@@ -36,9 +36,15 @@ class DummyConnector : public IConnector {
 	public:
 		DummyConnector();
 		
-		ServerResponse execute(const std::string query, const std::vector<server_param_types>& args);
-		ServerResponse execute(const std::string query, const server_param_types& arg);
-		ServerResponse execute(const std::string query);
+                ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
+                ServerResponse execute(const std::string& query, const server_param_types& arg);
+                ServerResponse execute(const std::string& query);
+
+
+                virtual void setEventCallback(
+                                void (*evtCallback)(const std::string& event_id,
+                                                                        const server_return_types& raw_event_content)
+                                ) {};
 			
 	private:
 		std::vector<Statement> _stmt_storage;
