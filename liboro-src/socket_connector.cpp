@@ -183,8 +183,19 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			
 			ssize_t bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
 			
-			if (bytes_read < 0) throw OntologyServerException("Error reading from the server! Connection closed by the server?");
-                        if (bytes_read == 0) throw OntologyServerException("Error reading from the server! Empty string");
+			if (bytes_read < 0) {
+				res.status = ServerResponse::failed;
+				res.exception_msg = "ConnectorException";
+				res.error_msg = "Error reading from the server! Connection closed by the server?";
+				return;
+			}
+				
+			if (bytes_read == 0) {
+				res.status = ServerResponse::failed;
+				res.exception_msg = "OntologyServerException";
+				res.error_msg = "Error reading from the server! Empty string";
+				return;
+			}
 			
 			string field = buffer;
 
@@ -217,62 +228,87 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			
 		//cout << "Taille: " << rawResult->size() << endl;
 		
-		if (rawResult.size() < 2 || rawResult.size() > 3) throw OntologyServerException("Internal error! Wrong number of result element returned by the server.");
-		
-		if (rawResult[0] == ERROR){
-
-                    if (only_events) { //we were waiting for events but got another message!!
-                        cout << "Got an ERROR message from the server that was unexpected!" << endl;
-                        read(res, true);
-                    }
-
-                    //throw OntologyServerException(rawResult->get(1).asString());
-                    res.status = ServerResponse::failed;
-                    res.exception_msg = rawResult[1];
-                    res.error_msg = rawResult[2];
-                    //cout << "ERROR Query to ontology server failed." << endl;
-                    return;
-		}
-
-                if (rawResult[0] == OK){
-
-                    if (only_events) { //we were waiting for events but got another message!!
-                        cout << "Got an OK message from the server that was unexpected!" << endl;
-                        read(res, true);
-                    }
-
-                    res.status = ServerResponse::ok;
-
-                    res.raw_result = rawResult[1];
-                    //cout << "[II] Raw result: " << rawResult[1] << endl;
-
-                    deserialize(rawResult[1], res.result);
-
-                    //cout << "Query to ontology server succeeded." << endl;
-                    return;
-		}
-		
-		if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
-			
-			if (_evtCallback != NULL) {
-                            cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
-				server_return_types raw_event_content;
-				deserialize(rawResult[2], raw_event_content);
-				_evtCallback(rawResult[1], raw_event_content);
-			}
-			
-
-                        if (!only_events) {
-                            //Fetch the next message, hoping it's the right one.
-                            read(res, only_events);
-                        }
-			
+		if (rawResult.size() < 2 || rawResult.size() > 3) {
+			res.status = ServerResponse::failed;
+			res.exception_msg = "OntologyServerException";
+			res.error_msg = "Internal server error! Wrong number of result element returned by the server.";
 			return;
 		}
-		
+		else 
+		{
+			
+		    if (rawResult[0] == ERROR){
 
-		throw OntologyServerException("Internal error! The server answer should start with \"ok\", \"event\" or \"error\"");
-	
+				if (only_events) { //we were waiting for events but got another message!!
+					cout << "Got an ERROR message from the server that was unexpected!" << endl;
+					read(res, true);
+				}
+
+				//throw OntologyServerException(rawResult->get(1).asString());
+				res.status = ServerResponse::failed;
+				res.exception_msg = rawResult[1];
+				res.error_msg = rawResult[2];
+				//cout << "ERROR Query to ontology server failed." << endl;
+				return;
+		    }
+
+		    if (rawResult[0] == OK){
+
+				if (only_events) { //we were waiting for events but got another message!!
+					cout << "Got an OK message from the server that was unexpected!" << endl;
+					read(res, true);
+				}
+
+				res.status = ServerResponse::ok;
+
+				res.raw_result = rawResult[1];
+				//cout << "[II] Raw result: " << rawResult[1] << endl;
+
+				try {
+					deserialize(rawResult[1], res.result);
+				} catch (OntologyServerException ose) {
+						res.status = ServerResponse::failed;
+						res.exception_msg = "OntologyServerException";
+						res.error_msg = ose.what();
+						return;
+					}
+
+				//cout << "Query to ontology server succeeded." << endl;
+				return;
+		    }
+		    
+		    if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
+			    
+			    if (_evtCallback != NULL) {
+				cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
+				    server_return_types raw_event_content;
+					
+					try {
+						deserialize(rawResult[2], raw_event_content);
+					} catch (OntologyServerException ose) {
+						res.status = ServerResponse::failed;
+						res.exception_msg = "OntologyServerException";
+						res.error_msg = ose.what();
+						return;
+					}
+					
+				    _evtCallback(rawResult[1], raw_event_content);
+			    }
+			    
+
+				if (!only_events) {
+				//Fetch the next message, hoping it's the right one.
+				read(res, only_events);
+				}
+				
+				return;
+			}
+		
+			res.status = ServerResponse::failed;
+			res.exception_msg = "OntologyServerException";
+			res.error_msg = "Internal server error! The server answer should start with \"ok\", \"event\" or \"error\"";
+	    }
+
 }
 
 void SocketConnector::run(){
@@ -343,11 +379,9 @@ void SocketConnector::run(){
 
             int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
 
-            if (retval == -1)
-                throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
-            else if (retval) {
+            if (retval != -1)
                 read(res, true); //got something to read from the server!
-            }
+
         }
     }
 }
