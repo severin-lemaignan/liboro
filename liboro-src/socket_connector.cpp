@@ -234,156 +234,149 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			res.error_msg = "Internal server error! Wrong number of result element returned by the server.";
 			return;
 		}
-		else 
-		{
+		
+		if (rawResult[0] == ERROR){
 			
-		    if (rawResult[0] == ERROR){
+			if (only_events) { //we were waiting for events but got another message!!
+				cout << "Got an ERROR message from the server that was unexpected!" << endl;
+				read(res, true);
+			}
+			
+			res.status = ServerResponse::failed;
+			res.exception_msg = rawResult[1];
+			res.error_msg = rawResult[2];
+			return;
+		}
 
-				if (only_events) { //we were waiting for events but got another message!!
-					cout << "Got an ERROR message from the server that was unexpected!" << endl;
-					read(res, true);
+		if (rawResult[0] == OK){
+			
+			if (only_events) { //we were waiting for events but got another message!!
+				cout << "Got an OK message from the server that was unexpected!" << endl;
+				read(res, true);
+			}
+
+			res.status = ServerResponse::ok;
+
+			res.raw_result = rawResult[1];
+			//cout << "[II] Raw result: " << rawResult[1] << endl;
+
+			try {
+				deserialize(rawResult[1], res.result);
+			} catch (OntologyServerException ose) {
+					res.status = ServerResponse::failed;
+					res.exception_msg = "OntologyServerException";
+					res.error_msg = ose.what();
+					return;
 				}
 
-				//throw OntologyServerException(rawResult->get(1).asString());
-				res.status = ServerResponse::failed;
-				res.exception_msg = rawResult[1];
-				res.error_msg = rawResult[2];
-				//cout << "ERROR Query to ontology server failed." << endl;
-				return;
-		    }
+			//cout << "Query to ontology server succeeded." << endl;
+			return;
+		}
 
-		    if (rawResult[0] == OK){
-
-				if (only_events) { //we were waiting for events but got another message!!
-					cout << "Got an OK message from the server that was unexpected!" << endl;
-					read(res, true);
-				}
-
-				res.status = ServerResponse::ok;
-
-				res.raw_result = rawResult[1];
-				//cout << "[II] Raw result: " << rawResult[1] << endl;
-
+		if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
+			
+			if (_evtCallback != NULL) {
+			cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
+				server_return_types raw_event_content;
+				
 				try {
-					deserialize(rawResult[1], res.result);
+					deserialize(rawResult[2], raw_event_content);
 				} catch (OntologyServerException ose) {
-						res.status = ServerResponse::failed;
-						res.exception_msg = "OntologyServerException";
-						res.error_msg = ose.what();
-						return;
-					}
-
-				//cout << "Query to ontology server succeeded." << endl;
-				return;
-		    }
-		    
-		    if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
-			    
-			    if (_evtCallback != NULL) {
-				cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
-				    server_return_types raw_event_content;
-					
-					try {
-						deserialize(rawResult[2], raw_event_content);
-					} catch (OntologyServerException ose) {
-						res.status = ServerResponse::failed;
-						res.exception_msg = "OntologyServerException";
-						res.error_msg = ose.what();
-						return;
-					}
-					
-				    _evtCallback(rawResult[1], raw_event_content);
-			    }
-			    
-
-				if (!only_events) {
-				//Fetch the next message, hoping it's the right one.
-				read(res, only_events);
+					res.status = ServerResponse::failed;
+					res.exception_msg = "OntologyServerException";
+					res.error_msg = ose.what();
+					return;
 				}
 				
-				return;
+				_evtCallback(rawResult[1], raw_event_content);
 			}
+			
+
+			if (!only_events) {
+			//Fetch the next message, hoping it's the right one.
+			read(res, only_events);
+			}
+			
+			return;
+		}
 		
-			res.status = ServerResponse::failed;
-			res.exception_msg = "OntologyServerException";
-			res.error_msg = "Internal server error! The server answer should start with \"ok\", \"event\" or \"error\"";
-	    }
+		res.status = ServerResponse::failed;
+		res.exception_msg = "OntologyServerException";
+		res.error_msg = "Internal server error! The server answer should start with \"ok\", \"event\" or \"error\"";
+
 
 }
 
 void SocketConnector::run(){
 
-    ServerResponse res;
+	ServerResponse res;
 
-    bool gotAQuery = false;
-    query_type q;
-    ParametersSerializationHolder paramsHolder;
+	bool gotAQuery = false;
+	query_type q;
+	ParametersSerializationHolder paramsHolder;
 
-    while (_goOn) {
-        {
-            lock_guard<mutex> lock(inbound_lock);
+	while (_goOn) {
+		{
+			lock_guard<mutex> lock(inbound_lock);
 
-            if (!inbound_requests.empty()) {
-                gotAQuery = true;
+			if (!inbound_requests.empty()) {
+				gotAQuery = true;
 
-                q = inbound_requests.front();
-                inbound_requests.pop();
-            }
-        }
+				q = inbound_requests.front();
+				inbound_requests.pop();
+			}
+		}
 
-        if (gotAQuery) {
+		if (gotAQuery) {
 
-            gotAQuery = false;
-            //cout << "[II] Query: " << q.first << endl;
+			gotAQuery = false;
 
-            string completeQuery = q.first + MSG_SEPARATOR ;
+			string completeQuery = q.first + MSG_SEPARATOR ;
 
-            if (!q.second.empty()) {
-                //serialization of arguments
-                std::for_each(
-                        q.second.begin(),
-                        q.second.end(),
-                        boost::apply_visitor(paramsHolder)
-                );
+			if (!q.second.empty()) {
+				//serialization of arguments
+				std::for_each(
+						q.second.begin(),
+						q.second.end(),
+						boost::apply_visitor(paramsHolder)
+				);
 
-                 completeQuery +=  paramsHolder.getArgs();
-                 paramsHolder.reset();
-            }
+				 completeQuery +=  paramsHolder.getArgs();
+				 paramsHolder.reset();
+			}
 
-            completeQuery += MSG_FINALIZER;
+			completeQuery += MSG_FINALIZER;
 
-            // Now send it on its way
-            write(sockfd,completeQuery.c_str(),completeQuery.length());
+			// Now send it on its way
+			write(sockfd,completeQuery.c_str(),completeQuery.length());
 
-            read(res, false); //will block until an answer is read.
+			read(res, false); //will block until an answer is read.
 
-            {
-                lock_guard<mutex> lock(outbound_lock);
+			{
+				lock_guard<mutex> lock(outbound_lock);
 
-                outbound_results.push(res);
+				outbound_results.push(res);
+			}
 
-                //cout << "[II] Outbound queue length: " << outbound_results.size() << endl;
-            }
+		}
+		else {
 
-        }
-        else {
+			//TODO: replace this 'timeout' approach by a blocking select 
+			//that would be unblocked when a write is needed (signaled by a write
+			//on a pipe, for instance)
+			tv.tv_sec = 0;
+			tv.tv_usec = 10000; //10ms
 
-            //TODO: replace this 'timeout' approach by a blocking select 
-	    //that would be unblocked when a write is needed (signaled by a write
-	    //on a pipe, for instance)
-            tv.tv_sec = 0;
-            tv.tv_usec = 10000; //10ms
+			FD_ZERO(&sockets_to_read);
+			FD_SET(sockfd, &sockets_to_read);
 
-            FD_ZERO(&sockets_to_read);
-            FD_SET(sockfd, &sockets_to_read);
+			int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
 
-            int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
+			if (retval != -1)
+				read(res, true); //got something to read from the server!
 
-            if (retval != -1)
-                read(res, true); //got something to read from the server!
-
-        }
-    }
+		}
+	}
 }
 
 /** Remove leading and trailing quotes and whitespace if needed. 
