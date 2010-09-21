@@ -171,7 +171,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 		
 		vector<string> rawResult;
 		
-		size_t MAX_LINE_LENGTH = 255;
+		size_t MAX_LINE_LENGTH = 2047;
 		
 		char *buffer;
 		
@@ -199,8 +199,8 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			
 			string field = buffer;
 
-                        //cout << "[II RAW] bytes read: " << bytes_read << endl;
-                        //cout << "[II RAW] " << field;
+			//cout << "[II RAW] bytes read: " << bytes_read << endl;
+			//cout << "[II RAW] " << field;
 			if (field == MSG_FINALIZER)
 				break;
 
@@ -224,9 +224,6 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			return;
 		}		
 */		
-		//cout << "got it! "  << endl;
-			
-		//cout << "Taille: " << rawResult->size() << endl;
 		
 		if (rawResult.size() < 2 || rawResult.size() > 3) {
 			res.status = ServerResponse::failed;
