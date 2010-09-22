@@ -188,7 +188,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 				res.exception_msg = "ConnectorException";
 				res.error_msg = "Error reading from the server! Connection closed by the server?";
 				return;
-			}
+                        }
 				
 			if (bytes_read == 0) {
 				res.status = ServerResponse::failed;
@@ -313,6 +313,7 @@ void SocketConnector::run(){
 	ParametersSerializationHolder paramsHolder;
 
 	while (_goOn) {
+
 		{
 			lock_guard<mutex> lock(inbound_lock);
 
@@ -369,8 +370,13 @@ void SocketConnector::run(){
 
 			int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
 
-			if (retval != -1)
-				read(res, true); //got something to read from the server!
+                        if (retval == -1)
+                            //throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
+                            cerr << "Error during the select" << endl;
+                        else if (retval) {
+                            read(res, true); //got something to read from the server!
+                        }
+
 
 		}
 	}
