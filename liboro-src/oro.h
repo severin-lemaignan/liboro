@@ -592,6 +592,15 @@ class Ontology {
 		void query(const std::string& var_name, const std::string& query, std::set<std::string>& result);
 		
 		/**
+		 * Returns the direct class (or classes) of an instance, ie classes that 
+		 * are not super-classes of any other class of the instance.
+		 * 
+		 * @param resource the lexical form of an existing instance.
+		 * @param result a vector of classes.
+		 */
+		void getDirectClasses(const std::string& resource, std::set<Concept>& result);
+		
+		/**
 		 * Returns the set of asserted and inferred statements whose the given node is part of. It represents the "usages" of a resource.\n
 		 * Usage example:\n
 		 * \code

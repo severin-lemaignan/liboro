@@ -551,6 +551,34 @@ void Ontology::query(const string& var_name, const string& query, set<string>& r
 		result = *result_p;
 }
 
+void Ontology::getDirectClasses(const string& resource, set<Concept>& result){
+	
+	map<string, string> rawResult;
+	
+	ServerResponse res = _connector.execute("getDirectClassesOf", resource);
+	if (res.status != ServerResponse::ok)
+	{
+		if (res.exception_msg.find(SERVER_NOTFOUND_EXCEPTION) != string::npos)
+			throw ResourceNotFoundOntologyException(resource + " does not exist in the current ontology.");
+		else throw OntologyServerException("Couldn't retrieve infos on " + resource + ": server threw a " + res.exception_msg + " (" + res.error_msg +").");	
+	}
+	
+		if (res.status != ServerResponse::ok)
+	{
+		throw OntologyServerException("\"Find\" operation was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +")");	
+	}
+	
+	try {
+		rawResult = get<map<string, string> >(res.result);
+		
+		for(map<string,string>::const_iterator iter = rawResult.begin(); iter != rawResult.end(); ++iter)
+			result.insert(iter->first);
+		
+	} catch (bad_get e) {
+		//nothing was returned. That's fine.
+	}
+}
+
 void Ontology::getInfos(const string& resource, set<string>& result){
 	ServerResponse res = _connector.execute("getInfos", resource);
 	if (res.status != ServerResponse::ok)

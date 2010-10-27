@@ -77,18 +77,6 @@ INSTALL (TARGETS oro-stats
 #                ORO-TEST                        #
 ##################################################
 
-#add_executable (oro-test oro_test_suite.cpp)
-#target_link_libraries (oro-test oro ${LIBS}) 
-#
-#SET_TARGET_PROPERTIES(oro-test PROPERTIES
-#	INSTALL_RPATH_USE_LINK_PATH TRUE
-#	INSTALL_RPATH ${INSTALL_PREFIX}/lib
-#	BUILD_WITH_INSTALL_RPATH TRUE )
-#
-#INSTALL (TARGETS oro-test
-#	RUNTIME DESTINATION bin
-#)	
-
 add_executable (oro-test oro_test.cpp)
 
 target_link_libraries (oro-test oro ${LIBS}) 
@@ -97,3 +85,7 @@ SET_TARGET_PROPERTIES(oro-test PROPERTIES
 	INSTALL_RPATH_USE_LINK_PATH TRUE
 	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
 	BUILD_WITH_INSTALL_RPATH TRUE )
+
+INSTALL (TARGETS oro-test
+	RUNTIME DESTINATION bin
+)	

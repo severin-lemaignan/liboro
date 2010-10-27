@@ -71,6 +71,12 @@
 	//display the results on std_out
 	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
 	
+	result.clear();
+	
+	oro->getDirectClasses(human.id(), result);
+	cout << "The direct type of Young PhD is: ";
+	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+	
 	/** EVENTS **/
 	EventCallback ec;
 	Classes::Human.onNewInstance(ec);
