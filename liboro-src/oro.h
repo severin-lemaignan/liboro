@@ -288,14 +288,18 @@ class Ontology {
 		 * no automatic buffering is done. If you're removing several statements, 
 		 * you're strongly advised to use Ontology::bufferize() and 
 		 * Ontology::flush() before and after the call to \p remove(Set) .\n
+		 *
+		 * This method is deprecated. Use clear(const std::set<std::string>&) instead.
 		*/
-		void remove(const std::set<Statement>& statements);
+		void remove(const std::set<Statement>& statements) __attribute__((deprecated));
 		
 		/**
 		 * Removes one statement from the ontology. Does nothing is the 
 		 * statement doesn't exist.
+		 *
+		 * This method is deprecated. Use clear(const std::string&) instead.
 		 */
-		void remove(const Statement& statement);
+		void remove(const Statement& statement) __attribute__((deprecated));
 		
 		/**
 		 * Updates a set of statement from the ontology. Behaves like 
@@ -322,7 +326,7 @@ class Ontology {
 		void update(const Statement& statement);
 		
 		 /**
-		 * Removes all statements matching any partial statements in a set.
+		 * Removes all statements matching any statements or partial statements in a set.
 		 * 
 		 * Attention, the implicit relation between each of the partial statements
 		 * in the set is a OR: the ontology is matched against each of the provided
@@ -365,7 +369,7 @@ class Ontology {
 		 * }
 		 * \endcode
 		 */
-		void clear(const std::set<std::string>& partial_statements);
+		void clear(const std::set<std::string>& statements);
 		
 		/**
 		 * Adds a new statement to a specific agent ontology.\n
@@ -386,16 +390,20 @@ class Ontology {
 		/**
 		 * Removes one statement from a specific agent ontology. Does nothing 
 		 * is the statement doesn't exist.
+		 *
+		 * This method is deprecated. Use clearForAgent(const std::set<std::string>&) instead.
 		 */
-		void removeForAgent(const std::string& agent, const Statement& statement);
+		void removeForAgent(const std::string& agent, const Statement& statement) __attribute__((deprecated));
 
 		/**
 		 * Removes a set of statements from a specific agent ontology. Silently 
 		 * ignore statements that don't exist.\n
 		 * 
 		 * No buffering is currently supported for removeForAgent.
+		 *
+		 * This method is deprecated. Use clearForAgent(const std::string&) instead.
 		*/
-		void removeForAgent(const std::string& agent, const std::set<Statement>& statements);
+		void removeForAgent(const std::string& agent, const std::set<Statement>& statements) __attribute__((deprecated));
 
 		/**
 		 * Updates one statement in a specific agent ontology.\n
@@ -424,7 +432,7 @@ class Ontology {
 		/**
 		 * Like Ontology::clear(const std::string&) but in a specific agent model.\n
 		 */
-		void clearForAgent(const std::string& agent, const std::set<std::string>& partial_statement);
+		void clearForAgent(const std::string& agent, const std::set<std::string>& statements);
 
 		/**
 		 * Checks the ontology consistency.
