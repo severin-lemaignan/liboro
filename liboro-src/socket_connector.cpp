@@ -16,6 +16,8 @@
 */
 
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
 
 #include <iostream>
 #include <fstream>
@@ -167,30 +169,49 @@ void SocketConnector::executeDry(const string query){
 }
 
 
-// based on CMU RobustIO package
-// http://www.cs.cmu.edu/afs/cs/academic/class/15213-f04/lectures/class22.pdf
-ssize_t SocketConnector::readline(int fd, char *bufp, size_t maxlen) 
+// based on libtclserv_client socket implementation
+ssize_t SocketConnector::readline(int fd, char *bufp, size_t maxlen)
 {
-    int n, rc;
-    char c;
+    int nb_to_read = 0;
+    char* p;
+    size_t size_request;
+    ssize_t err;
 
-    for (n = 1; n < maxlen; n++) {
-        if ((rc = recv(fd, &c, 1, MSG_DONTWAIT)) == 1) {
-            *bufp++ = c;
-            if (c == '\n')
-                break;
-        } else if (rc == 0) {
-            if (n == 1){
-                return 0; /* EOF, no data read */
-            }
-            else
-                break;    /* EOF, some data was read */
-        } else {
-            return -1;	  /* error */
-        }
+    // get the len of the buffer
+    if (ioctl(fd, FIONREAD, &nb_to_read) == -1)
+    {
+            cerr << "failed to call ioctl FIONREAD" << endl;
+            return -1;
     }
-    *bufp++ = '\0';
-    return n;
+
+    if (nb_to_read >= maxlen) {
+            cerr << "Buffer too small!" << endl;
+            return -1;
+    }
+
+    err = recv(fd, bufp, nb_to_read, MSG_PEEK);
+    if (err == -1) {
+            cerr << "Failed to recv" << endl;
+            return -1;
+    }
+
+    if (err == 0) {
+            close(fd);
+            fd = -1;
+            cerr << "Peer deconnection" << endl;
+            return -1;
+    }
+
+    // look if we can find a rqst
+    p = strstr(bufp, "\n");
+    if (p == NULL) { assert(0); } // XXX WTF here
+    size_request = p - bufp + 1;
+
+    err = recv(fd, bufp, size_request, 0);
+    bufp[err] = 0;
+    //cout << "DEBUG >>> reading " << bufp << endl;
+    return err;
+
 }
 
 void SocketConnector::read(ServerResponse& res, bool only_events){
@@ -199,11 +220,10 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 		
 		vector<string> rawResult;
 		
-		size_t MAX_LINE_LENGTH = 2047;
-		
-		char *buffer;
-		
-		buffer = (char *) malloc (MAX_LINE_LENGTH + 1);
+                size_t MAX_LINE_LENGTH = 2048;
+
+
+                char buffer[MAX_LINE_LENGTH];
 		
                 while (true) {
 			
@@ -234,7 +254,6 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			rawResult.push_back(cleanValue(field));
 		}
 		
-		free(buffer);
 		
 /*
 		while (rawResult == NULL && delay < ORO_MAX_DELAY){
@@ -396,9 +415,22 @@ void SocketConnector::run(){
 
         int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
 
-        if (retval == -1)
-            //throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
-            cerr << "Error during the select" << endl;
+        if (retval == -1) {
+            //cerr << "Error during the select: oro-server disconnected? (errno:" << errno << ")" << endl;
+
+            if (waitingAnAnswer) {
+                res.status = ServerResponse::failed;
+                res.exception_msg = "ConnectorException";
+                res.error_msg = "Error reading from the server! Connection closed by the server?";
+
+                {
+                    lock_guard<mutex> lock(outbound_lock);
+
+                    outbound_results.push(res);
+                }
+            }
+        }
+
         else if (retval) { //got something to read from the server!
 
             if (waitingAnAnswer) {
