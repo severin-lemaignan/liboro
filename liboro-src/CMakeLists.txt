@@ -8,6 +8,7 @@ ADD_LIBRARY (oro ontology.cpp concepts.cpp socket_connector.cpp class.cpp proper
 #                      PROPERTIES PUBLIC_HEADER "${ORO_HEADERS}"
 #)
 
+TARGET_LINK_LIBRARIES(oro ${LIBS})
 
 INSTALL (TARGETS oro
 	LIBRARY DESTINATION lib
