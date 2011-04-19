@@ -132,6 +132,8 @@ private:
 
         std::queue<ServerResponse> outbound_results;
         boost::mutex    outbound_lock;
+
+	ssize_t readline(int fd, char *bufp, size_t maxlen);
 	
 	// The event callback
 	void (*_evtCallback)(const std::string& event_id, 

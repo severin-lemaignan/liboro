@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#include <sys/socket.h>
+
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -115,7 +117,7 @@ SocketConnector::~SocketConnector(){
 }
 
 ServerResponse SocketConnector::execute(const string& query, const vector<server_param_types>& vect_args){
-		
+
     {
         lock_guard<mutex> lock(inbound_lock);
 
@@ -165,9 +167,35 @@ void SocketConnector::executeDry(const string query){
 }
 
 
+// based on CMU RobustIO package
+// http://www.cs.cmu.edu/afs/cs/academic/class/15213-f04/lectures/class22.pdf
+ssize_t SocketConnector::readline(int fd, char *bufp, size_t maxlen) 
+{
+    int n, rc;
+    char c;
+
+    for (n = 1; n < maxlen; n++) {
+        if ((rc = recv(fd, &c, 1, MSG_DONTWAIT)) == 1) {
+            *bufp++ = c;
+            if (c == '\n')
+                break;
+        } else if (rc == 0) {
+            if (n == 1){
+                return 0; /* EOF, no data read */
+            }
+            else
+                break;    /* EOF, some data was read */
+        } else {
+            return -1;	  /* error */
+        }
+    }
+    *bufp++ = '\0';
+    return n;
+}
+
 void SocketConnector::read(ServerResponse& res, bool only_events){
 	
-		//cout << "Waiting for answer...";
+                //cout << "Waiting for answer..." << endl;
 		
 		vector<string> rawResult;
 		
@@ -176,12 +204,10 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 		char *buffer;
 		
 		buffer = (char *) malloc (MAX_LINE_LENGTH + 1);
-
-		FILE *socket_stream_in = fdopen(sockfd, "r");
 		
-		while (true) {
+                while (true) {
 			
-			ssize_t bytes_read = getline(&buffer, &MAX_LINE_LENGTH, socket_stream_in);
+                        ssize_t bytes_read = readline(sockfd, buffer, MAX_LINE_LENGTH);
 			
 			if (bytes_read < 0) {
 				res.status = ServerResponse::failed;
@@ -197,10 +223,10 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 				return;
 			}
 			
-			string field = buffer;
+			string field(buffer);
 
-			//cout << "[II RAW] bytes read: " << bytes_read << endl;
-			//cout << "[II RAW] " << field;
+                        //cout << "[II RAW] bytes read: " << bytes_read << endl;
+                        //cout << "[II RAW] " << field;
 			if (field == MSG_FINALIZER)
 				break;
 
@@ -236,7 +262,10 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 			
 			if (only_events) { //we were waiting for events but got another message!!
 				cout << "Got an ERROR message from the server that was unexpected!" << endl;
-				read(res, true);
+                                cout << "Result was: " << rawResult[1] << endl;
+                                cout << "Discarding it." << endl;
+                                read(res, true);
+                                return;
 			}
 			
 			res.status = ServerResponse::failed;
@@ -248,8 +277,11 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 		if (rawResult[0] == OK){
 			
 			if (only_events) { //we were waiting for events but got another message!!
-				cout << "Got an OK message from the server that was unexpected!" << endl;
-				read(res, true);
+                                cout << "Got an OK message from the server that was unexpected!" << endl;
+                                cout << "Result was: " << rawResult[1] << endl;
+                                cout << "Discarding it." << endl;
+                                read(res, true);
+                                return;
 			}
 
 			res.status = ServerResponse::ok;
@@ -306,80 +338,89 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
 void SocketConnector::run(){
 
-	ServerResponse res;
+    ServerResponse res;
 
-	bool gotAQuery = false;
-	query_type q;
-	ParametersSerializationHolder paramsHolder;
+    bool gotAQuery = false;
+    bool waitingAnAnswer = false;
 
-	while (_goOn) {
+    query_type q;
+    ParametersSerializationHolder paramsHolder;
 
-		{
-			lock_guard<mutex> lock(inbound_lock);
+    while (_goOn) {
 
-			if (!inbound_requests.empty()) {
-				gotAQuery = true;
+        {
+            lock_guard<mutex> lock(inbound_lock);
 
-				q = inbound_requests.front();
-				inbound_requests.pop();
-			}
-		}
+            if (!inbound_requests.empty()) {
+                gotAQuery = true;
 
-		if (gotAQuery) {
+                q = inbound_requests.front();
+                inbound_requests.pop();
+            }
+        }
 
-			gotAQuery = false;
+        if (gotAQuery) {
 
-			string completeQuery = q.first + MSG_SEPARATOR ;
+            string completeQuery = q.first + MSG_SEPARATOR ;
 
-			if (!q.second.empty()) {
-				//serialization of arguments
-				std::for_each(
-						q.second.begin(),
-						q.second.end(),
-						boost::apply_visitor(paramsHolder)
-				);
+            if (!q.second.empty()) {
+                //serialization of arguments
+                std::for_each(
+                            q.second.begin(),
+                            q.second.end(),
+                            boost::apply_visitor(paramsHolder)
+                            );
 
-				 completeQuery +=  paramsHolder.getArgs();
-				 paramsHolder.reset();
-			}
+                completeQuery +=  paramsHolder.getArgs();
+                paramsHolder.reset();
+            }
 
-			completeQuery += MSG_FINALIZER;
+            completeQuery += MSG_FINALIZER;
 
-			// Now send it on its way
-			write(sockfd,completeQuery.c_str(),completeQuery.length());
+            // Now send it on its way
+            write(sockfd,completeQuery.c_str(),completeQuery.length());
 
-			read(res, false); //will block until an answer is read.
+            gotAQuery = false;
+            waitingAnAnswer = true;
 
-			{
-				lock_guard<mutex> lock(outbound_lock);
+        }
 
-				outbound_results.push(res);
-			}
+        //TODO: replace this 'timeout' approach by a blocking select
+        //that would be unblocked when a write is needed (signaled by a write
+        //on a pipe, for instance)
+        tv.tv_sec = 0;
+        tv.tv_usec = 10000; //10ms
 
-		}
-		else {
+        FD_ZERO(&sockets_to_read);
+        FD_SET(sockfd, &sockets_to_read);
 
-			//TODO: replace this 'timeout' approach by a blocking select 
-			//that would be unblocked when a write is needed (signaled by a write
-			//on a pipe, for instance)
-			tv.tv_sec = 0;
-			tv.tv_usec = 10000; //10ms
+        int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
 
-			FD_ZERO(&sockets_to_read);
-			FD_SET(sockfd, &sockets_to_read);
+        if (retval == -1)
+            //throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
+            cerr << "Error during the select" << endl;
+        else if (retval) { //got something to read from the server!
 
-			int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, &tv);
+            if (waitingAnAnswer) {
 
-                        if (retval == -1)
-                            //throw ConnectorException("An error occured while doing a 'select' on the oro-server socket");
-                            cerr << "Error during the select" << endl;
-                        else if (retval) {
-                            read(res, true); //got something to read from the server!
-                        }
+                read(res, false); //will block until an answer is read.
+
+                {
+                    lock_guard<mutex> lock(outbound_lock);
+
+                    outbound_results.push(res);
+                }
+
+                waitingAnAnswer = false;
+            }
+            else {
+                read(res, true);
 
 
-		}
+
+            }
 	}
+    }
 }
 
 /** Remove leading and trailing quotes and whitespace if needed. 
