@@ -80,10 +80,16 @@ public:
  	 * \param[in] oro_in_port_name the name of the input YARP port of the ontology server, without any slashes. It will be suffixed with "/in". For instance, if you pass "oro", the actual port the connector will send request to will be "/oro/in"
 	 */
 	
-	SocketConnector(const std::string hostname, const std::string port);
+        SocketConnector(const std::string& hostname, const std::string& port);
 
 	virtual ~SocketConnector();
-	
+
+        /** Tries to reconnect on the same host and port used for construction.
+          * If already connected, does nothing.
+          * Throws oro::ConnectorException if the reconnection fails.
+          */
+        void reconnect();
+
 	/* IConnector interface implementation */
 	ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
 	ServerResponse execute(const std::string& query, const server_param_types& arg);
@@ -105,7 +111,9 @@ public:
 	
 private:
 
-	static std::string protectValue(const std::string& value);
+        void oro_connect(const std::string& hostname, const std::string& port);
+
+        static std::string protectValue(const std::string& value);
 	static std::string& cleanValue(std::string& value);
 	
 	void deserialize(const std::string& msg, server_return_types& result);
@@ -115,7 +123,9 @@ private:
 
 	bool isConnected;
 
-	// Socket related fields
+        // Socket related fields
+        std::string host;
+        std::string port;
 	int sockfd;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;

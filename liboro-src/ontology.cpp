@@ -70,7 +70,6 @@ Ontology* Ontology::getInstance(){
 }
 
 bool Ontology::checkOntologyServer(){
-	vector<string> result;
 	
 	ServerResponse res = _connector.execute("stats");
 	

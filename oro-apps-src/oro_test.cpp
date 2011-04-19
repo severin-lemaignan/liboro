@@ -15,91 +15,132 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
- #include <iostream>
- #include <iterator>
- #include <boost/variant.hpp>
- 
- #include "oro.h"
- #include "oro_library.h"
- #include "socket_connector.h"
+#include <iostream>
+#include <iterator>
+#include <boost/variant.hpp>
 
- using namespace std;
- using namespace oro;
- 
- class EventCallback : public OroEventObserver {
+#include "oro.h"
+#include "oro_library.h"
+#include "socket_connector.h"
 
-	void operator()(const OroEvent& evt) {
-                cout << "Event triggered!" << endl << "Event content: " << endl;
-		
-		set<Concept> evt_content = boost::get<set<Concept> >(evt.content);
-		
-		copy(evt_content.begin(), evt_content.end(), ostream_iterator<Concept>(cout, "\n"));
-	} 
- };
- 
- int main(void) {
-	set<Concept> result;
-	set<string> partial_stmts;
+using namespace std;
+using namespace oro;
 
-	SocketConnector connector("localhost", "6969");
-	Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
+#define HOST "localhost"
+#define PORT "6969"
 
-        oro->bufferize();
-		//First, create some instances (ie, objects).
-		Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
-		Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
+class EventCallback : public OroEventObserver {
 
-		Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
-		Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
-                //if no setter is available for a given property, then direct assertion can be made.
-		//the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
-		unknown_object.assertThat(Properties::isOn, table);
+    void operator()(const OroEvent& evt) {
+        cout << "Event triggered!" << endl << "Event content: " << endl;
 
-		Agent myself("myself"); //"myself" is a special, unique instance representing the robot itself. This instance is built from the already existing identifier "myself". Hence the constructor of the Agent class can be directly called.
+        set<Concept> evt_content = boost::get<set<Concept> >(evt.content);
 
-		myself.sees(unknown_object);
-		myself.sees(human);
-	oro->flush();
-
-	//Then, try to find back the unknown object...
-	partial_stmts.insert("?mysterious oro:isAt ?table");
-	partial_stmts.insert("?table rdf:type oro:Table");
-	partial_stmts.insert("oro:myself oro:sees ?mysterious");
-
-	oro->find("mysterious", partial_stmts, result);
-
-	//display the results on std_out
-	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
-	
-	result.clear();
-	
-	oro->getDirectClasses(human.id(), result);
-	cout << "The direct type of Young PhD is: ";
-	copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
-	
-	/** EVENTS **/
-	EventCallback ec;
-	Classes::Human.onNewInstance(ec);
-	Agent superman = Agent::create("Superman", Classes::Human);
-	
-	cout << "Sleeping for 1 sec..." << endl;
-	sleep(1);
+        copy(evt_content.begin(), evt_content.end(), ostream_iterator<Concept>(cout, "\n"));
+    }
+};
 
 
-        set<string> event_pattern;
-        Property flyingProp = Property("isFlying");
+bool testConnectionCrash() {
+   // Test behaviour of liboro when oro-server crashes
 
-        event_pattern.insert( superman.id() + " isFlying true");
-        oro->registerEvent(ec, FACT_CHECKING, ON_TRUE_ONE_SHOT, event_pattern, "");
+    bool isConnected = false;
+    SocketConnector *connector;
+    Ontology *onto;
+    connector = new SocketConnector(HOST, PORT);
+    onto = Ontology::createWithConnector(*connector);
 
-        superman.assertThat(flyingProp, "true");
+    isConnected = true;
+    while(true) {
 
-        cout << "Sleeping for 1 sec..." << endl;
-        sleep(1);
+        if(!isConnected) {
 
-	
-	//oro->checkConsistency();
+           try {
+                connector->reconnect();
+                isConnected = true;
+                cout << "Connection restablished!!" << endl;
+           } catch (const ConnectorException& co) {
+           }
+         }
 
-	return 0;
- }
+        try {
+            if(isConnected) onto->checkConsistency();
+
+        } catch (const runtime_error& ce) {
+            // Connection problem
+            cout << ce.what() << endl;
+            isConnected = false;
+        }
+
+    }
+    delete connector;
+
+
+}
+int main(void) {
+
+    testConnectionCrash();
+
+    set<Concept> result;
+    set<string> partial_stmts;
+
+    SocketConnector connector(HOST, PORT);
+    Ontology *oro = Ontology::createWithConnector(connector); //actually connect the application to the ontology server. The "oro" object is here built as a singleton.
+
+    oro->bufferize();
+    //First, create some instances (ie, objects).
+    Agent robot1 = Agent::create("Nice Robot", Classes::Robot); //a new instance of Agent has been created. It is named "Nice Robot" and its type (or "class") is set to be a Robot (which is a subconcept of Agent).
+    Agent human = Agent::create("Young PhD", Classes::Human); //another agent...
+
+    Object table = Object::create(Classes::Table); //here, an object is created. No name (or "label") has been set up, but the class is refined: it's not only an object, but more precisely a table.
+    Object unknown_object = Object::create(); //here, an unknown object has been identified, without any more infos.
+    //if no setter is available for a given property, then direct assertion can be made.
+    //the list of existing properties and classes come from the oro ontology itself (from which oro_library.h/cpp is automatically generated)
+    unknown_object.assertThat(Properties::isOn, table);
+
+    Agent myself("myself"); //"myself" is a special, unique instance representing the robot itself. This instance is built from the already existing identifier "myself". Hence the constructor of the Agent class can be directly called.
+
+    myself.sees(unknown_object);
+    myself.sees(human);
+    oro->flush();
+
+    //Then, try to find back the unknown object...
+    partial_stmts.insert("?mysterious oro:isAt ?table");
+    partial_stmts.insert("?table rdf:type oro:Table");
+    partial_stmts.insert("oro:myself oro:sees ?mysterious");
+
+    oro->find("mysterious", partial_stmts, result);
+
+    //display the results on std_out
+    copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+
+    result.clear();
+
+    oro->getDirectClasses(human.id(), result);
+    cout << "The direct type of Young PhD is: ";
+    copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
+
+    /** EVENTS **/
+    EventCallback ec;
+    Classes::Human.onNewInstance(ec);
+    Agent superman = Agent::create("Superman", Classes::Human);
+
+    cout << "Sleeping for 1 sec..." << endl;
+    sleep(1);
+
+
+    set<string> event_pattern;
+    Property flyingProp = Property("isFlying");
+
+    event_pattern.insert( superman.id() + " isFlying true");
+    oro->registerEvent(ec, FACT_CHECKING, ON_TRUE_ONE_SHOT, event_pattern, "");
+
+    superman.assertThat(flyingProp, "true");
+
+    cout << "Sleeping for 1 sec..." << endl;
+    sleep(1);
+
+
+    return 0;
+}
 

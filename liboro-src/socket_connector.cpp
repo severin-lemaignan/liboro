@@ -48,52 +48,13 @@ namespace oro {
 
 class ParametersSerializationHolder; //forward declaration. Defined in socket_connector.h
 	
-SocketConnector::SocketConnector(const string hostname, const string port){
+SocketConnector::SocketConnector(const string& hostname, const string& port) :
+                                        host(hostname),
+                                        port(port) {
 
-	isConnected = false;
-	
-	struct sockaddr_in serv_addr;
-    struct addrinfo *haddr, *a;
-    int reuse;
+        isConnected = false;
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	
-	if (sockfd < 0) {
-		throw ConnectorException("Error while opening the socket! Exiting.");
-	}
-	
-	/* set reuse addr option */
-    reuse = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse))) {
-      close(sockfd);
-      throw ConnectorException("Cannot set reuseaddr on server socket");
-    }
-	
-	/* resolve host address */
-    if (getaddrinfo(hostname.c_str(), port.c_str(), NULL, &haddr)) {
-      close(sockfd);
-      throw ConnectorException("Cannot get remote host addresses");
-    }
-	
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    for(a = haddr; a; a = a->ai_next) switch (a->ai_family) {
-      case AF_INET:
-		serv_addr = *(struct sockaddr_in *)a->ai_addr;
-		break;
-      default: break;
-    }
-	
-    if (serv_addr.sin_addr.s_addr == htonl(INADDR_ANY)) {
-      close(sockfd);
-      throw ConnectorException("Cannot resolve remote host address");
-    }
-	
-    if (connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr)) < 0) {
-		close(sockfd);
-        throw ConnectorException("Error while connecting to \"" + hostname + "\". Wrong port ? Abandon.");
-	}
-
-	isConnected = true;
+        oro_connect(hostname, port);
 	
 	_evtCallback = NULL;
 
@@ -116,6 +77,59 @@ SocketConnector::~SocketConnector(){
 	}
 		
 	cout << "done." << endl;
+}
+
+void SocketConnector::oro_connect(const string& hostname, const string& port){
+
+    if(isConnected) return;
+
+    struct sockaddr_in serv_addr;
+    struct addrinfo *haddr, *a;
+    int reuse;
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sockfd < 0) {
+        throw ConnectorException("Error while opening the socket! Exiting.");
+    }
+
+    /* set reuse addr option */
+    reuse = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse))) {
+        close(sockfd);
+        throw ConnectorException("Cannot set reuseaddr on server socket");
+    }
+
+    /* resolve host address */
+    if (getaddrinfo(hostname.c_str(), port.c_str(), NULL, &haddr)) {
+        close(sockfd);
+        throw ConnectorException("Cannot get remote host addresses");
+    }
+
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    for(a = haddr; a; a = a->ai_next) switch (a->ai_family) {
+    case AF_INET:
+        serv_addr = *(struct sockaddr_in *)a->ai_addr;
+        break;
+    default: break;
+    }
+
+    if (serv_addr.sin_addr.s_addr == htonl(INADDR_ANY)) {
+        close(sockfd);
+        throw ConnectorException("Cannot resolve remote host address");
+    }
+
+    if (connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr)) < 0) {
+        close(sockfd);
+        throw ConnectorException("Error while connecting to \"" + hostname + "\". Wrong port ? Abandon.");
+    }
+
+    isConnected = true;
+
+}
+
+void SocketConnector::reconnect() {
+    oro_connect(host, port);
 }
 
 ServerResponse SocketConnector::execute(const string& query, const vector<server_param_types>& vect_args){
@@ -233,7 +247,9 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 				res.status = ServerResponse::failed;
 				res.exception_msg = "ConnectorException";
 				res.error_msg = "Error reading from the server! Connection closed by the server?";
-				return;
+                                isConnected = false;
+                                close(sockfd);
+                                return;
                         }
 				
 			if (bytes_read == 0) {
@@ -365,7 +381,16 @@ void SocketConnector::run(){
     query_type q;
     ParametersSerializationHolder paramsHolder;
 
+    if (!isConnected) {
+        cerr << "Can not start liboro socket connector thread if not connected." << endl;
+    }
+
     while (_goOn) {
+
+        if (!isConnected) {
+            msleep(50);
+            continue;
+        }
 
         {
             lock_guard<mutex> lock(inbound_lock);
@@ -423,6 +448,9 @@ void SocketConnector::run(){
                 res.exception_msg = "ConnectorException";
                 res.error_msg = "Error reading from the server! Connection closed by the server?";
 
+                close(sockfd);
+                isConnected = false;
+
                 {
                     lock_guard<mutex> lock(outbound_lock);
 
@@ -446,10 +474,18 @@ void SocketConnector::run(){
                 waitingAnAnswer = false;
             }
             else {
-                read(res, true);
+                read(res, true); //Process events
 
+                //If an error occurs while dealing with events (like server
+                //deconnection), export it in the server responses queue.
+                //At the next request, the client while be informed of the
+                //disconnection.
+               if (res.status == ServerResponse::failed)
+                {
+                    lock_guard<mutex> lock(outbound_lock);
 
-
+                    outbound_results.push(res);
+                }
             }
 	}
     }
