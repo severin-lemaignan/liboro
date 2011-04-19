@@ -25,7 +25,7 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <time.h>
+#include <ctime>
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -63,11 +63,13 @@ bool waitingForEvent = true;
 const string hostname = "localhost";
 const string port = "6969";
 
-map<string, clock_t, ltstr> timetable;
+//map<string, gettimeofday_t, ltstr> timetable;
+map<string, timeval, ltstr> timetable;
 SocketConnector connector(hostname, port);
 
 int main(void) {
 
+        timeval time;
 	string name;
 	Ontology* onto;
 
@@ -90,7 +92,9 @@ int main(void) {
 	//  START OF BENCHMARKING  //
 	/////////////////////////////
 
-	timetable["0- start"] = clock();
+
+        gettimeofday(&time, NULL);
+        timetable["0- start"] = time;
 
 	//  TEST 1 //
 	cout << " * <BENCH1> Assertion of some initial facts" << endl;
@@ -99,7 +103,8 @@ int main(void) {
 	onto->add(Statement("gorilla age 12^^xsd:int"));
 	onto->add(Statement("gorilla weight 75.2"));
 
-	timetable["<BENCH1> simple assertions"] = clock();
+        gettimeofday(&time, NULL);
+        timetable["<BENCH1> simple assertions"] = time;
 	
 	
 	//  TEST 2 //
@@ -113,7 +118,8 @@ int main(void) {
 		Concept test = Concept::create(testClass);
 	}
 
-	timetable["<BENCH2> insertion statements"] = clock();
+        gettimeofday(&time, NULL);
+        timetable["<BENCH2> insertion statements"] = time;
 
 	
 	
@@ -129,7 +135,8 @@ int main(void) {
 	}
 	onto->flush();
 
-	timetable["<BENCH3> insertion buffered statements"] = clock();
+        gettimeofday(&time, NULL);
+        timetable["<BENCH3> insertion buffered statements"] = time;
 	
 	
 	//  TEST 4 //
@@ -145,7 +152,8 @@ int main(void) {
 	
 	displayCollec(result);
 	
-	timetable["<BENCH4> Simple getInfos query (existing resource)"] = clock();
+        gettimeofday(&time, NULL);
+        timetable["<BENCH4> Simple getInfos query (existing resource)"] = time;
 	
 	cout << "\t* Looking for infos on Schtroumphs" << endl;
 	
@@ -156,7 +164,8 @@ int main(void) {
 		cout << "\t Good: nothing found, as expected."<<endl;
 	}
 	
-	timetable["<BENCH4> Simple getInfos query (inexistant resource)"] = clock();
+        gettimeofday(&time, NULL);
+        timetable["<BENCH4> Simple getInfos query (inexistant resource)"] = time;
 	
 	/*
 	//  TEST 5 //
@@ -172,7 +181,7 @@ int main(void) {
 
 	Concept dudule = Concept::create(Class("Donkey"));
 
-	timetable[name] = clock();
+        timetable[name] = gettimeofday();
 	
 	//~ boost::mutex::scoped_lock lock(mut);
 	//~ while(waitingForEvent)
@@ -194,7 +203,8 @@ int main(void) {
 
 	displayCollec(result);
 
-	timetable[name] = clock();
+        gettimeofday(&time, NULL);
+        timetable[name] = time;
 	
 	//  TEST 7 //
 	
@@ -209,7 +219,8 @@ int main(void) {
 	copy(resultConcepts.begin(), resultConcepts.end(), ostream_iterator<Concept>(cout, "\n"));
 	
 
-	timetable[name] = clock();
+        gettimeofday(&time, NULL);
+        timetable[name] = time;
 	
 	
 	//  TEST 8 //
@@ -233,7 +244,8 @@ int main(void) {
 
 	copy(resultConcepts.begin(), resultConcepts.end(), ostream_iterator<Concept>(cout, "\n"));
 
-	timetable[name] = clock();
+        gettimeofday(&time, NULL);
+        timetable[name] = time;
 	
 	//  TEST 9 //
 	
@@ -245,7 +257,8 @@ int main(void) {
 	
 	if (!onto->checkConsistency()) {cout<<"Error: the ontology should be found to be consistent."<<endl;}
 
-	timetable[name] = clock();
+        gettimeofday(&time, NULL);
+        timetable[name] = time;
 	
 	///////////////////////////
 	///////////////////////////
@@ -290,12 +303,14 @@ void displayTime()
 	double tick_ms = ((double) CLOCKS_PER_SEC) / 1000;
 
 	cout << endl << "*************** Timetable *****************" << endl;
-	map<string, clock_t>::iterator bench = timetable.begin();
-	clock_t tmp = (*bench).second;
+        map<string, timeval>::iterator bench = timetable.begin();
+        timeval tmp = (*bench).second;
 	++bench;
 
 	for( ; bench != timetable.end() ; ++bench) {
-		cout << (*bench).first << " -> " << ((*bench).second - tmp) / tick_ms << "ms" << endl;
+                int ms_duration = ((*bench).second.tv_sec * 1000 + (*bench).second.tv_usec / 1000) -
+                                  (tmp.tv_sec * 1000 + tmp.tv_usec / 1000);
+                cout << (*bench).first << " -> " << ms_duration << "ms" << endl;
 		tmp = (*bench).second;
 	}
 
