@@ -87,6 +87,8 @@ void SocketConnector::oro_connect(const string& hostname, const string& port){
     struct addrinfo *haddr, *a;
     int reuse;
 
+	int err;
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
@@ -101,8 +103,9 @@ void SocketConnector::oro_connect(const string& hostname, const string& port){
     }
 
     /* resolve host address */
-    if (getaddrinfo(hostname.c_str(), port.c_str(), NULL, &haddr)) {
+    if ((err = getaddrinfo(hostname.c_str(), port.c_str(), NULL, &haddr)) != 0) {
         close(sockfd);
+		cout << "Error: " << gai_strerror(err) << endl;
         throw ConnectorException("Cannot get remote host addresses");
     }
 
@@ -140,20 +143,21 @@ ServerResponse SocketConnector::execute(const string& query, const vector<server
         inbound_requests.push(query_type(query, vect_args));
     }
 
-    while (true) {
-        {
-            lock_guard<mutex> lock(outbound_lock);
+	ServerResponse res;
 
-            if (!outbound_results.empty()) {
-                ServerResponse res = outbound_results.front();
-                outbound_results.pop();
-                //cout << "[II] Poping a result for query " << query << endl;
-                return res;
-            }
-        }
+	{
+		unique_lock<mutex> lock(outbound_lock);
 
-        msleep(50);
-    }
+		while (outbound_results.empty()) {
+			gotResult.wait(lock);
+		}
+
+		res = outbound_results.front();
+		outbound_results.pop();
+		//cout << "[II] Popping a result for query " << query << endl;
+	}
+	return res;
+
 }
 
 ServerResponse SocketConnector::execute(const string& query, const server_param_types& arg){
@@ -247,10 +251,10 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 				res.status = ServerResponse::failed;
 				res.exception_msg = "ConnectorException";
 				res.error_msg = "Error reading from the server! Connection closed by the server?";
-                                isConnected = false;
-                                close(sockfd);
-                                return;
-                        }
+                isConnected = false;
+                close(sockfd);
+                return;
+            }
 				
 			if (bytes_read == 0) {
 				res.status = ServerResponse::failed;
@@ -455,6 +459,8 @@ void SocketConnector::run(){
                     lock_guard<mutex> lock(outbound_lock);
 
                     outbound_results.push(res);
+
+					gotResult.notify_all();
                 }
             }
         }
@@ -469,6 +475,7 @@ void SocketConnector::run(){
                     lock_guard<mutex> lock(outbound_lock);
 
                     outbound_results.push(res);
+                    gotResult.notify_all();
                 }
 
                 waitingAnAnswer = false;
@@ -485,6 +492,7 @@ void SocketConnector::run(){
                     lock_guard<mutex> lock(outbound_lock);
 
                     outbound_results.push(res);
+                    gotResult.notify_all();
                 }
             }
 	}

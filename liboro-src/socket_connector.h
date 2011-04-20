@@ -111,37 +111,38 @@ public:
 	
 private:
 
-        void oro_connect(const std::string& hostname, const std::string& port);
+    void oro_connect(const std::string& hostname, const std::string& port);
 
-        static std::string protectValue(const std::string& value);
+    static std::string protectValue(const std::string& value);
 	static std::string& cleanValue(std::string& value);
 	
 	void deserialize(const std::string& msg, server_return_types& result);
 	server_return_types makeCollec(const std::string& msg);
-        void read(ServerResponse& response, bool only_events);
+    void read(ServerResponse& response, bool only_events);
 	int msleep(unsigned long milisec);
 
 	bool isConnected;
 
-        // Socket related fields
-        std::string host;
-        std::string port;
+	// Socket related fields
+	std::string host;
+	std::string port;
 	int sockfd;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
-        fd_set sockets_to_read;
-        struct timeval tv; //timeout for the select
+	fd_set sockets_to_read;
+	struct timeval tv; //timeout for the select
 
-        // main() of the 'select' thread.
-        void run();
-        volatile bool _goOn;
-        boost::thread _eventListnerThrd;
+	// main() of the 'select' thread.
+	void run();
+	volatile bool _goOn;
+	boost::thread _eventListnerThrd;
 
-        std::queue<query_type> inbound_requests;
-        boost::mutex    inbound_lock;
+	std::queue<query_type> inbound_requests;
+	boost::mutex    inbound_lock;
 
-        std::queue<ServerResponse> outbound_results;
-        boost::mutex    outbound_lock;
+	boost::condition_variable gotResult;
+	std::queue<ServerResponse> outbound_results;
+	boost::mutex    outbound_lock;
 
 	ssize_t readline(int fd, char *bufp, size_t maxlen);
 	
