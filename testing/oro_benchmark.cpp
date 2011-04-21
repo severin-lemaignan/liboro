@@ -265,7 +265,7 @@ int main(void) {
     ///////////////////////////
 
     //  TEST 10 //
-    onto->alwaysWaitForAcknowlegment(false);
+    onto->alwaysWaitForAcknowledgment(false);
 
     cout << " * <BENCH10> Insertion of " << nb_stmt << " statements with 'waitForAck=false'" << endl;
 

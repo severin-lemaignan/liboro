@@ -234,7 +234,7 @@ public:
       * By default, liboro always waits for acknowledgement from the server.
       *
       */
-    void alwaysWaitForAcknowlegment(bool state) { _waitForAck = state; }
+    void alwaysWaitForAcknowledgment(bool state) { _waitForAck = state; }
 
     /**
      * Adds a new statement to the ontology.\n
