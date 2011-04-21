@@ -652,11 +652,22 @@ class Ontology {
 		 * by this ID.
 		*/
 		std::string registerEvent(	OroEventObserver& callback, 
-							EventType type, 
-							EventTriggeringType triggerType, 
-							const std::set<std::string>& pattern, 
-							const std::string& variable_to_bind = "");
-		
+						EventType type,
+						EventTriggeringType triggerType,
+						const std::set<std::string>& pattern,
+						const std::string& variable_to_bind = "");
+
+		/**
+		 * Like Ontology::registerEvent()
+		 * but register event in a specific agent model.
+		 */
+		std::string registerEventForAgent(OroEventObserver& callback,
+						const std::string& agent,
+						EventType type,
+						EventTriggeringType triggerType,
+						const std::set<std::string>& pattern,
+						const std::string& variable_to_bind = "");
+
 		/**
 		* Saves the in-memory ontology model to a RDF/XML file.
 		* 
