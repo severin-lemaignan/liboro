@@ -217,6 +217,26 @@ public:
     static Ontology* getInstance();
 
     /**
+      * Change the behaviour of liboro for requests whose responses are not essential.
+      *
+      * This include: add*, remove*, clear*, update* requests.
+      *
+      * For these requests, liboro normally waits for an 'ack' from the server
+      * before returning.
+      * By setting 'alwaysWaitForAcknowlegment' to false, liboro does not wait for
+      * this 'ack', and thus the request return immediately.
+      *
+      * The caller has no guarantee that the request was successful, and has currently
+      * no mean to know it later.
+      *
+      * This can significantly improve the perceived responsiveness of liboro calls.
+      *
+      * By default, liboro always waits for acknowledgement from the server.
+      *
+      */
+    void alwaysWaitForAcknowlegment(bool state) { _waitForAck = state; }
+
+    /**
      * Adds a new statement to the ontology.\n
      * Interface to the \p oro-server \link https://www.laas.fr/~slemaign/doc/oro-server/laas/openrobots/ontology/backends/IOntologyBackend.html#add(java.lang.String) OpenRobotsOntology#add(String) method \endlink. Please follow the link for details.\n
      *
@@ -763,6 +783,7 @@ private:
     static Ontology* _instance;
 
     bool _bufferize;
+    bool _waitForAck;
 
     /**hold the number of "on-going" bufferization operation. It allows to flush the buffer only at the end of the "stack".
          */

@@ -35,10 +35,15 @@ class DummyConnector : public IConnector {
 
 	public:
 		DummyConnector();
-		
-                ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
-                ServerResponse execute(const std::string& query, const server_param_types& arg);
-                ServerResponse execute(const std::string& query);
+
+				ServerResponse execute(const std::string& query,
+									   const std::vector<server_param_types>& args,
+									   bool waitForAck = true);
+				ServerResponse execute(const std::string& query,
+									   const server_param_types& arg,
+									   bool waitForAck = true);
+				ServerResponse execute(const std::string& query,
+									   bool waitForAck = true);
 
 
                 virtual void setEventCallback(

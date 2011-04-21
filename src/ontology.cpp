@@ -39,6 +39,9 @@ Ontology::Ontology(IConnector& connector) : _connector(connector) {
 
     _bufferize = false;
 
+    //By default, always wait for acks.
+    _waitForAck = true;
+
     _buf_op_counter = 0;
 
     if (!checkOntologyServer()) {
@@ -226,7 +229,7 @@ void Ontology::add(const set<Statement>& statements){
     }
 
     if (!_bufferize) {
-        ServerResponse res = _connector.execute("add", stringified_stmts);
+        ServerResponse res = _connector.execute("add", stringified_stmts, _waitForAck);
 
         if (res.status == ServerResponse::failed) throw OntologyServerException("Server threw a " + res.exception_msg + " while adding statements. Server message was " + res.error_msg);
     }
@@ -249,7 +252,7 @@ void Ontology::remove(const set<Statement>& statements){
     }
 
     if (!_bufferize) {
-        ServerResponse res = _connector.execute("remove", stringified_stmts);
+        ServerResponse res = _connector.execute("remove", stringified_stmts, _waitForAck);
 
         if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while removing statements. Server message was " + res.error_msg);
     }
@@ -272,7 +275,7 @@ void Ontology::update(const set<Statement>& statements){
     }
 
     if (!_bufferize) {
-        ServerResponse res = _connector.execute("update", stringified_stmts);
+        ServerResponse res = _connector.execute("update", stringified_stmts, _waitForAck);
 
         if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while updating statements. Server message was " + res.error_msg);
     }
@@ -298,7 +301,7 @@ void Ontology::addForAgent(const string& agent, const set<Statement>& statements
     parameters.push_back(agent);
     parameters.push_back(stringified_stmts);
 
-    ServerResponse res = _connector.execute("addForAgent", parameters);
+    ServerResponse res = _connector.execute("addForAgent", parameters, _waitForAck);
 
     if (res.status == ServerResponse::failed)
         throw OntologyServerException("Server threw a " + res.exception_msg +
@@ -326,7 +329,7 @@ void Ontology::removeForAgent(const string& agent, const set<Statement>& stateme
     parameters.push_back(agent);
     parameters.push_back(stringified_stmts);
 
-    ServerResponse res = _connector.execute("removeForAgent", parameters);
+    ServerResponse res = _connector.execute("removeForAgent", parameters, _waitForAck);
 
     if (res.status == ServerResponse::failed)
         throw OntologyServerException("Server threw a " + res.exception_msg +
@@ -354,7 +357,7 @@ void Ontology::updateForAgent(const string& agent, const set<Statement>& stateme
     parameters.push_back(agent);
     parameters.push_back(stringified_stmts);
 
-    ServerResponse res = _connector.execute("updateForAgent", parameters);
+    ServerResponse res = _connector.execute("updateForAgent", parameters, _waitForAck);
 
     if (res.status == ServerResponse::failed)
         throw OntologyServerException("Server threw a " + res.exception_msg +
@@ -363,7 +366,7 @@ void Ontology::updateForAgent(const string& agent, const set<Statement>& stateme
 }
 
 void Ontology::clear(const set<string>& statements){
-    ServerResponse res = _connector.execute("clear", statements);
+    ServerResponse res = _connector.execute("clear", statements, _waitForAck);
 
     if (res.status == ServerResponse::failed) throw OntologyServerException("Server" + res.exception_msg + " while clearing statements from the ontology. Server message was " + res.error_msg);
 
@@ -376,7 +379,7 @@ void Ontology::clearForAgent(const string& agent, const set<string>& statements)
     parameters.push_back(agent);
     parameters.push_back(statements);
 
-    ServerResponse res = _connector.execute("clearForAgent", parameters);
+    ServerResponse res = _connector.execute("clearForAgent", parameters, _waitForAck);
 
     if (res.status == ServerResponse::failed)
         throw OntologyServerException("Server threw a " + res.exception_msg +

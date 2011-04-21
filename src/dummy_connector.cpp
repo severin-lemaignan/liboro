@@ -29,8 +29,10 @@ namespace oro
 
 	DummyConnector::DummyConnector() :_stmt_storage ( vector<Statement>() ) {}
 
-        ServerResponse DummyConnector::execute ( const string& query, const vector<server_param_types>& args )
-	{
+		ServerResponse DummyConnector::execute ( const string& query,
+												const vector<server_param_types>& args,
+												bool waitForAck)
+		{
 
 		cout<<"[request execution -> " << query << "]" << endl;
 
@@ -54,11 +56,13 @@ namespace oro
 
 		return res;
 	}
-	
-        ServerResponse DummyConnector::execute(const string& query, const server_param_types& arg)
-	{
 
-		cout<<"[request execution -> " << query << "]" << endl;
+		ServerResponse DummyConnector::execute(const string& query,
+											   const server_param_types& arg,
+											   bool waitForAck)
+		{
+
+				cout<<"[request execution -> " << query << "]" << endl;
 
 		ServerResponse res;
 		res.status = ServerResponse::ok;
@@ -66,8 +70,9 @@ namespace oro
 		return res;
 	}
 
-        ServerResponse DummyConnector::execute ( const string& query )
-	{
+		ServerResponse DummyConnector::execute ( const string& query,
+												bool waitForAck)
+		{
 
 		ServerResponse res;
 		res.status = ServerResponse::ok;

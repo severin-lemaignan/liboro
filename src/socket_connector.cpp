@@ -53,6 +53,7 @@ SocketConnector::SocketConnector(const string& hostname, const string& port) :
     port(port) {
 
     isConnected = false;
+    responseToSkip = 0;
 
     oro_connect(hostname, port);
 
@@ -71,7 +72,7 @@ SocketConnector::~SocketConnector(){
     cout << "done.\nClosing socket connection...";
 
     if (isConnected) {
-        executeDry("close");
+        execute("close", false); //don't wait for ack, it won't come!
         close(sockfd);
         isConnected = false;
     }
@@ -135,16 +136,21 @@ void SocketConnector::reconnect() {
     oro_connect(host, port);
 }
 
-ServerResponse SocketConnector::execute(const string& query, const vector<server_param_types>& vect_args){
+ServerResponse SocketConnector::execute(const string& query,
+                                        const vector<server_param_types>& vect_args,
+                                        bool waitForAck){
 
     {
         lock_guard<mutex> lock(inbound_lock);
+
+        if (!waitForAck) responseToSkip++;
 
         inbound_requests.push(query_type(query, vect_args));
     }
 
     ServerResponse res;
 
+    if(waitForAck)
     {
         unique_lock<mutex> lock(outbound_lock);
 
@@ -156,18 +162,27 @@ ServerResponse SocketConnector::execute(const string& query, const vector<server
         outbound_results.pop();
         //cout << "[II] Popping a result for query " << query << endl;
     }
+    else
+    {
+        // we don't wait for acknowledgement!
+        res.status = ServerResponse::ok;
+    }
+
     return res;
 
 }
 
-ServerResponse SocketConnector::execute(const string& query, const server_param_types& arg){
+ServerResponse SocketConnector::execute(const string& query,
+                                        const server_param_types& arg,
+                                        bool waitForAck){
     vector<server_param_types> p(1, arg);
-    return execute(query, p);
+    return execute(query, p, waitForAck);
 }
 
-ServerResponse SocketConnector::execute(const string& query){
+ServerResponse SocketConnector::execute(const string& query,
+                                        bool waitForAck){
     vector<server_param_types> p;
-    return execute(query, p);
+    return execute(query, p, waitForAck);
 }
 
 void SocketConnector::setEventCallback(
@@ -175,15 +190,6 @@ void SocketConnector::setEventCallback(
                         const server_return_types& raw_event_content)
     ) {
     _evtCallback = evtCallback;
-}
-
-void SocketConnector::executeDry(const string query){
-
-    string completeQuery = query + MSG_SEPARATOR + MSG_FINALIZER;
-
-    // Now send it on its way
-    write(sockfd,completeQuery.c_str(),completeQuery.length());
-
 }
 
 
@@ -297,51 +303,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
         return;
     }
 
-    if (rawResult[0] == ERROR){
-
-        if (only_events) { //we were waiting for events but got another message!!
-            cout << "Got an ERROR message from the server that was unexpected!" << endl;
-            cout << "Result was: " << rawResult[1] << endl;
-            cout << "Discarding it." << endl;
-            read(res, true);
-            return;
-        }
-
-        res.status = ServerResponse::failed;
-        res.exception_msg = rawResult[1];
-        res.error_msg = rawResult[2];
-        return;
-    }
-
-    if (rawResult[0] == OK){
-
-        if (only_events) { //we were waiting for events but got another message!!
-            cout << "Got an OK message from the server that was unexpected!" << endl;
-            cout << "Result was: " << rawResult[1] << endl;
-            cout << "Discarding it." << endl;
-            read(res, true);
-            return;
-        }
-
-        res.status = ServerResponse::ok;
-
-        res.raw_result = rawResult[1];
-        //cout << "[II] Raw result: " << rawResult[1] << endl;
-
-        try {
-            deserialize(rawResult[1], res.result);
-        } catch (OntologyServerException ose) {
-            res.status = ServerResponse::failed;
-            res.exception_msg = "OntologyServerException";
-            res.error_msg = ose.what();
-            return;
-        }
-
-        //cout << "Query to ontology server succeeded." << endl;
-        return;
-    }
-
-    if (rawResult[0] == EVENT){ //We got an event, instead of the expected answer!
+    if (rawResult[0] == EVENT){
 
         if (_evtCallback != NULL) {
             cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
@@ -361,13 +323,67 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
 
         if (!only_events) {
+            //We were waiting for a response, and we got an event interleaved. Fine.
             //Fetch the next message, hoping it's the right one.
+            // -> it means we never go back to run() until we read an answer to our inital request.
             read(res, only_events);
         }
 
         return;
     }
 
+    //  here => rawResult[0] == ERROR | OK
+
+    //we were waiting for events but got another message!!
+    //Maybe we are in waitForAck = false
+    if (only_events) {
+        if (responseToSkip == 0) {
+            cerr << "Got an OK or ERROR message from the server that was unexpected!" << endl;
+            cerr << "Content was: " << rawResult[1] << endl;
+            cerr << "Discarding it." << endl;
+        }
+        else {
+            responseToSkip--;
+        }
+
+        res.status = ServerResponse::discarded;
+        return;
+    }
+
+    // We are still waiting for response of previous request whose response were
+    // skipped (waitForAck = false)
+    if (responseToSkip != 0) {
+        responseToSkip--;
+        res.status = ServerResponse::discarded;
+        return;
+    }
+
+    if (rawResult[0] == ERROR){
+        res.status = ServerResponse::failed;
+        res.exception_msg = rawResult[1];
+        res.error_msg = rawResult[2];
+        return;
+    }
+
+    if (rawResult[0] == OK){
+
+        res.status = ServerResponse::ok;
+        res.raw_result = rawResult[1];
+        //cout << "[II] Raw result: " << rawResult[1] << endl;
+
+        try {
+            deserialize(rawResult[1], res.result);
+        } catch (OntologyServerException ose) {
+            res.status = ServerResponse::failed;
+            res.exception_msg = "OntologyServerException";
+            res.error_msg = ose.what();
+            return;
+        }
+
+        return;
+    }
+
+    // here => received malformed content from the server!
     res.status = ServerResponse::failed;
     res.exception_msg = "OntologyServerException";
     res.error_msg = "Internal server error! The server answer should start with \"ok\", \"event\" or \"error\"";
@@ -457,9 +473,7 @@ void SocketConnector::run(){
 
                 {
                     lock_guard<mutex> lock(outbound_lock);
-
                     outbound_results.push(res);
-
                     gotResult.notify_all();
                 }
             }
@@ -471,6 +485,7 @@ void SocketConnector::run(){
 
                 read(res, false); //will block until an answer is read.
 
+                if (res.status != ServerResponse::discarded)
                 {
                     lock_guard<mutex> lock(outbound_lock);
 
@@ -487,7 +502,7 @@ void SocketConnector::run(){
                 //deconnection), export it in the server responses queue.
                 //At the next request, the client while be informed of the
                 //disconnection.
-                if (res.status == ServerResponse::failed)
+                if(res.status == ServerResponse::failed)
                 {
                     lock_guard<mutex> lock(outbound_lock);
 

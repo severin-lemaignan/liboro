@@ -54,13 +54,12 @@ typedef boost::variant< bool,
 typedef std::pair<std::string, std::vector<server_param_types> > query_type;
 
 struct ServerResponse {
-
-
-	enum Status {
-		ok,
-		failed,
-  		indeterminate
-	} status;
+    enum Status {
+        ok,
+        failed,
+        indeterminate,
+        discarded
+    } status;
 
 	/**
 	* In case of failure server-side, contains the name of the thrown exception.
@@ -108,18 +107,21 @@ class IConnector {
 		*/
 		virtual ServerResponse execute(
 							const std::string& query, 
-							const std::vector<server_param_types>& args) = 0;
-		
+					        const std::vector<server_param_types>& args,
+					        bool waitForAck = true) = 0;
+
 		virtual ServerResponse execute(
 							const std::string& query, 
-							const server_param_types& arg) = 0;
+							const server_param_types& arg,
+                            bool waitForAck = true) = 0;
 		
 		/**
 		 * This method is intended to perform a query execution without 
 		 * parameters on the remote server, to wait for an answer and to return 
 		 * this answer.
 		 */
-		virtual ServerResponse execute(const std::string& query) = 0;
+		virtual ServerResponse execute(const std::string& query,
+                                       bool waitForAck = true) = 0;
 		
 		/**
 		 * Sets the callback the connector will call when it receive an event 

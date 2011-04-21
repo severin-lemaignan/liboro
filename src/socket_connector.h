@@ -91,19 +91,19 @@ public:
     void reconnect();
 
     /* IConnector interface implementation */
-    ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
-    ServerResponse execute(const std::string& query, const server_param_types& arg);
-    ServerResponse execute(const std::string& query);
+    ServerResponse execute(const std::string& query,
+                const std::vector<server_param_types>& args,
+                bool waitForAck);
+    ServerResponse execute(const std::string& query,
+                const server_param_types& arg,
+                bool waitForAck);
+    ServerResponse execute(const std::string& query,
+                bool waitForAck);
 
     void setEventCallback(
-        void (*evtCallback)(const std::string& event_id,
-                            const server_return_types& raw_event_content)
-        );
-
-    /** Executes a query but, unlike execute(), don't wait for an answer.
-     *
-     */
-    void executeDry(const std::string query);
+                void (*evtCallback)(const std::string& event_id,
+                                    const server_return_types& raw_event_content)
+                );
 
     static void serializeSet(const std::set<std::string>& data, std::string& msg);
     static void serializeVector(const std::vector<std::string>& data, std::string& msg);
@@ -148,7 +148,14 @@ private:
 
     // The event callback
     void (*_evtCallback)(const std::string& event_id,
-                         const server_return_types& raw_event_content);
+                        const server_return_types& raw_event_content);
+
+    /* When not waiting for acknoledgements (waitForAck = false), we need to
+     * track how many responses must be skipped to avoid returning a answer to
+     * discard (for instance, a 'ok' after a 'add') as the response to keep
+     * (for instance, a 'ok' after a 'checkConsistency').
+     */
+    int responseToSkip;
 };
 
 /**
