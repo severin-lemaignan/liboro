@@ -1,7 +1,7 @@
 
 #The first one doesn't work, but should? looks better at least...
 #include_directories (${LIBORO_SOURCE_DIR}/liboro-src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../liboro-src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
 link_directories (${LINK_DIRECTORIES})
 

@@ -44,9 +44,18 @@ IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
 		${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
 		DESTINATION lib/pkgconfig
 	)
-ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
+ENDIF()
+
+##########################################
+##           Options                   ###
+##########################################
+
+OPTION (COMPILE_TESTS "Compile test/demo applications" OFF)
 
 
-ADD_SUBDIRECTORY (liboro-src)
-ADD_SUBDIRECTORY (oro-apps-src) 
+ADD_SUBDIRECTORY (src)
+
+IF (COMPILE_TESTS)
+	ADD_SUBDIRECTORY (testing) 
+ENDIF()
 
