@@ -79,7 +79,7 @@ bool testConnectionCrash() {
 }
 int main(void) {
 
-    testConnectionCrash();
+    //testConnectionCrash();
 
     set<Concept> result;
     set<string> partial_stmts;
