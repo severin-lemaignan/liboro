@@ -161,6 +161,11 @@ ServerResponse SocketConnector::execute(const string& query,
         res = outbound_results.front();
         outbound_results.pop();
         //cout << "[II] Popping a result for query " << query << endl;
+
+        if (res.status == ServerResponse::failed && res.exception_msg == CONNECTOR_EXCEPTION)
+        {
+           throw ConnectorException(res.error_msg);
+        }
     }
     else
     {
@@ -255,7 +260,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
         if (bytes_read < 0) {
             res.status = ServerResponse::failed;
-            res.exception_msg = "ConnectorException";
+            res.exception_msg = CONNECTOR_EXCEPTION;
             res.error_msg = "Error reading from the server! Connection closed by the server?";
             isConnected = false;
             close(sockfd);
@@ -264,7 +269,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
         if (bytes_read == 0) {
             res.status = ServerResponse::failed;
-            res.exception_msg = "OntologyServerException";
+            res.exception_msg = CONNECTOR_EXCEPTION;
             res.error_msg = "Error reading from the server! Empty string";
             return;
         }
@@ -466,7 +471,7 @@ void SocketConnector::run(){
 
             if (waitingAnAnswer) {
                 res.status = ServerResponse::failed;
-                res.exception_msg = "ConnectorException";
+                res.exception_msg = CONNECTOR_EXCEPTION;
                 res.error_msg = "Error reading from the server! Connection closed by the server?";
 
                 close(sockfd);
