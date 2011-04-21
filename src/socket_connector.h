@@ -16,7 +16,7 @@
 */
 
 /** \file
- * This header defines the SocketConnector class, which is the socket-based 
+ * This header defines the SocketConnector class, which is the socket-based
  * implementation of the IConnector interface. It implements a connector to the
  * ontology server based on the TCP sockets.
  */
@@ -24,7 +24,7 @@
 #ifndef SOCKET_CONNECTOR_H_
 #define SOCKET_CONNECTOR_H_
 
-//the maximum amount of ms the processus should wait for an answer from the 
+//the maximum amount of ms the processus should wait for an answer from the
 //ontology server.
 #define ORO_MAX_DELAY 1500
 
@@ -32,7 +32,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
 
 #include <stdlib.h>
 #include <time.h>
@@ -59,7 +59,7 @@ namespace oro
 * \verbatim
 * ([YARP port for answering] [name of the method] ([param1] [param2] [...]))
 * \endverbatim
-* Parameters are enclosed in a nested bottle (a list), and these parameters can 
+* Parameters are enclosed in a nested bottle (a list), and these parameters can
 * themselves be lists.
 * Currently, these list are casted to vectors of string.
 *
@@ -74,81 +74,81 @@ class SocketConnector : public IConnector {
 public:
 
 
-	/** Creates a new connector to the ontology, using YARP as underlying communication framework.\n
-	 * You are responsible for calling the YARP Network::init() function before creating a new YARP port.\n
-	 * \param[in] port_name the name of the local YARP port (for instance, "my_application"), without any slashes.
- 	 * \param[in] oro_in_port_name the name of the input YARP port of the ontology server, without any slashes. It will be suffixed with "/in". For instance, if you pass "oro", the actual port the connector will send request to will be "/oro/in"
-	 */
-	
-        SocketConnector(const std::string& hostname, const std::string& port);
+    /** Creates a new connector to the ontology, using YARP as underlying communication framework.\n
+     * You are responsible for calling the YARP Network::init() function before creating a new YARP port.\n
+     * \param[in] port_name the name of the local YARP port (for instance, "my_application"), without any slashes.
+     * \param[in] oro_in_port_name the name of the input YARP port of the ontology server, without any slashes. It will be suffixed with "/in". For instance, if you pass "oro", the actual port the connector will send request to will be "/oro/in"
+     */
 
-	virtual ~SocketConnector();
+    SocketConnector(const std::string& hostname, const std::string& port);
 
-        /** Tries to reconnect on the same host and port used for construction.
-          * If already connected, does nothing.
-          * Throws oro::ConnectorException if the reconnection fails.
-          */
-        void reconnect();
+    virtual ~SocketConnector();
 
-	/* IConnector interface implementation */
-	ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
-	ServerResponse execute(const std::string& query, const server_param_types& arg);
-	ServerResponse execute(const std::string& query);
-	
-	void setEventCallback(
-				void (*evtCallback)(const std::string& event_id, 
-									const server_return_types& raw_event_content)
-				);
-				
-	/** Executes a query but, unlike execute(), don't wait for an answer.
-	 * 
-	 */
-	void executeDry(const std::string query);
-	
-	static void serializeSet(const std::set<std::string>& data, std::string& msg);
-	static void serializeVector(const std::vector<std::string>& data, std::string& msg);
-	static void serializeMap(const std::map<std::string, std::string>& data, std::string& msg);
-	
+    /** Tries to reconnect on the same host and port used for construction.
+     * If already connected, does nothing.
+     * Throws oro::ConnectorException if the reconnection fails.
+     */
+    void reconnect();
+
+    /* IConnector interface implementation */
+    ServerResponse execute(const std::string& query, const std::vector<server_param_types>& args);
+    ServerResponse execute(const std::string& query, const server_param_types& arg);
+    ServerResponse execute(const std::string& query);
+
+    void setEventCallback(
+        void (*evtCallback)(const std::string& event_id,
+                            const server_return_types& raw_event_content)
+        );
+
+    /** Executes a query but, unlike execute(), don't wait for an answer.
+     *
+     */
+    void executeDry(const std::string query);
+
+    static void serializeSet(const std::set<std::string>& data, std::string& msg);
+    static void serializeVector(const std::vector<std::string>& data, std::string& msg);
+    static void serializeMap(const std::map<std::string, std::string>& data, std::string& msg);
+
 private:
 
     void oro_connect(const std::string& hostname, const std::string& port);
 
     static std::string protectValue(const std::string& value);
-	static std::string& cleanValue(std::string& value);
-	
-	void deserialize(const std::string& msg, server_return_types& result);
-	server_return_types makeCollec(const std::string& msg);
+    static std::string& cleanValue(std::string& value);
+
+    void deserialize(const std::string& msg, server_return_types& result);
+    server_return_types makeCollec(const std::string& msg);
     void read(ServerResponse& response, bool only_events);
-	int msleep(unsigned long milisec);
+    int msleep(unsigned long milisec);
 
-	bool isConnected;
+    bool isConnected;
 
-	// Socket related fields
-	std::string host;
-	std::string port;
-	int sockfd;
-	struct sockaddr_in serv_addr;
-	struct hostent *server;
-	fd_set sockets_to_read;
-	struct timeval tv; //timeout for the select
+    // Socket related fields
+    std::string host;
+    std::string port;
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
+    fd_set sockets_to_read;
+    struct timeval tv; //timeout for the select
 
-	// main() of the 'select' thread.
-	void run();
-	volatile bool _goOn;
-	boost::thread _eventListnerThrd;
+    // main() of the 'select' thread.
+    void run();
+    volatile bool _goOn;
+    boost::thread _eventListnerThrd;
 
-	std::queue<query_type> inbound_requests;
-	boost::mutex    inbound_lock;
+    std::queue<query_type> inbound_requests;
+    boost::mutex    inbound_lock;
 
-	boost::condition_variable gotResult;
-	std::queue<ServerResponse> outbound_results;
-	boost::mutex    outbound_lock;
+    boost::condition_variable gotResult;
+    std::queue<ServerResponse> outbound_results;
+    boost::mutex    outbound_lock;
 
-	ssize_t readline(int fd, char *bufp, size_t maxlen);
-	
-	// The event callback
-	void (*_evtCallback)(const std::string& event_id, 
-						const server_return_types& raw_event_content);
+    ssize_t readline(int fd, char *bufp, size_t maxlen);
+
+    // The event callback
+    void (*_evtCallback)(const std::string& event_id,
+                         const server_return_types& raw_event_content);
 };
 
 /**
@@ -157,57 +157,57 @@ private:
  */
 class ParametersSerializationHolder : public boost::static_visitor<>
 {
-	std::string args;
-	
+    std::string args;
+
 public:
 
-	ParametersSerializationHolder() : args("") {}
+    ParametersSerializationHolder() : args("") {}
 
     void operator()(const int i)
     {
         args += i;
-		args += MSG_SEPARATOR;
+        args += MSG_SEPARATOR;
     }
-	
-	void operator()(const double i)
+
+    void operator()(const double i)
     {
         args += i;
-		args += MSG_SEPARATOR;
+        args += MSG_SEPARATOR;
     }
 
     void operator()(const std::string & str)
     {
         args += str + MSG_SEPARATOR;
     }
-	
-	void operator()(const bool b)
+
+    void operator()(const bool b)
     {
         b ? args += "true" : args += "false";
-		args += MSG_SEPARATOR;
+        args += MSG_SEPARATOR;
     }
-	
-	void operator()(const std::set<std::string> & strs)
-    {
-		SocketConnector::serializeSet(strs, args);
-		args += MSG_SEPARATOR;
-    }
-	
-	void operator()(const std::vector<std::string> & strs)
-    {
-		SocketConnector::serializeVector(strs, args);
-		args += MSG_SEPARATOR;
-    }
-	
-	void operator()(const std::map<std::string, std::string> & strs)
-    {
-		SocketConnector::serializeMap(strs, args);
-		args += MSG_SEPARATOR;
-    }
-	
-	std::string& getArgs() {return args;}
 
-        void reset() {args = "";}
-	
+    void operator()(const std::set<std::string> & strs)
+    {
+        SocketConnector::serializeSet(strs, args);
+        args += MSG_SEPARATOR;
+    }
+
+    void operator()(const std::vector<std::string> & strs)
+    {
+        SocketConnector::serializeVector(strs, args);
+        args += MSG_SEPARATOR;
+    }
+
+    void operator()(const std::map<std::string, std::string> & strs)
+    {
+        SocketConnector::serializeMap(strs, args);
+        args += MSG_SEPARATOR;
+    }
+
+    std::string& getArgs() {return args;}
+
+    void reset() {args = "";}
+
 
 };
 
