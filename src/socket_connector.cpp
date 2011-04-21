@@ -420,6 +420,7 @@ void SocketConnector::run(){
 
                 q = inbound_requests.front();
                 inbound_requests.pop();
+                gotRequest.notify_all();
             }
         }
 
@@ -510,6 +511,16 @@ void SocketConnector::run(){
                     gotResult.notify_all();
                 }
             }
+        }
+    }
+}
+
+void SocketConnector::waitForPendingRequests() {
+    {
+        unique_lock<mutex> lock(inbound_lock);
+
+        while (!inbound_requests.empty()) {
+            gotRequest.wait(lock);
         }
     }
 }
