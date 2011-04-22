@@ -150,27 +150,31 @@ ServerResponse SocketConnector::execute(const string& query,
 
     ServerResponse res;
 
-    if(waitForAck)
     {
         unique_lock<mutex> lock(outbound_lock);
 
-        while (outbound_results.empty()) {
-            gotResult.wait(lock);
+        if(waitForAck) {
+            while (outbound_results.empty()) {
+                gotResult.wait(lock);
+
+            }
         }
 
-        res = outbound_results.front();
-        outbound_results.pop();
-        //cout << "[II] Popping a result for query " << query << endl;
+        if (!outbound_results.empty()) {
+            res = outbound_results.front();
+            outbound_results.pop();
+            //cout << "[II] Popping a result for query " << query << endl;
 
-        if (res.status == ServerResponse::failed && res.exception_msg == CONNECTOR_EXCEPTION)
+            if (res.status == ServerResponse::failed && res.exception_msg == CONNECTOR_EXCEPTION)
+            {
+                throw ConnectorException(res.error_msg);
+            }
+        }
+        else
         {
-           throw ConnectorException(res.error_msg);
+            // we don't wait for acknowledgement!
+            res.status = ServerResponse::ok;
         }
-    }
-    else
-    {
-        // we don't wait for acknowledgement!
-        res.status = ServerResponse::ok;
     }
 
     return res;
