@@ -709,16 +709,16 @@ string Ontology::registerEventForAgent(	OroEventObserver& callback,
     it = _eventObservers.find(event_id);
 
     if (it != _eventObservers.end())
-        cerr << "[EE] Server returned an event id that I already know!" << endl;
+        cerr << "[II] Event id already known. Re-registering an previous event. Fine." << endl;
     else {
         EventObserver e(&callback, oneShot);
         _eventObservers[event_id] = e;
 
-        cout << "New event registered with id " << event_id << endl;
+        cout << "[II] New event registered with id " << event_id << endl;
 
-        return event_id;
     }
 
+    return event_id;
 
 }
 
