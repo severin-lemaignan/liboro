@@ -16,8 +16,8 @@
 */
 
 /** \file
- * This header defines the IConnector abstract base class (an inteface) that 
- * must be implemented by all the transport modules which aim to be used as 
+ * This header defines the IConnector abstract base class (an inteface) that
+ * must be implemented by all the transport modules which aim to be used as
  * connector to the ontology server.
  */
 
@@ -35,7 +35,7 @@
 
 namespace oro {
 
-typedef boost::variant<	bool, 
+typedef boost::variant<	bool,
                         int,
                         double,
                         std::string,
@@ -43,7 +43,7 @@ typedef boost::variant<	bool,
                         std::map<std::string, std::string>
                          > server_param_types;
 
-typedef boost::variant< bool, 
+typedef boost::variant< bool,
                         int,
                         double,
                         std::string,
@@ -61,77 +61,87 @@ struct ServerResponse {
         discarded
     } status;
 
-	/**
-	* In case of failure server-side, contains the name of the thrown exception.
-	*/
-	std::string exception_msg;
+    /**
+    * In case of failure server-side, contains the name of the thrown exception.
+    */
+    std::string exception_msg;
 
-	/**
-	* In case of failure server-side, contains an error message describing the
-	* error.
-	*/
-	std::string error_msg;
+    /**
+    * In case of failure server-side, contains an error message describing the
+    * error.
+    */
+    std::string error_msg;
 
-	/**
-	* A container for the answers from the server. The actual type and content 
-	* depend on the query.
-	*/
-	server_return_types result;
-	
-	/**
-	* Holds the raw (ie JSON-encoded) value returned by the server.
-	*/
-	std::string raw_result;
-		
-	/**
-	 * Default constructor
-	 */
-	ServerResponse():	status(ServerResponse::indeterminate), 
-						exception_msg(""), 
-						error_msg(""),
-						raw_result("") {}
-	
+    /**
+    * A container for the answers from the server. The actual type and content
+    * depend on the query.
+    */
+    server_return_types result;
+
+    /**
+    * Holds the raw (ie JSON-encoded) value returned by the server.
+    */
+    std::string raw_result;
+
+    /**
+     * Default constructor
+     */
+    ServerResponse():	status(ServerResponse::indeterminate),
+                        exception_msg(""),
+                        error_msg(""),
+                        raw_result("") {}
+
 };
 
-	
-/** This is an interface defining what is expected from a network connector to 
- * the ontology server. 
+
+/** This is an interface defining what is expected from a network connector to
+ * the ontology server.
  */
 class IConnector {
-	public:
-		
-		/**
-	 	* This method is intended to perform a query execution with a flat list 
-		* of parameters on the remote server, to wait for an answer and to 
-		* return this answer.
-		*/
-		virtual ServerResponse execute(
-							const std::string& query, 
-					        const std::vector<server_param_types>& args,
-					        bool waitForAck = true) = 0;
+    public:
 
-		virtual ServerResponse execute(
-							const std::string& query, 
-							const server_param_types& arg,
+        /**
+        * This method is intended to perform a query execution with a flat list
+        * of parameters on the remote server, to wait for an answer and to
+        * return this answer.
+        */
+        virtual ServerResponse execute(
+                            const std::string& query,
+                            const std::vector<server_param_types>& args,
                             bool waitForAck = true) = 0;
-		
-		/**
-		 * This method is intended to perform a query execution without 
-		 * parameters on the remote server, to wait for an answer and to return 
-		 * this answer.
-		 */
-		virtual ServerResponse execute(const std::string& query,
+
+        virtual ServerResponse execute(
+                            const std::string& query,
+                            const server_param_types& arg,
+                            bool waitForAck = true) = 0;
+
+        /**
+         * This method is intended to perform a query execution without
+         * parameters on the remote server, to wait for an answer and to return
+         * this answer.
+         */
+        virtual ServerResponse execute(const std::string& query,
                                        bool waitForAck = true) = 0;
-		
-		/**
-		 * Sets the callback the connector will call when it receive an event 
-		 * from the server. If the connector doesn't handle events, the 
-		 * implementation of this method may be omitted.
-		 */
-		virtual void setEventCallback(
-				void (*evtCallback)(const std::string& event_id, 
-									const server_return_types& raw_event_content)
-				) {};
+
+        /**
+         * Sets the callback the connector will call when it receive an event
+         * from the server. If the connector doesn't handle events, the
+         * implementation of this method may be omitted.
+         */
+        virtual void setEventCallback(
+                void (*evtCallback)(const std::string& event_id,
+                                    const server_return_types& raw_event_content)
+                ) {};
+
+        /**
+          * Returns true if the connector is connected to the server.
+          *
+          * This is used by the bufferization: if we are temporarly disconnected,
+          * we must stop to bufferize statements. Otherwise, this may lead to
+          * inconsistencies (for instance, "X isVisible true" and "X isVisible false"
+          * could be stacked).
+          **/
+        virtual bool isConnected() = 0;
 };
 
 }

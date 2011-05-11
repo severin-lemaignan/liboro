@@ -90,6 +90,8 @@ public:
      */
     void reconnect();
 
+    bool isConnected();
+
     /* IConnector interface implementation */
     ServerResponse execute(const std::string& query,
                 const std::vector<server_param_types>& args,
@@ -128,7 +130,7 @@ private:
     void read(ServerResponse& response, bool only_events);
     int msleep(unsigned long milisec);
 
-    bool isConnected;
+    bool _isConnected;
 
     // Socket related fields
     std::string host;

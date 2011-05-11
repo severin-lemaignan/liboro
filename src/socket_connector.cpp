@@ -52,7 +52,7 @@ SocketConnector::SocketConnector(const string& hostname, const string& port) :
     host(hostname),
     port(port) {
 
-    isConnected = false;
+    _isConnected = false;
     responseToSkip = 0;
 
     oro_connect(hostname, port);
@@ -71,18 +71,20 @@ SocketConnector::~SocketConnector(){
 
     cout << "done.\nClosing socket connection...";
 
-    if (isConnected) {
+    if (_isConnected) {
         execute("close", false); //don't wait for ack, it won't come!
         close(sockfd);
-        isConnected = false;
+        _isConnected = false;
     }
 
     cout << "done." << endl;
 }
 
+bool SocketConnector::isConnected() {return _isConnected;}
+
 void SocketConnector::oro_connect(const string& hostname, const string& port){
 
-    if(isConnected) return;
+    if(_isConnected) return;
 
     struct sockaddr_in serv_addr;
     struct addrinfo *haddr, *a;
@@ -128,7 +130,7 @@ void SocketConnector::oro_connect(const string& hostname, const string& port){
         throw ConnectorException("Error while connecting to \"" + hostname + "\". Wrong port ? Abandon.");
     }
 
-    isConnected = true;
+    _isConnected = true;
 
 }
 
@@ -266,7 +268,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
             res.status = ServerResponse::failed;
             res.exception_msg = CONNECTOR_EXCEPTION;
             res.error_msg = "Error reading from the server! Connection closed by the server?";
-            isConnected = false;
+            _isConnected = false;
             close(sockfd);
             return;
         }
@@ -410,13 +412,13 @@ void SocketConnector::run(){
     query_type q;
     ParametersSerializationHolder paramsHolder;
 
-    if (!isConnected) {
+    if (!_isConnected) {
         cerr << "Can not start liboro socket connector thread if not connected." << endl;
     }
 
     while (_goOn) {
 
-        if (!isConnected) {
+        if (!_isConnected) {
             msleep(50);
             continue;
         }
@@ -479,7 +481,7 @@ void SocketConnector::run(){
                 res.error_msg = "Error reading from the server! Connection closed by the server?";
 
                 close(sockfd);
-                isConnected = false;
+                _isConnected = false;
 
                 {
                     lock_guard<mutex> lock(outbound_lock);
