@@ -208,6 +208,10 @@ void Ontology::addToBuffer(const string action, const Statement& stmt) {
         } else _buffer["remove"].insert(pair<string, Statement>(stmt.to_string(), stmt));
     }
 
+    else if (action == "update") {
+        _buffer["update"].insert(pair<string, Statement>(stmt.to_string(), stmt));
+    }
+
 }
 
 void Ontology::add(const Statement& statement){
