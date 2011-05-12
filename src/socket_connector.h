@@ -111,13 +111,6 @@ public:
     static void serializeVector(const std::vector<std::string>& data, std::string& msg);
     static void serializeMap(const std::map<std::string, std::string>& data, std::string& msg);
 
-    /** Blocks until all requests have been sent to the server.
-      *
-      * This is only useful when using 'waitForAck=false', since liboro while
-      * queue requests without waiting for their actual execution.
-      */
-    void waitForPendingRequests();
-
 private:
 
     void oro_connect(const std::string& hostname, const std::string& port);
@@ -166,6 +159,8 @@ private:
      * (for instance, a 'ok' after a 'checkConsistency').
      */
     int responseToSkip;
+
+    bool waitingAnAnswer;
 };
 
 /**

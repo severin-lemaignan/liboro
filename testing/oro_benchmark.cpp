@@ -65,7 +65,6 @@ const string port = "6969";
 
 //map<string, gettimeofday_t, ltstr> timetable;
 map<string, timeval, ltstr> timetable;
-SocketConnector connector(hostname, port);
 
 int main(void) {
 
@@ -78,7 +77,8 @@ int main(void) {
     //We catch ctrl+c to cleanly close the application
     signal( SIGINT,sigproc);
 
-
+    {
+    SocketConnector connector(hostname, port);
     Ontology* onto;
     //Instanciate the ontology with the YARP connector.
     onto = Ontology::createWithConnector(connector);
@@ -295,8 +295,8 @@ int main(void) {
         gettimeofday(&time, NULL);
         timetable["<BENCH11> insertion buffered statements without waiting for ack"] = time;
 
+    }
 
-    connector.waitForPendingRequests();
     gettimeofday(&time, NULL);
     timetable["Time to flush"] = time;
 
