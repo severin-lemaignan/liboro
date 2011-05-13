@@ -149,9 +149,9 @@ ServerResponse SocketConnector::execute(const string& query,
                                         const vector<server_param_types>& vect_args,
                                         bool waitForAck){
 
-        //if (!_isConnected) {
-        //    throw ConnectorException("Not connected to oro-server!");
-        //}
+        if (!_isConnected) {
+            throw ConnectorException("Not connected to oro-server!");
+        }
 
         ParametersSerializationHolder paramsHolder;
 
