@@ -51,7 +51,11 @@ ENDIF()
 ##########################################
 
 OPTION (COMPILE_TESTS "Compile test/demo applications" OFF)
+OPTION (DEBUG "Display debug messages" OFF)
 
+IF (DEBUG)
+	ADD_DEFINITIONS(-DDEBUG)
+ENDIF()
 
 ADD_SUBDIRECTORY (src)
 

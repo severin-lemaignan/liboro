@@ -35,6 +35,12 @@
 #include "oro_exceptions.h"
 #include "socket_connector.h"
 
+#ifdef DEBUG
+#define TRACE(arg) (std::cout << "[LIBORO DEBUG] " << arg << std::endl)
+#else
+#define TRACE(arg) sizeof(std::cout << arg << std::endl)
+#endif
+
 using namespace std;
 using namespace boost;
 
@@ -171,7 +177,7 @@ ServerResponse SocketConnector::execute(const string& query,
             paramsHolder.reset();
         }
 
-        //cout << "[DEBUG LIBORO] Sending " << completeQuery << " to oro-server" << endl;
+        TRACE("Sending " << completeQuery << " to oro-server");
 
         completeQuery += MSG_FINALIZER;
 
@@ -198,7 +204,8 @@ ServerResponse SocketConnector::execute(const string& query,
 
             res = outbound_results.front();
             outbound_results.pop();
-            //cout << "[II] Popping a result for query " << query << endl;
+
+            TRACE("Popping a result for query " << query);
 
             if (res.status == ServerResponse::failed && res.exception_msg == CONNECTOR_EXCEPTION)
             {
