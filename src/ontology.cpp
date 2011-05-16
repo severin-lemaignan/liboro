@@ -21,6 +21,13 @@
 #include "oro_event.h"
 #include "oro_exceptions.h"
 
+#ifdef DEBUG
+#define TRACE(arg) (std::cout << "[LIBORO DEBUG] " << arg << std::endl)
+#else
+#define TRACE(arg) sizeof(std::cout << arg << std::endl)
+#endif
+
+
 using namespace std;
 using namespace boost;
 
@@ -300,7 +307,9 @@ void Ontology::addForAgent(const string& agent, const set<Statement>& statements
     set<string> stringified_stmts;
     set<Statement>::const_iterator iterator = statements.begin();
 
+    TRACE("Got 'addForAgent' call with parameters:");
     while( iterator != statements.end() ) {
+        TRACE("- " << iterator->to_string());
         stringified_stmts.insert(iterator->to_string());
         ++iterator;
     }
@@ -328,7 +337,9 @@ void Ontology::removeForAgent(const string& agent, const set<Statement>& stateme
     set<string> stringified_stmts;
     set<Statement>::const_iterator iterator = statements.begin();
 
+    TRACE("Got 'removeForAgent' call with parameters:");
     while( iterator != statements.end() ) {
+        TRACE("- " << iterator->to_string());
         stringified_stmts.insert(iterator->to_string());
         ++iterator;
     }
@@ -356,7 +367,9 @@ void Ontology::updateForAgent(const string& agent, const set<Statement>& stateme
     set<string> stringified_stmts;
     set<Statement>::const_iterator iterator = statements.begin();
 
+    TRACE("Got 'updateForAgent' call with parameters:");
     while( iterator != statements.end() ) {
+        TRACE("- " << iterator->to_string());
         stringified_stmts.insert(iterator->to_string());
         ++iterator;
     }
@@ -383,6 +396,8 @@ void Ontology::clearForAgent(const string& agent, const set<string>& statements)
 
     vector<server_param_types> parameters;
 
+    TRACE("Got 'clearForAgent' call");
+
     parameters.push_back(agent);
     parameters.push_back(statements);
 
@@ -395,6 +410,9 @@ void Ontology::clearForAgent(const string& agent, const set<string>& statements)
 }
 
 bool Ontology::checkConsistency(){
+
+    TRACE("Got 'checkConsistency' call");
+
     ServerResponse res = _connector.execute("checkConsistency");
 
     if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
@@ -489,6 +507,8 @@ void Ontology::find(const std::string& resource, const std::string& partial_stat
 //TODO: Some code factorization around would be welcome...
 void Ontology::findForAgent(const string& agent, const std::string& resource, const std::set<std::string>& partial_statements, const std::set<std::string>& restrictions, std::set<Concept>& result){
 
+    TRACE("Got 'findForAgent' call");
+
     set<string> rawResult;
     vector<server_param_types> args;
     args.push_back(agent);
@@ -511,6 +531,8 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 
 void Ontology::findForAgent(const string& agent, const std::string& resource, const std::set<std::string>& partial_statements, std::set<Concept>& result){
 
+    TRACE("Got 'findForAgent' call");
+
     set<string> rawResult;
     vector<server_param_types> args;
     args.push_back(agent);
@@ -531,6 +553,8 @@ void Ontology::findForAgent(const string& agent, const std::string& resource, co
 }
 
 void Ontology::findForAgent(const string& agent, const std::string& resource, const std::string& partial_statement, std::set<Concept>& result){
+
+    TRACE("Got 'findForAgent' call");
 
     set<string> tmp;
     tmp.insert(partial_statement);
