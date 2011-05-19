@@ -90,6 +90,12 @@ public:
      */
     void reconnect();
 
+    /** Tries to reconnect on a given host and port.
+     * If already connected, does nothing.
+     * Throws oro::ConnectorException if the reconnection fails.
+     */
+    void reconnect(const std::string& host, const std::string& port);
+
     bool isConnected();
 
     /* IConnector interface implementation */

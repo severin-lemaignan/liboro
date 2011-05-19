@@ -151,6 +151,10 @@ void SocketConnector::reconnect() {
     oro_connect(host, port);
 }
 
+void SocketConnector::reconnect(const string& host, const string& port) {
+    oro_connect(host, port);
+}
+
 ServerResponse SocketConnector::execute(const string& query,
                                         const vector<server_param_types>& vect_args,
                                         bool waitForAck){
