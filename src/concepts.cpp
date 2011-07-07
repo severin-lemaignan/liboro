@@ -27,9 +27,9 @@ namespace oro {
 /*******************************************************************************
 *                       	  Class Concept                                *
 *******************************************************************************/
-Concept::Concept():_id(Ontology::newId()), _label(""), _class(Classes::Thing) {}
+Concept::Concept():_id(Ontology::newId()), _label(""), _class(Class("owl:Thing")) {}
 
-Concept::Concept(const std::string& id):_id(id), _label(""), _class(Classes::Thing) {}
+Concept::Concept(const std::string& id):_id(id), _label(""), _class(Class("owl:Thing")) {}
 
 Concept Concept::create(const std::string& label) {
 	Concept concept;
