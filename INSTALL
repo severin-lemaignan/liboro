@@ -11,6 +11,7 @@ Quick steps
 Then
 > make
 
+> make install
 You can also use the interactive cmake:
 > ccmake ..
 
