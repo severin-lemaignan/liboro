@@ -650,6 +650,22 @@ public:
 
     void getResourceDetails(const std::string& resource, std::string& result);
 
+	/**
+	 * Fast concept lookup function.
+	 *
+	 * Takes a concept id or label and returns a list of pair (concept id, type)
+	 */
+	std::map<std::string, std::string> lookup(const std::string& id);
+
+	/**
+	 * Returns the label associated to a concept id, or the id itself if
+	 * no label exist for the concept.
+	 *
+	 * The label language (default: en) can be set in the server configuration
+	 * file.
+	 */
+	std::string getLabel(const std::string& id);
+
     /** Subscribe to a specified event in the ontology.\n
      *
      * \param callback An object that implements operator()(const OroEvent&)
@@ -809,9 +825,11 @@ class Class {
 public:
 
     /**
-     * Create a metaclass instance (ie, a class) from its literal name, in the default namespace (oro namespace).
+     * Create a metaclass instance (ie, a class) from its literal name,
+	 * in the default namespace (oro namespace).
      * @param name the literal name of the class.
-     * @throw ResourceNotFoundOntologyException when the name can not be matched to a class name defined in the ontology.
+     * @throw ResourceNotFoundOntologyException when the name can 
+	 * not be matched to a class name defined in the ontology.
      */
     Class(const std::string& name);
 
@@ -852,9 +870,12 @@ protected:
 class Property {
 public:
     /**
-     * Create a metaproperty instance (ie, a property) from its literal name, in the default namespace (oro namespace).
-     * \param name the literal name of the property.
-     * \throw ResourceNotFoundOntologyException when the name can not be matched to a property name defined in the ontology.
+	 * Create a metaproperty instance (ie, a property) from its literal name,
+	 * in the default namespace (oro namespace). 
+	 *
+	 * \param name the literal name of the property.
+     * \throw ResourceNotFoundOntologyException when the name can not be 
+	 * matched to a property name defined in the ontology.
      */
     Property(const std::string& name);
 
@@ -866,7 +887,8 @@ public:
     const std::string& name() const {return _name;}
 
     /**
-     * Return, in a computer-friendly way, the property id. Does currently the same as Property.name().
+     * Return, in a computer-friendly way, the property id. Does currently 
+	 * the same as Property.name().
      */
     const std::string& to_string() const {return _name;}
 
@@ -882,17 +904,21 @@ protected:
     std::string _name;
 };
 
-/** This represents a concept (an instance or an individual in OWL terminology) of the OpenRobots ontology.
+/** This represents a concept (an instance or an individual in OWL terminology)
+ * of the OpenRobots ontology.
  */
 class Concept {
 public:
     /**
-     * Constructs a new, under-specified instance (actually an instance of owl:Thing) associated to a random identifier.
+     * Constructs a new, under-specified instance (actually an instance of 
+	 * owl:Thing) associated to a random identifier.
      */
     Concept();
 
     /**
-     * Constructs a object from a previous identifier. From a semantic point of view, the new object is strictly equal to the concept whose identifier is passed as parameter.
+	 * Constructs a object from a previous identifier. From a semantic point of
+	 * view, the new object is strictly equal to the concept whose identifier
+	 * is passed as parameter.
      */
     Concept(const std::string& id);
 

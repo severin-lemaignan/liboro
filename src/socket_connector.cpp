@@ -666,6 +666,49 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 
     string collection = msg.substr(1, msg.length() - 2); //remove the [] or {}
 
+	// Special case: list of pairs (eg '[[a,b], [c,d]]')are treated 
+	// like maps (eg '{a:b, c:d}')
+    if ( (collection[0] == '[' && collection[collection.length()-1] == ']')) {
+        map<string, string> result;
+
+        tokenizer<char_separator<char> > tokens(collection, sep);
+
+		bool key = true;
+		string last_key = "";
+
+        BOOST_FOREACH(string t, tokens)
+        {
+			string c = cleanValue(t);
+			// Check if we look like a list of pair: each token starts with '[' or ends with ']'
+			if (key) {
+				 if (!(c[0] == '[')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+
+				 c = c.substr(1, c.length() - 1);
+				 c = cleanValue(c);
+			}
+			else { // !key
+				if (!(c[c.length()-1] == ']')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+
+				c = c.substr(0, c.length() - 1);
+				c = cleanValue(c);
+			}
+
+			if (key) {
+	            result[c] = "";
+				last_key = c;
+				key = false;
+			}
+			else {
+				result[last_key] = c;
+				key = true;
+			}
+
+        }
+
+		return result;
+
+	}
+
     if (isValidMap) {
         map<string, string> result;
 
@@ -685,6 +728,7 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 
     else{
         assert(isValidSet);
+
         set<string> result;
 
         tokenizer<char_separator<char> > tokens(collection, sep);

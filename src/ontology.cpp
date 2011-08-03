@@ -653,6 +653,48 @@ void Ontology::getResourceDetails(const string& resource, string& result){
 
 }
 
+map<string, string> Ontology::lookup(const string& id) {
+
+	map<string, string> result;
+
+    ServerResponse res = _connector.execute("lookup", id);
+
+    if (res.status != ServerResponse::ok)
+    {
+        throw OntologyServerException("lookup was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +").");
+    }
+
+	try {
+		result = get<map<string, string> >(res.result);
+    } catch (bad_get e) {
+        throw OntologyServerException("lookup was not successful: unexpected error while deserializing the server response.");
+	}
+
+	return result;
+
+}
+
+string Ontology::getLabel(const string& id) {
+
+	string label;
+
+    ServerResponse res = _connector.execute("getLabel", id);
+
+    if (res.status != ServerResponse::ok)
+    {
+        throw OntologyServerException("getLabel was not successful: server threw a " + res.exception_msg + " (" + res.error_msg +").");
+    }
+
+	try {
+		label = get<string>(res.result);
+    } catch (bad_get e) {
+        throw OntologyServerException("getLabel was not successful: unexpected error while deserializing the label.");
+	}
+
+	return label;
+
+}
+
 string Ontology::registerEvent(	OroEventObserver& callback,
                                EventType eventType,
                                EventTriggeringType triggerType,

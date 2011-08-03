@@ -120,6 +120,13 @@ int main(void) {
     cout << "The direct type of Young PhD is: ";
     copy(result.begin(), result.end(), ostream_iterator<Concept>(cout, "\n"));
 
+	cout << "The label of myself is " << oro->getLabel(myself.id()) << endl;
+
+	cout << "'Nice Robot' matches: " << endl;
+	map<string, string> lookup_result = oro->lookup("Nice Robot");
+	for ( map<string, string>::const_iterator iter = lookup_result.begin(); iter != lookup_result.end(); ++iter )
+	      cout << "\t- " << iter->first << " -> " << iter->second << '\n';
+
     /** EVENTS **/
     EventCallback ec;
     Classes::Human.onNewInstance(ec);
