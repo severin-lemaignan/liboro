@@ -194,8 +194,16 @@ void Ontology::flush(){
 
 void Ontology::addToBuffer(const string action, const Statement& stmt) {
 
-    // If the connector is disconnected, don't bufferize anything anymore.
-    if (!_connector.isConnected()) return;
+    // If the connector is disconnected, don't bufferize anything anymore
+    // and clear the buffer.
+    if (!_connector.isConnected()) {
+        cout << "[WW] Server disconnected, discarding buffered facts" << endl;
+
+        _buffer["add"].clear();
+        _buffer["remove"].clear();
+        _buffer["update"].clear();
+        return;
+    }
 
     //TODO replace vectors by sets or lists. It's stupid to use vectors.
     if (action == "add") {
