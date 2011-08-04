@@ -138,16 +138,11 @@ private:
     struct sockaddr_in serv_addr;
     struct hostent *server;
     fd_set sockets_to_read;
-    struct timeval tv; //timeout for the select
 
     // main() of the 'select' thread.
     void run();
     volatile bool _goOn;
     boost::thread _eventListnerThrd;
-
-    boost::condition_variable gotRequest;
-    std::queue<query_type> inbound_requests;
-    boost::mutex    inbound_lock;
 
     boost::condition_variable gotResult;
     std::queue<ServerResponse> outbound_results;

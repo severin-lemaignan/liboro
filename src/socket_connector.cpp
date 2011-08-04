@@ -361,7 +361,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
     if (rawResult[0] == EVENT){
 
         if (_evtCallback != NULL) {
-            cout << "Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")" << endl;
+            TRACE("Got an event! " << rawResult[1] << " (content: " << rawResult[2] << ")");
             server_return_types raw_event_content;
 
             try {
@@ -466,56 +466,44 @@ void SocketConnector::run(){
 
         int retval = select(sockfd + 1, &sockets_to_read, NULL, NULL, NULL);
 
-        if (retval == -1) {
-            //cerr << "Error during the select: oro-server disconnected? (errno:" << errno << ")" << endl;
+	if (retval == -1) {
+	    TRACE("During 'select': " << strerror(errno) << ". Continuing.");
+	    // The error is likely EINTR (signal caught). We can safely continue.
+	    continue;
+	}
+	else if (retval) { //got something to read from the server!
 
-            res.status = ServerResponse::failed;
-            res.exception_msg = CONNECTOR_EXCEPTION;
-            res.error_msg = "Error reading from the server! Connection closed by the server?";
+	    if (waitingAnAnswer) {
 
-            close(sockfd);
-            _isConnected = false;
+		read(res, false); //will block until an answer is read.
 
-            {
-                lock_guard<mutex> lock(outbound_lock);
-                outbound_results.push(res);
-                gotResult.notify_all();
-            }
-        }
+		if (res.status != ServerResponse::discarded)
+		{
+		    lock_guard<mutex> lock(outbound_lock);
 
-        else if (retval) { //got something to read from the server!
+		    outbound_results.push(res);
+		    gotResult.notify_all();
 
-            if (waitingAnAnswer) {
+		    waitingAnAnswer = false;
+		}
 
-                read(res, false); //will block until an answer is read.
+	    }
+	    else {
+		read(res, true); //Read AND process events
 
-                if (res.status != ServerResponse::discarded)
-                {
-                    lock_guard<mutex> lock(outbound_lock);
+		//If an error occurs while dealing with events (like server
+		//deconnection), export it in the server responses queue.
+		//At the next request, the client while be informed of the
+		//disconnection.
+		if(res.status == ServerResponse::failed)
+		{
+		    lock_guard<mutex> lock(outbound_lock);
 
-                    outbound_results.push(res);
-                    gotResult.notify_all();
-
-                    waitingAnAnswer = false;
-                }
-
-            }
-            else {
-                read(res, true); //Read AND process events
-
-                //If an error occurs while dealing with events (like server
-                //deconnection), export it in the server responses queue.
-                //At the next request, the client while be informed of the
-                //disconnection.
-                if(res.status == ServerResponse::failed)
-                {
-                    lock_guard<mutex> lock(outbound_lock);
-
-                    outbound_results.push(res);
-                    gotResult.notify_all();
-                }
-            }
-        }
+		    outbound_results.push(res);
+		    gotResult.notify_all();
+		}
+	    }
+	}
     }
 }
 
