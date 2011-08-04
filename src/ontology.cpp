@@ -675,7 +675,7 @@ map<string, string> Ontology::lookup(const string& id) {
 	try {
 		result = get<map<string, string> >(res.result);
     } catch (bad_get e) {
-        throw OntologyServerException("lookup was not successful: unexpected error while deserializing the server response.");
+		// no result. That's fine.
 	}
 
 	return result;
