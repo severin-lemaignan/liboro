@@ -639,7 +639,7 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 
     bool isValidMap = true;
     bool isValidSet = true;
-    char_separator<char> sep(",");
+    escaped_list_separator<char> sep;
 
     //First, inspect the string to determine the type.
     //If it starts and ends with {}, it's a map
@@ -654,53 +654,53 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 
     string collection = msg.substr(1, msg.length() - 2); //remove the [] or {}
 
-	// Special case: list of pairs (eg '[[a,b], [c,d]]')are treated 
-	// like maps (eg '{a:b, c:d}')
+    // Special case: list of pairs (eg '[[a,b], [c,d]]')are treated
+    // like maps (eg '{a:b, c:d}')
     if ( (collection[0] == '[' && collection[collection.length()-1] == ']')) {
         map<string, string> result;
 
-        tokenizer<char_separator<char> > tokens(collection, sep);
+        tokenizer<escaped_list_separator<char> > tokens(collection, sep);
 
-		bool key = true;
-		string last_key = "";
+        bool key = true;
+        string last_key = "";
 
         BOOST_FOREACH(string t, tokens)
         {
-			string c = cleanValue(t);
-			// Check if we look like a list of pair: each token starts with '[' or ends with ']'
-			if (key) {
-				 if (!(c[0] == '[')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+            string c = cleanValue(t);
+            // Check if we look like a list of pair: each token starts with '[' or ends with ']'
+            if (key) {
+                 if (!(c[0] == '[')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
 
-				 c = c.substr(1, c.length() - 1);
-				 c = cleanValue(c);
-			}
-			else { // !key
-				if (!(c[c.length()-1] == ']')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
+                 c = c.substr(1, c.length() - 1);
+                 c = cleanValue(c);
+            }
+            else { // !key
+                if (!(c[c.length()-1] == ']')) throw OntologyServerException("INTERNAL ERROR! The server answered an invalid collection!");
 
-				c = c.substr(0, c.length() - 1);
-				c = cleanValue(c);
-			}
+                c = c.substr(0, c.length() - 1);
+                c = cleanValue(c);
+            }
 
-			if (key) {
-	            result[c] = "";
-				last_key = c;
-				key = false;
-			}
-			else {
-				result[last_key] = c;
-				key = true;
-			}
+            if (key) {
+                result[c] = "";
+                last_key = c;
+                key = false;
+            }
+            else {
+                result[last_key] = c;
+                key = true;
+            }
 
         }
 
-		return result;
+        return result;
 
-	}
+    }
 
     if (isValidMap) {
         map<string, string> result;
 
-        tokenizer<char_separator<char> > tokens(collection, sep);
+        tokenizer<escaped_list_separator<char> > tokens(collection, sep);
         BOOST_FOREACH(string t, tokens)
         {
             size_t found = t.find(':');
@@ -719,7 +719,7 @@ server_return_types SocketConnector::makeCollec(const string& msg) {
 
         set<string> result;
 
-        tokenizer<char_separator<char> > tokens(collection, sep);
+        tokenizer<escaped_list_separator<char> > tokens(collection, sep);
         BOOST_FOREACH(string t, tokens)
         {
             result.insert(cleanValue(t));
