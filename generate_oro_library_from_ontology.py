@@ -6,7 +6,9 @@ import os, sys
 
 ontology = "commonsense.oro.owl"
 path = "../oro/"
-output_path = "liboro-src/"
+output_path = "src/"
+
+default_namespace = "http://kb.openrobots.org#" # Only entities defined in this namespace are kept
 
 try:
 	dom = minidom.parse(path + ontology)
@@ -27,16 +29,23 @@ def formatLines(text, length):
 
 def getAboutAttribute(element):
     if element.attributes.length > 0 and element.attributes["rdf:about"].value.find("#Thing") == -1:
-    	return element.attributes["rdf:about"].value[1:].replace("-","_")
+    	 value = element.attributes["rdf:about"].value
+         #remove namespace (dirty way)
+         if value.find(default_namespace) == -1: # Not in default namespace
+             sys.stderr.write("Value " + value + " not in default namespace. Discarding it.\n")
+             return None
+        
+         return value[len(default_namespace):].replace("-","_")
+
 
 def getComment(element):
     for node in element.childNodes:
-	if node.nodeName == "rdfs:comment": return formatLines(node.firstChild.data, 70).replace("\n", "\n\t\t* ")
+	if node.nodeName == "rdfs:comment" and node.firstChild: return formatLines(node.firstChild.data, 70).replace("\n", "\n\t\t* ")
     return None
 
 def addPropertiesDeclarations(dom, propertyType, printDeclaration, destFile):
     properties = dom.getElementsByTagName(propertyType)
-    names=[[getAboutAttribute(p), getComment(p)] for p in properties]
+    names=[[getAboutAttribute(p), getComment(p)] for p in properties if getAboutAttribute(p)]
 
     if printDeclaration:
 	    for p in names:
@@ -49,7 +58,7 @@ def addPropertiesDeclarations(dom, propertyType, printDeclaration, destFile):
 
 def addClassesDeclarations(dom, printDeclaration, destFile):
     classes = dom.getElementsByTagName("owl:Class")
-    names=[[getAboutAttribute(c), getComment(c)] for c in classes]
+    names=[[getAboutAttribute(c), getComment(c)] for c in classes if getAboutAttribute(c)]
 
     for n in names:
 	    if n[0] == None: names.remove(n)

@@ -46,6 +46,8 @@ class Properties {
 
 		static const Property behind;
 
+		static const Property belongsTo;
+
 		static const Property bringsToStaticSituation;
 
 		static const Property canBePerformedBy;
@@ -60,8 +62,22 @@ class Properties {
 		static const Property canUndertakeNow;
 
 		/**
-		* (currentlyPerforms AGENT ACTION) means that the AGENT is performing
-		* the ACTION, purposefully or not.
+		* (currentlyBodilyDoes AGENT ACTION) means that the (embodied) AGENT is
+		* currently performing a non-intentional action ACTION.
+		*/
+		static const Property currentlyBodilyDoes;
+
+		static const Property currentlyDoes;
+
+		/**
+		* Denotes that the DOES of the EVENT is currently doing it. It's a
+		* temporaly bound version of doneBy.
+		*/
+		static const Property currentlyDoneBy;
+
+		/**
+		* (currentlyPerforms AGENT ACTION) means that the AGENT is currently
+		* performing the intentional ACTION.
 		*/
 		static const Property currentlyPerforms;
 
@@ -70,6 +86,19 @@ class Properties {
 		static const Property duration;
 
 		static const Property endingPoint;
+
+		/**
+		* describes a agent that currently *is* in a specific (static) situation
+		*/
+		static const Property experience;
+
+		/**
+		* An agent is said to focus on an object if and only if it looksAt it
+		* AND pointsAt it.
+		*/
+		static const Property focusesOn;
+
+		static const Property hasBodyPart;
 
 		static const Property hasCharacteristicLocation;
 
@@ -87,6 +116,14 @@ class Properties {
 		*/
 		static const Property hasGoal;
 
+		static const Property hasInHand;
+
+		static const Property hasInLeftHand;
+
+		static const Property hasInRightHand;
+
+		static const Property hasPosture;
+
 		static const Property hasRelativePosition;
 
 		static const Property hasShape;
@@ -94,8 +131,6 @@ class Properties {
 		static const Property hasThematicRoleRelationWith;
 
 		static const Property holds;
-
-		static const Property holds_Underspecified;
 
 		static const Property inFrontOf;
 
@@ -110,32 +145,39 @@ class Properties {
 		*/
 		static const Property isAbleTo;
 
+		static const Property isAbove;
+
 		static const Property isAt;
 
-		static const Property isFarFrom;
+		static const Property isBelow;
+
+		static const Property isExperienced;
+
+		static const Property isFocusOf;
 
 		static const Property isIn;
 
 		/**
-		* Relates an agent to some object: a "near" object is closer than 1m
-		* from the agent.
+		* describe the symbolic position on an object relative to 'myself'.
+		* Values can be:
+		* {NEAR_FAR}_{FRONT LEFT RIGHT BACK}
 		*/
-		static const Property isNearOf;
+		static const Property isLocated;
 
 		static const Property isNextTo;
 
 		static const Property isOn;
 
-		static const Property isUnder;
-
 		static const Property leftOf;
 
-		static const Property mainColorOfObject;
-
 		/**
-		* Links a localizable thing to its location.
+		* Describes the status of an agent actively looking at an object
+		* ('sees' doesn't imply the agent is actively looking at the object,
+		* but only that the object is in the field of view of the agent).
 		*/
-		static const Property objectFoundInLocation;
+		static const Property looksAt;
+
+		static const Property mainColorOfObject;
 
 		/**
 		* Binds an action to one or several objects which are targetted by the
@@ -149,18 +191,30 @@ class Properties {
 		*/
 		static const Property objectOfAction;
 
+		static const Property placeOf;
+
 		/**
-		* Instigator of some action.
-		* 
-		* Example: >John< killed Harry.
+		* Describes the status of an agent physically pointing at a physical
+		* location with a hand.
 		*/
-		static const Property performedBy;
+		static const Property pointsAt;
 
 		/**
 		* binds an action to a state of the world (a Situation) which is
 		* desired as a result (at short or long term) of this action.
 		*/
 		static const Property purposeOfAction;
+
+		/**
+		* This property represent the "active form" of the "isReachable"
+		* predicate.
+		* ?o isReachable true <=> myself reaches ?o
+		* 
+		* It is meant to be only use through rule inference, and is added to
+		* this "ROMAN" scenario specific ontology to ensure fluid interaction
+		* with the Natural Language module.
+		*/
+		static const Property reaches;
 
 		/**
 		* Link an action to the object or agent that is a recipient of the
@@ -255,6 +309,12 @@ class Properties {
 		static const Property isHolder;
 
 		/**
+		* Indicates if an enduring thing-localized is directly (ie, without
+		* moving) visible for the agent (myself).
+		*/
+		static const Property isInFieldOfView;
+
+		/**
 		* States if a given artifact is movable by someone (not specifying who).
 		*/
 		static const Property isMovable;
@@ -267,14 +327,18 @@ class Properties {
 		*/
 		static const Property isReachable;
 
+		static const Property isSitting;
+
 		static const Property isTraversable;
 
 		/**
-		* Indicates if an enduring thing-localized is visible for the agent
-		* (myself).
+		* Indicates if an enduring thing-localized is visible (modulo a head
+		* movement) for the agent (myself).
+		* 
+		* This means that the object may not be currently in the field of view
+		* of the agent, but only requires the agent to turn the head to see it.
 		*/
 		static const Property isVisible;
-
 };
 
 /** This class lists all the OWL concepts defined in the commonsense.oro.owl ontology.\n
@@ -289,29 +353,13 @@ class Classes {
 		static const Class Thing;
 
 		/**
-		* An action implies several thematic roles (or semantic roles):
+		* An "active concept" is a concept (class or instance) which is
+		* considered by the robot to be active at a given time.
 		* 
-		* We use this list of roles (Aarts 1997: 88), which are mapped to
-		* specific predicates :
-		* Agent: The ‘doer’ or instigator of the action denoted by the
-		* predicate.
-		* Patient: The ‘undergoer’ of the action or event denoted by the
-		* predicate.
-		* Theme: The entity that is moved by the action or event denoted by the
-		* predicate.
-		* Experiencer: The living entity that experiences the action or event
-		* denoted by the predicate.
-		* Goal: The location or entity in the direction of which something
-		* moves.
-		* Benefactive: The entity that benefits from the action or event
-		* denoted by the predicate.
-		* Source: The location or entity from which something moves
-		* Instrument: The medium by which the action or event denoted by the
-		* predicate is carried out.
-		* Locative: The specification of the place where the action or event
-		* denoted by the predicate in situated.
+		* "Active" may have several meaning, like "relevant in the current
+		* context" or "recently accessed".
 		*/
-		static const Class Action;
+		static const Class ActiveConcept;
 
 		/**
 		* Groups both humans and robots
@@ -339,13 +387,23 @@ class Classes {
 		*/
 		static const Class Artifact;
 
+		static const Class AudioTape;
+
+		static const Class BodyPart;
+
 		static const Class Book;
 
 		static const Class Bottle;
 
+		static const Class Box;
+
+		static const Class Cardboardbox;
+
 		static const Class Ceilling;
 
 		static const Class Chair;
+
+		static const Class Cloth;
 
 		static const Class Color;
 
@@ -357,42 +415,50 @@ class Classes {
 
 		static const Class ContinuousTimeInterval;
 
+		static const Class Cover;
+
 		static const Class Cup;
 
 		/**
-		* A specialization of both SpatialThing_Localized and SomethingExisting
-		* (qq.v.). Each instance of EnduringThing_Localized is a spatial
-		* enduring thing at which an event can occur or a situation can obtain.
-		* Positive examples include planets, the borders between countries,
-		* human beings, rocks, and atoms. Negative example include situations,
-		* events, abstract objects, and regions of space that exclusively act
-		* as possible locations for other spatial objects (see SpaceRegion). An
-		* important specialization of EnduringThing_Localized is Place (q.v.).
-		* The salient distinction between places (instances of Place) and
-		* locations (instances of EnduringThing_Localized) is that places are
-		* assumed to have relatively permanent locations, whereas locations
-		* need not have permanent locations. Thus, from the perspective of
-		* someone standing on a beach, the crest of a breaking wave can be a
-		* location at which foaming is occuring (thus an
-		* EnduringThing_Localized), but it cannot be such a place (i.e. it
-		* cannot be an instance of Place).
+		* An instance of EligibleAction is an action whose pre-conditions are
+		* currently fullfit, thus could possible be started.
 		*/
-		static const Class EnduringThing_Localized;
+		static const Class EligibleAction;
 
-		static const Class Event;
+		static const Class EmbodiedAgent;
+
+		static const Class Eyes;
 
 		static const Class Floor;
 
 		static const Class Furniture;
 
 		/**
-		* Artifact used to play with
+		* Artifact used to play with. One notable subclass is 'Toy'.
 		*/
 		static const Class GameArtifact;
 
+		static const Class Give;
+
 		static const Class Glass;
 
+		static const Class GraspableObject;
+
+		static const Class Hand;
+
+		static const Class Head;
+
 		static const Class Human;
+
+		static const Class Jacket;
+
+		/**
+		* A joint attention situation is a situation where an object is the
+		* focus of attention of more than one agent.
+		*/
+		static const Class JointAttentionSituation;
+
+		static const Class LeftHand;
 
 		/**
 		* Location is use in its very broad meaning of "a spatial-localized
@@ -400,24 +466,13 @@ class Classes {
 		*/
 		static const Class Location;
 
-		static const Class Object;
+		static const Class Manipulation;
 
-		static const Class Object_SupportingFurniture;
+		static const Class Object;
 
 		static const Class Obstacle;
 
 		static const Class Opening;
-
-		/**
-		* A subcollection of EnduringThing_Localized and TemporalThing. Each
-		* instance of PartiallyTangible has a tangible (i.e. material) part and
-		* a temporal extent (i.e. it exists in time). It might or might not
-		* also have an intangible part. For example, a particular copy of a
-		* book is made of matter, has temporal extent, and also has an
-		* intangible part: the information content of the text markings on its
-		* pages.
-		*/
-		static const Class PartiallyTangible;
 
 		/**
 		* A PhysicalSupport is a special kind of tangible object which main
@@ -426,43 +481,47 @@ class Classes {
 		*/
 		static const Class PhysicalSupport;
 
+		static const Class Pick;
+
 		/**
 		* A specialization of EnduringThing_Localized (q.v). Each instance of
 		* Place is a spatial thing which has a relatively permanent location.
 		*/
 		static const Class Place;
 
+		static const Class Placemat;
+
 		static const Class Plan;
 
-		static const Class Plan_ExpectedSituationType;
-
 		/**
-		* For ease of use, we use here "Point" as "Point-Empirical" in the Open
-		* Cyc ontology. The OpenCyc URI refers to the correct one
-		* ("Point-Empirical")
+		* A specialization of both Point and SpaceRegion_Empirical (qq.v.).
+		* Each instance of Point_Empirical is a zero-dimensional object that
+		* belongs to, and thus has a fixed location in, the embedding space of
+		* the empirical universe (see #$TheSpatialUniverse-Empirical).
+		* 
+		* Examples include the location of the center of mass of the Milky Way
+		* galaxy at the beginning of the 20th Century. Note that empirical
+		* space points are embedded in time; if time is not a significant
+		* parameter (i.e. if in an atemporal or temporally agnostic context)
+		* consider using Point instead.
 		*/
 		static const Class Point;
 
-		/**
-		* A specialization of both Action and AtLeastPartiallyMentalEvent. Each
-		* instance of PurposefulAction is an action consciously, volitionally,
-		* and purposefully done by (see performedBy) at least one actor.
-		*/
-		static const Class PurposefulAction;
+		static const Class Posture;
+
+		static const Class Put;
+
+		static const Class Release;
+
+		static const Class Rest;
+
+		static const Class RightHand;
 
 		static const Class Robot;
 
 		static const Class Shape;
 
 		static const Class Shelf;
-
-		/**
-		* Each instance of Situation is a state or event consisting of one or
-		* more objects having certain properties or bearing certain relations
-		* to each other. Notable specializations of Situation are Event and
-		* StaticSituation; it is disjoint with SomethingExisting.
-		*/
-		static const Class Situation;
 
 		/**
 		* A specialization of both SpatialThing and IntangibleIndividual
@@ -484,70 +543,29 @@ class Classes {
 		*/
 		static const Class SpaceRegion;
 
-		/**
-		* A specialization of Individual. The collection of all things that
-		* have a spatial extent or location relative to some other SpatialThing
-		* or in some embedding space. Note that to say that an entity is a
-		* member of this collection is to remain agnostic about two issues.
-		* First, a SpatialThing may be PartiallyTangible (e.g. Texas-State) or
-		* wholly Intangible (e.g. ArcticCircle or a line mentioned in a
-		* geometric theorem). Second, although we do insist on location
-		* relative to another spatial thing or in some embedding space, a
-		* SpatialThing might or might not be located in the actual physical
-		* universe. It is far from clear that all SpatialThings are so located:
-		* an ideal platonic circle or a trajectory through the phase space of
-		* some physical system (e.g.) might not be. If the intent is to imply
-		* location in the empirically observable cosmos, the user should employ
-		* this collection's specialization, SpatialThing-Localized.
-		*/
-		static const Class SpatialThing;
-
-		/**
-		* A specialization of both SpatialThing and TemporalThing. This is the
-		* collection of all spatial things, tangible or intangible, that can
-		* meaningfully be said to have location or position in the empirical
-		* universe.
-		* 
-		* Examples of spatially-localized things include all PartiallyTangible
-		* things, such as trees and ships, as well as certain Intangible
-		* spatial things, like the EarthsEquator. Also included are those
-		* events that can be pinned-down to specific places (see
-		* Event-Localized), and thus all PhysicalEvents. Excluded from this
-		* collection are any SpatialThings that are not localized, such as --
-		* arguably -- purely abstract geometrical figures (e.g. a Platonic
-		* sphere).
-		* 
-		* Note that a fictional or imaginary object (such as Frodo, Captain
-		* Queeg, or HAL9000-TheComputer) is typically localized with respect to
-		* the universe of the fictional/imagnary context in which it is found,
-		* and so is an instance of SpatialThing-Localized with respect to that
-		* context.
-		*/
-		static const Class SpatialThing_Localized;
-
-		/**
-		* A specialization of Situation. Each instance of StaticSituation is a
-		* state of affairs between two or more things, persisting statically
-		* over some time interval. IE, a state of the world.
-		*/
-		static const Class StaticSituation;
-
 		static const Class Table;
 
 		static const Class Tableware;
+
+		static const Class Tape;
 
 		/**
 		* An action considered in the specific context of robotics.
 		*/
 		static const Class Task;
 
-		static const Class TemporalThing;
-
-		static const Class TemporallyExtendedThing;
-
 		static const Class TimeInterval;
 
 		static const Class TimePoint;
+
+		/**
+		* A specialization of box used to carry tools.
+		*/
+		static const Class Toolbox;
+
+		static const Class Torso;
+
+		static const Class Toy;
 
 		/**
 		* A cube, traditionnaly made of wood, meant for children to play with.
@@ -555,6 +573,8 @@ class Classes {
 		static const Class ToyCube;
 
 		static const Class Trashbin;
+
+		static const Class Uncover;
 
 		/**
 		* A magnetic video support
