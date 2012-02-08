@@ -36,9 +36,29 @@
 #include "socket_connector.h"
 
 #ifdef DEBUG
-time_t msgTime;
-char msgTimeStr[80];
-#define TRACE(arg) {time(&msgTime); strftime (msgTimeStr,80,"%Y%m%d %H:%M:%S",localtime(&msgTime)); std::cout << "[LIBORO DEBUG] " << msgTimeStr << ": " << arg << std::endl;}
+
+char logtime[80];
+/** Compute and format a millisecond-accurate timestamp **/
+void timestamp(char* logtime)
+{
+	struct timeval  tv;
+	struct timezone tz;
+	struct tm      *tm;
+
+	gettimeofday(&tv, &tz);
+	tm = localtime(&tv.tv_sec);
+
+	sprintf(logtime, "%04d%02d%02d %d:%02d:%02d.%03d", 
+			    tm->tm_year + 1900,
+			    tm->tm_mon,
+			    tm->tm_mday,
+				tm->tm_hour,
+			    tm->tm_min, 
+				tm->tm_sec, 
+				((int)tv.tv_usec)/1000);
+}
+			 
+#define TRACE(arg) {timestamp(logtime); std::cout << "[LIBORO DEBUG] " << logtime << ": " << arg << std::endl;}
 #else
 #define TRACE(arg) sizeof(std::cout << arg << std::endl)
 #endif
