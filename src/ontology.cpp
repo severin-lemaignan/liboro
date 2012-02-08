@@ -803,6 +803,16 @@ string Ontology::registerEventForAgent(	OroEventObserver& callback,
 
 }
 
+void Ontology::clearEvents(){
+
+    TRACE("Got 'clearEvents' call");
+
+    ServerResponse res = _connector.execute("clearEvents");
+
+    if (res.status == ServerResponse::failed) throw OntologyServerException(("Server" + res.exception_msg + " while checking consistency. Server message was " + res.error_msg).c_str());
+}
+
+
 string Ontology::newId(int length)
 {
     string result;

@@ -702,6 +702,14 @@ public:
                                       const std::set<std::string>& pattern,
                                       const std::string& variable_to_bind = "");
 
+	/**
+	 * Removes all events currently registered on the main model.
+	 *
+	 * Be careful: this method will remove *all* events, not only the ones created
+	 * by this client.
+	 */
+    void clearEvents();
+
     /**
      * Saves the in-memory ontology model to a RDF/XML file.
      *
