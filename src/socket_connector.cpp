@@ -36,7 +36,9 @@
 #include "socket_connector.h"
 
 #ifdef DEBUG
-#define TRACE(arg) (std::cout << "[LIBORO DEBUG] " << arg << std::endl)
+time_t msgTime;
+char[80] msgTimeStr;
+#define TRACE(arg) {time(&msgTime); strftime (msgTimeStr,80,"%Y%m%d %H:%M:%S",localtime(&msgTime)); std::cout << "[LIBORO DEBUG] " << msgTimeStr << ": " << arg << std::endl}
 #else
 #define TRACE(arg) sizeof(std::cout << arg << std::endl)
 #endif
