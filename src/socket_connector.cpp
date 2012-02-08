@@ -37,8 +37,8 @@
 
 #ifdef DEBUG
 time_t msgTime;
-char[80] msgTimeStr;
-#define TRACE(arg) {time(&msgTime); strftime (msgTimeStr,80,"%Y%m%d %H:%M:%S",localtime(&msgTime)); std::cout << "[LIBORO DEBUG] " << msgTimeStr << ": " << arg << std::endl}
+char msgTimeStr[80];
+#define TRACE(arg) {time(&msgTime); strftime (msgTimeStr,80,"%Y%m%d %H:%M:%S",localtime(&msgTime)); std::cout << "[LIBORO DEBUG] " << msgTimeStr << ": " << arg << std::endl;}
 #else
 #define TRACE(arg) sizeof(std::cout << arg << std::endl)
 #endif
