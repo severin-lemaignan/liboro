@@ -16,7 +16,7 @@ SET(CMAKE_MODULE_PATH ${LIBORO_MODULE_PATH})
 #INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
 #LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )
 
-find_package(Boost 1.37 REQUIRED COMPONENTS thread)
+INCLUDE(FindBoost)
 set(BOOST_FOUND ${Boost_FOUND})
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "boost libraries "${Boost_LIBRARIES})
