@@ -190,7 +190,7 @@ public:
 
     void operator()(const std::string & str)
     {
-        args += str + MSG_SEPARATOR;
+        args += "\"" + str + "\"" + MSG_SEPARATOR;
     }
 
     void operator()(const bool b)
