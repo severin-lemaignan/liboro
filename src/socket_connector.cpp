@@ -373,7 +373,7 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
         }
 */
 
-    if (rawResult.size() < 2 || rawResult.size() > 3) {
+    if (rawResult.size() < 1 || rawResult.size() > 3) {
         res.status = ServerResponse::failed;
         res.exception_msg = "OntologyServerException";
         res.error_msg = "Internal server error! Wrong number of result element returned by the server.";
@@ -447,6 +447,11 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
         res.status = ServerResponse::ok;
         res.raw_result = rawResult[1];
         //cout << "[II] Raw result: " << rawResult[1] << endl;
+
+        if (rawResult.size() == 1) {
+            res.result = true;
+            return;
+        }
 
         try {
             deserialize(rawResult[1], res.result);
