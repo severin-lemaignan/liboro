@@ -1,65 +1,53 @@
-# The name of the project is "LIBORO". CMakeLists files in this project can
-# refer to the root source directory of the project as ${LIBORO_SOURCE_DIR} and
-# to the root binary directory of the project as ${LIBORO_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.6)
-PROJECT(liboro)
-
-#Uncomment next line to get verbose makefiles.
-#SET(CMAKE_VERBOSE_MAKEFILE true)
+project(liboro)
 
 # Pick up our scripts - they are all in the conf subdirectory
-SET(LIBORO_MODULE_PATH ${PROJECT_SOURCE_DIR}/conf)
-SET(CMAKE_MODULE_PATH ${LIBORO_MODULE_PATH})
+set(LIBORO_MODULE_PATH ${PROJECT_SOURCE_DIR}/conf)
+set(CMAKE_MODULE_PATH ${LIBORO_MODULE_PATH})
 
-#Include boost libraries
-#FIND_PACKAGE(Boost 1.34)
-#INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
-#LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )
-
-INCLUDE(FindBoost)
-set(BOOST_FOUND ${Boost_FOUND})
+find_package(Boost REQUIRED COMPONENTS system thread)
 include_directories(${Boost_INCLUDE_DIRS})
-message(STATUS "boost libraries "${Boost_LIBRARIES})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
-SET(BUILD_SHARED_LIBS true)
+set(BUILD_SHARED_LIBS true)
 
 # Get the current liboro version
-INCLUDE(LiboroVersion)
-ADD_DEFINITIONS(-pthread -DORO_VERSION="${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+include(LiboroVersion)
+add_definitions(-pthread -DORO_VERSION="${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
-INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
+include("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
+
+add_subdirectory(src)
 
 ##########################################
 ##       PKGCONFIG file                ###
 ##########################################
 
-IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
-    MESSAGE(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc")
-    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in 
-      ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
-      @ONLY )
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in 
+                   ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
+                   @ONLY)
+    message(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/liboro.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc")
 
-	INSTALL(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
-		DESTINATION lib/pkgconfig
-	)
-ENDIF()
+    install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/liboro.pc
+            DESTINATION lib/pkgconfig)
+endif()
 
 ##########################################
 ##           Options                   ###
 ##########################################
 
-OPTION (COMPILE_TESTS "Compile test/demo applications" OFF)
-OPTION (DEBUG "Display debug messages" OFF)
 
-IF (DEBUG)
-	ADD_DEFINITIONS(-DDEBUG)
-ENDIF()
+option (COMPILE_TESTS "Compile test/demo applications" OFF)
+option (DEBUG "Display debug messages" OFF)
 
-ADD_SUBDIRECTORY (src)
+if (DEBUG)
+    add_definitions(-DDEBUG)
+endif()
 
-IF (COMPILE_TESTS)
-	ADD_SUBDIRECTORY (testing) 
-ENDIF()
+
+if (COMPILE_TESTS)
+    add_subdirectory (testing) 
+endif()
 
