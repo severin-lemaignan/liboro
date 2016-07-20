@@ -39,7 +39,7 @@ endif()
 ##########################################
 
 
-option (COMPILE_TESTS "Compile test/demo applications" OFF)
+option (COMPILE_TOOLS "Compile tools and tests applications" OFF)
 option (DEBUG "Display debug messages" OFF)
 
 if (DEBUG)
@@ -47,7 +47,7 @@ if (DEBUG)
 endif()
 
 
-if (COMPILE_TESTS)
-    add_subdirectory (testing) 
+if (COMPILE_TOOLS)
+    add_subdirectory (tools) 
 endif()
 
