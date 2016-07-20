@@ -41,26 +41,26 @@ char logtime[80];
 /** Compute and format a millisecond-accurate timestamp **/
 void timestamp(char* logtime)
 {
-	struct timeval  tv;
-	struct timezone tz;
-	struct tm      *tm;
+    struct timeval  tv;
+    struct timezone tz;
+    struct tm      *tm;
 
-	gettimeofday(&tv, &tz);
-	tm = localtime(&tv.tv_sec);
+    gettimeofday(&tv, &tz);
+    tm = localtime(&tv.tv_sec);
 
-	sprintf(logtime, "%04d%02d%02d %d:%02d:%02d.%03d", 
-			    tm->tm_year + 1900,
-			    tm->tm_mon,
-			    tm->tm_mday,
-				tm->tm_hour,
-			    tm->tm_min, 
-				tm->tm_sec, 
-				((int)tv.tv_usec)/1000);
+    sprintf(logtime, "%04d%02d%02d %d:%02d:%02d.%03d", 
+            tm->tm_year + 1900,
+            tm->tm_mon,
+            tm->tm_mday,
+            tm->tm_hour,
+            tm->tm_min, 
+            tm->tm_sec, 
+            ((int)tv.tv_usec)/1000);
 }
-			 
-#define TRACE(arg) {timestamp(logtime); std::cout << "[LIBORO DEBUG] " << logtime << ": " << arg << std::endl;}
+
+#define TRACE(arg) {timestamp(logtime); std::cerr << "[LIBORO DEBUG] " << logtime << ": " << arg << std::endl;}
 #else
-#define TRACE(arg) sizeof(std::cout << arg << std::endl)
+#define TRACE(arg) sizeof(std::cerr << arg << std::endl)
 #endif
 
 using namespace std;
@@ -95,16 +95,16 @@ SocketConnector::SocketConnector(const string& hostname, const string& port) :
 }
 
 SocketConnector::~SocketConnector(){
-    cout << "Waiting for all pending request to finish...";
+    cerr << "Waiting for all pending request to finish...";
     if (_isConnected) {
         execute("stats", true); //permit to wait for all previous call to be completed
     }
 
-    cout << "done.\nStopping the event listener...";
+    cerr << "done.\nStopping the event listener...";
      _goOn = false;
     _eventListnerThrd.join();
 
-    cout << "done.\nClosing socket connection...";
+    cerr << "done.\nClosing socket connection...";
 
     if (_isConnected) {
         execute("close", false); //don't wait for ack, it won't come!
@@ -112,7 +112,7 @@ SocketConnector::~SocketConnector(){
         _isConnected = false;
     }
 
-    cout << "done." << endl;
+    cerr << "done." << endl;
 }
 
 bool SocketConnector::isConnected() {return _isConnected;}
@@ -143,7 +143,7 @@ void SocketConnector::oro_connect(const string& hostname, const string& port){
     /* resolve host address */
     if ((err = getaddrinfo(hostname.c_str(), port.c_str(), NULL, &haddr)) != 0) {
         close(sockfd);
-        cout << "Error: " << gai_strerror(err) << endl;
+        cerr << "Error: " << gai_strerror(err) << endl;
         throw ConnectorException("Cannot get remote host addresses");
     }
 
@@ -310,14 +310,11 @@ ssize_t SocketConnector::readline(int fd, char *bufp, size_t maxlen)
 
     err = recv(fd, bufp, size_request, 0);
     bufp[err] = 0;
-    //cout << "DEBUG >>> reading " << bufp << endl;
     return err;
 
 }
 
 void SocketConnector::read(ServerResponse& res, bool only_events){
-
-    //cout << "Waiting for answer..." << endl;
 
     vector<string> rawResult;
 
@@ -348,8 +345,6 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
         string field(buffer);
 
-        //cout << "[II RAW] bytes read: " << bytes_read << endl;
-        //cout << "[II RAW] " << field;
         if (field == MSG_FINALIZER)
             break;
 
@@ -446,7 +441,6 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
 
         res.status = ServerResponse::ok;
         res.raw_result = rawResult[1];
-        //cout << "[II] Raw result: " << rawResult[1] << endl;
 
         if (rawResult.size() == 1) {
             res.result = true;
@@ -642,7 +636,6 @@ void SocketConnector::deserialize(const string& msg, server_return_types& result
              )
     {
         result = makeCollec(msg);
-        //cout << "[II] Collec!" << endl;
     }
     else {
         try {
@@ -656,8 +649,6 @@ void SocketConnector::deserialize(const string& msg, server_return_types& result
         } catch (const bad_lexical_cast &e) {}
 
         result = msg;
-        //cout << "[II] Str!" << msg << endl;
-
     }
 
 }

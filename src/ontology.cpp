@@ -22,9 +22,9 @@
 #include "oro_exceptions.h"
 
 #ifdef DEBUG
-#define TRACE(arg) (std::cout << "[LIBORO DEBUG] " << arg << std::endl)
+#define TRACE(arg) (std::cerr << "[LIBORO DEBUG] " << arg << std::endl)
 #else
-#define TRACE(arg) sizeof(std::cout << arg << std::endl)
+#define TRACE(arg) sizeof(std::cerr << arg << std::endl)
 #endif
 
 
@@ -40,7 +40,7 @@ map<string, Ontology::EventObserver> Ontology::_eventObservers;
 // Protected constructor
 Ontology::Ontology(IConnector& connector) : _connector(connector) {
 
-    cout << "liboro v." << ORO_VERSION;
+    cerr << "liboro v." << ORO_VERSION;
     //Initializes the random generator for later generation of unique id for concepts.
     srand(time(NULL));
 
@@ -67,7 +67,7 @@ Ontology* Ontology::createWithConnector(IConnector& connector){
     if (_instance == NULL)
         _instance = new Ontology(connector);
 
-    cout << " - ontology initialized." << endl;
+    cerr << " - ontology initialized." << endl;
 
     return _instance;
 }
@@ -87,7 +87,7 @@ bool Ontology::checkOntologyServer(){
 
     try {
         string version = (get<map<string, string> >(res.result))["version"];
-        cout << " - oro-server v." << version;
+        cerr << " - oro-server v." << version;
     } catch (bad_get e) {
         cerr << "Internal error: oro-server answered malformed results at initialization!";
         return false;
@@ -197,7 +197,7 @@ void Ontology::addToBuffer(const string action, const Statement& stmt) {
     // If the connector is disconnected, don't bufferize anything anymore
     // and clear the buffer.
     if (!_connector.isConnected()) {
-        cout << "[WW] Server disconnected, discarding buffered facts" << endl;
+        cerr << "[WW] Server disconnected, discarding buffered facts" << endl;
 
         _buffer["add"].clear();
         _buffer["remove"].clear();
@@ -795,7 +795,7 @@ string Ontology::registerEventForAgent(	OroEventObserver& callback,
         EventObserver e(&callback, oneShot);
         _eventObservers[event_id] = e;
 
-        cout << "[II] New event registered with id " << event_id << endl;
+        cerr << "[II] New event registered with id " << event_id << endl;
 
     }
 
