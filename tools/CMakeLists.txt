@@ -1,4 +1,4 @@
-
+set(CMAKE_CXX_FLAGS "-std=c++11")
 include_directories(../src)
 
 ##################################################
@@ -20,6 +20,17 @@ add_executable (oro-query oro_query.cpp)
 target_link_libraries (oro-query oro ${LIBS}) 
 
 install (TARGETS oro-query RUNTIME DESTINATION bin)
+
+##################################################
+#                ORO-ADD                       #
+##################################################
+
+add_executable (oro-add oro_add.cpp)
+
+target_link_libraries (oro-add oro ${LIBS}) 
+
+install (TARGETS oro-add RUNTIME DESTINATION bin)
+
 
 ##################################################
 #                ORO-EXPORT                      #

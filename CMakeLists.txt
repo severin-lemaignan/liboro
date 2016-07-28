@@ -5,7 +5,7 @@ project(liboro)
 set(LIBORO_MODULE_PATH ${PROJECT_SOURCE_DIR}/conf)
 set(CMAKE_MODULE_PATH ${LIBORO_MODULE_PATH})
 
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost REQUIRED COMPONENTS system thread program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
