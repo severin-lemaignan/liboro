@@ -440,13 +440,13 @@ void SocketConnector::read(ServerResponse& res, bool only_events){
     if (rawResult[0] == OK){
 
         res.status = ServerResponse::ok;
-        res.raw_result = rawResult[1];
 
         if (rawResult.size() == 1) {
             res.result = true;
             return;
         }
 
+        res.raw_result = rawResult[1];
         try {
             deserialize(rawResult[1], res.result);
         } catch (OntologyServerException ose) {
