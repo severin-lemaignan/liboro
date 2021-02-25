@@ -30,7 +30,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/thread/locks.hpp>
+//#include <boost/thread/locks.hpp>
 
 #include "oro_exceptions.h"
 #include "socket_connector.h"
@@ -220,7 +220,7 @@ ServerResponse SocketConnector::execute(const string& query,
     ServerResponse res;
 
     {
-        unique_lock<mutex> lock(outbound_lock);
+        boost::unique_lock<boost::mutex> lock(outbound_lock);
 
         if(waitForAck) {
             while (outbound_results.empty()) {
@@ -500,7 +500,7 @@ void SocketConnector::run(){
 
 		if (res.status != ServerResponse::discarded)
 		{
-		    lock_guard<mutex> lock(outbound_lock);
+            boost::lock_guard<boost::mutex> lock(outbound_lock);
 
 		    outbound_results.push(res);
 		    gotResult.notify_all();
@@ -518,7 +518,7 @@ void SocketConnector::run(){
 		//disconnection.
 		if(res.status == ServerResponse::failed)
 		{
-		    lock_guard<mutex> lock(outbound_lock);
+            boost::lock_guard<boost::mutex> lock(outbound_lock);
 
 		    outbound_results.push(res);
 		    gotResult.notify_all();
